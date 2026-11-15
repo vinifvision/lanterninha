@@ -92,6 +92,24 @@ input::placeholder{color:#636366}
 @keyframes up{from{transform:translateY(100%)}}
 .brand{display:flex;align-items:center;gap:11px;font-size:17px;font-weight:600;letter-spacing:-.2px;margin-bottom:26px}
 .brand img{border-radius:10px}
+.sr{background:var(--card);border-radius:18px;overflow:hidden;margin:-2px 0 12px}
+.sr:empty{display:none}
+.sri{width:100%;display:flex;align-items:center;gap:12px;padding:10px 14px;background:none;border:none;border-bottom:1px solid var(--card2);
+  color:var(--text);font:inherit;text-align:left;animation:in .3s both}
+.sri:last-child{border:none}
+.sri:active{background:var(--card2)}
+.sri img,.sri i{width:38px;height:57px;border-radius:6px;object-fit:cover;background:var(--card2);flex:none}
+.sri b{display:block;font-size:16px;font-weight:500}
+.sri small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.sri div{min-width:0}.sri b,.sri small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc{align-items:center}
+.rc span{display:flex;align-items:center;gap:10px;min-width:0}
+.rc span em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc img{width:26px;height:39px;border-radius:4px;object-fit:cover;flex:none}
+.poster{display:block;width:118px;height:177px;object-fit:cover;border-radius:14px;margin:0 auto 18px;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.film small{display:block;text-transform:none;letter-spacing:0;font-size:13px;margin-top:3px;opacity:.8}
+.credit{margin-top:30px;text-align:center;color:#55555a;font-size:12px}
+.credit a{color:inherit}
 </style>
 </head>
 <body>
@@ -104,6 +122,9 @@ input::placeholder{color:#636366}
 </div>
 
 <script>
+// A busca de filmes passa por api/search.js (função no servidor). A chave do TMDB fica só lá, nunca neste arquivo.
+const IMG='https://image.tmdb.org/t/p/';
+
 const V=[1,.78,.55,.3,.05];
 const BASE = [
   {q:'Como você saiu do filme?', w:3, o:['Apaixonado','Feliz, gostei bastante','Satisfeito, foi ok','Meio frustrado','Decepcionado']},
@@ -124,7 +145,8 @@ const REWATCH = [
 const LABELS={5:'Obra-prima',4.5:'Excelente',4:'Muito bom',3.5:'Bom',3:'Legal',2.5:'Mediano',2:'Fraco',1.5:'Ruim',1:'Muito ruim',.5:'Desastre'};
 const STAR='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
 
-let QS=BASE, step=-1, ans=[], title='', classic=false, stars=3, base=3, rival=null, saved=false, rewatch=null, replaced=null;
+let QS=BASE, step=-1, ans=[], title='', classic=false, stars=3, base=3, rival=null, saved=false, rewatch=null, replaced=null, movie=null;
+const sameFilm=h=>(movie&&h.id)?h.id===movie.id:h.t.toLowerCase()===title.toLowerCase();
 const buildQS=()=>BASE.concat(rewatch?REWATCH:[],classic?CLASSIC:[]);
 const stage=document.getElementById('stage'), back=document.getElementById('back'), bar=document.getElementById('bar'), fill=document.getElementById('fill');
 const esc=s=>s.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
@@ -155,19 +177,47 @@ function pick(cb){
 
 function home(){
   step=-1; ans=[]; saved=false; rival=null; rewatch=null; replaced=null; chrome('home');
-  const rec=hist.slice(0,8).map((h,i)=>`<button class="rc" data-i="${i}"><span>${esc(h.t)}</span><b>${h.n>1?'↻ ':''}★ ${fmt(h.s)}</b></button>`).join('');
+  const rec=hist.slice(0,8).map((h,i)=>`<button class="rc" data-i="${i}"><span>${h.img?`<img src="${IMG}w92${h.img}" alt="" onerror="this.remove()">`:''}<em>${esc(h.t)}</em></span><b>${h.n>1?'↻ ':''}★ ${fmt(h.s)}</b></button>`).join('');
   show(`<div class="brand"><img src="logo.svg" alt="" width="40" height="40">Lanterninha</div>
     <h1>Que nota<br>dar pro filme?</h1>
     <p class="sub">Perguntas rápidas sobre o que você sentiu.</p>
-    <input type="text" id="t" placeholder="Nome do filme" maxlength="80" value="${esc(title)}">
+    <input type="text" id="t" placeholder="Nome do filme" maxlength="80" value="${esc(title)}" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="sr" id="sr"></div>
     <button class="sw${classic?' on':''}" id="sw" role="switch" aria-checked="${classic}">Clássico ou filme antigo<i></i></button>
     <button class="cta" id="go">Começar</button>
-    ${rec?`<div class="recent"><h3>Recentes</h3>${rec}</div>`:''}`,()=>{
+    ${rec?`<div class="recent"><h3>Recentes</h3>${rec}</div>`:''}
+    <p class="credit">Dados e imagens de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a></p>`,()=>{
+    setupSearch();
     const sw=document.getElementById('sw');
     sw.onclick=()=>{classic=!classic; sw.classList.toggle('on',classic); sw.setAttribute('aria-checked',classic);};
     stage.querySelectorAll('.rc').forEach(b=>b.onclick=()=>sheet(+b.dataset.i));
-    document.getElementById('go').onclick=()=>{title=document.getElementById('t').value.trim(); rewatch=title?hist.find(h=>h.t.toLowerCase()===title.toLowerCase())||null:null; QS=buildQS(); step=0; question();};
+    document.getElementById('go').onclick=()=>{title=document.getElementById('t').value.trim(); rewatch=title?hist.find(sameFilm)||null:null; QS=buildQS(); step=0; question();};
   });
+}
+
+function setupSearch(){
+  const inp=document.getElementById('t'), box=document.getElementById('sr'), sw=document.getElementById('sw');
+  let timer=null, ctl=null;
+  inp.oninput=()=>{
+    movie=null; clearTimeout(timer); if(ctl) ctl.abort();
+    const q=inp.value.trim();
+    if(q.length<2){box.innerHTML=''; return;}
+    timer=setTimeout(async()=>{
+      try{
+        ctl=new AbortController();
+        const r=await fetch('api/search?q='+encodeURIComponent(q),{signal:ctl.signal});
+        if(!r.ok) throw 0;
+        const list=(await r.json()).results||[];
+        if(inp.value.trim()!==q) return;
+        box.innerHTML=list.map((m,i)=>`<button class="sri" data-i="${i}">${m.poster?`<img src="${IMG}w92${m.poster}" alt="" loading="lazy">`:'<i></i>'}
+          <div><b>${esc(m.title)}</b><small>${esc([m.original!==m.title?m.original:'',m.year].filter(Boolean).join(' · '))}</small></div></button>`).join('');
+        box.querySelectorAll('.sri').forEach(b=>b.onclick=()=>{
+          movie=list[+b.dataset.i]; inp.value=movie.title; box.innerHTML=''; inp.blur();
+          if(movie.year&&+movie.year<=new Date().getFullYear()-35&&!classic){classic=true; sw.classList.add('on'); sw.setAttribute('aria-checked',true);}
+        });
+      }catch(e){ if(!e||e.name!=='AbortError') box.innerHTML=''; }
+    },320);
+  };
 }
 
 function sheet(i){
@@ -180,7 +230,7 @@ function sheet(i){
     const a=e.target.dataset.a; if(!a&&e.target!==d) return;
     d.remove();
     if(a==='del'){hist.splice(i,1); saveH(); home();}
-    if(a==='redo'||a==='re'){title=h.t; classic=!!h.c; rewatch=a==='re'?h:null; QS=buildQS(); step=0; ans=[]; question();}
+    if(a==='redo'||a==='re'){title=h.t; movie=h.id?{id:h.id,title:h.t,original:h.o,year:h.y,poster:h.img}:null; classic=!!h.c; rewatch=a==='re'?h:null; QS=buildQS(); step=0; ans=[]; question();}
   };
   document.body.appendChild(d);
 }
@@ -199,7 +249,7 @@ function compute(){
 }
 function afterQuestions(){
   base=stars=compute();
-  const ok=h=>h.t.toLowerCase()!==title.toLowerCase()&&Math.abs(h.s-base)<=.5;
+  const ok=h=>!sameFilm(h)&&Math.abs(h.s-base)<=.5;
   rival=hist.find(h=>ok(h)&&!!h.c===classic)||hist.find(ok)||null;
   rival?compare():result(true);
 }
@@ -231,13 +281,14 @@ function rw(){
   return 'Antes ★ '+fmt(rewatch.s)+' · '+(d>0?'Cresceu na revisão':d<0?'Caiu na revisão':'Continua igual');
 }
 function result(){
-  if(title&&!saved){const same=h=>h.t.toLowerCase()===title.toLowerCase();
+  if(title&&!saved){const same=sameFilm;
     replaced=hist.find(same)||null; hist=hist.filter(h=>!same(h));
-    const e={t:title,s:stars,c:classic}; if(rewatch){e.p=rewatch.s; e.n=(rewatch.n||1)+1;} else if(replaced&&replaced.n){e.p=replaced.p; e.n=replaced.n;}
+    const e={t:title,s:stars,c:classic}; if(movie){e.id=movie.id; e.y=movie.year; e.o=movie.original; e.img=movie.poster;} if(rewatch){e.p=rewatch.s; e.n=(rewatch.n||1)+1;} else if(replaced&&replaced.n){e.p=replaced.p; e.n=replaced.n;}
     hist.unshift(e); saved=true; saveH();}
   chrome('res');
   show(`<div class="center">
-    <div class="film">${esc(title)}</div>
+    ${movie&&movie.poster?`<img class="poster" src="${IMG}w342${movie.poster}" alt="" onerror="this.remove()">`:''}
+    <div class="film">${esc(title)}${movie?`<small>${esc([movie.original&&movie.original!==title?movie.original:'',movie.year||''].filter(Boolean).join(' · '))}</small>`:''}</div>
     <div class="stars" id="st">${starsHTML(stars,true)}</div>
     <div class="num" id="num">${fmt(stars)}</div>
     <div class="label" id="lb">${LABELS[stars]}</div>
@@ -256,7 +307,7 @@ function result(){
     };
     document.getElementById('minus').onclick=()=>upd(-.5);
     document.getElementById('plus').onclick=()=>upd(.5);
-    document.getElementById('again').onclick=()=>{title=''; classic=false; home();};
+    document.getElementById('again').onclick=()=>{title=''; movie=null; classic=false; home();};
   });
 }
 
