@@ -1154,6 +1154,134 @@
           display: none;
         }
       }
+      .share {
+        width: 100%;
+        margin-top: 30px;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1.5px solid rgba(227, 180, 104, 0.45);
+        background: var(--gold-soft);
+        color: var(--gold);
+        font: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: transform 0.15s;
+      }
+      .share:active {
+        transform: scale(0.97);
+      }
+      .share svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .share + .acts {
+        margin-top: 12px;
+      }
+      .meta + .share {
+        margin: 0 0 10px;
+      }
+      .shr {
+        position: fixed;
+        inset: 0;
+        z-index: 7;
+        background: rgba(6, 6, 7, 0.94);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 18px 22px 26px;
+        animation: fade 0.25s both;
+        overflow: auto;
+      }
+      .shr .x {
+        align-self: flex-end;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: var(--card);
+        color: var(--text);
+        font-size: 18px;
+        flex: none;
+      }
+      .shr .pv {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin: 14px 0;
+      }
+      .shr .pv img {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        animation: in 0.4s both;
+      }
+      .shr .seg {
+        width: 100%;
+        max-width: 436px;
+        flex: none;
+      }
+      .shr .row {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        max-width: 436px;
+        flex: none;
+      }
+      .shr .row .cta {
+        flex: 1;
+      }
+      .shr .row .ghost2 {
+        background: var(--card);
+        color: var(--text);
+      }
+      .shr small {
+        color: var(--muted);
+        font-size: 13px;
+        min-height: 18px;
+        margin-top: 10px;
+      }
+      .prov {
+        margin: 4px 0 14px;
+      }
+      .prov em {
+        display: block;
+        font-style: normal;
+        color: var(--muted);
+        font-size: 13px;
+        margin: 12px 0 8px;
+      }
+      .prov div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .prov img {
+        width: 46px;
+        height: 46px;
+        border-radius: 11px;
+        background: var(--card);
+      }
+      .prov span {
+        padding: 9px 12px;
+        border-radius: 11px;
+        background: var(--card);
+        font-size: 13px;
+      }
     </style>
   </head>
   <body>
@@ -1733,12 +1861,303 @@
             dur,
             (m.genres || []).join(", "),
           ].filter(Boolean);
+          const pv = m.providers || {},
+            grp = (label, list) =>
+              list && list.length
+                ? `<em>${label}</em><div>${list.map((x) => (/^\/[\w.-]+$/.test(x.logo || "") ? `<img src="${IMG}w92${x.logo}" alt="${esc(x.name)}" title="${esc(x.name)}" loading="lazy">` : `<span>${esc(x.name)}</span>`)).join("")}</div>`
+                : "";
+          const where =
+            grp("Streaming", pv.stream) +
+            grp("Alugar", pv.rent) +
+            grp("Comprar", pv.buy);
+          let html = "";
           if (m.overview || facts.length)
-            box.innerHTML = `<h3 class="sec">Sobre o filme</h3>${m.overview ? `<p>${esc(m.overview)}</p>` : ""}${facts.map((f) => `<small>${esc(f)}</small>`).join("")}`;
+            html += `<h3 class="sec">Sobre o filme</h3>${m.overview ? `<p>${esc(m.overview)}</p>` : ""}${facts.map((f) => `<small>${esc(f)}</small>`).join("")}`;
+          html += `<h3 class="sec">Onde assistir</h3><div class="prov">${where || "<small>Não achei esse filme em streaming no Brasil agora.</small>"}${where ? '<small style="margin-top:12px">Disponibilidade no Brasil · dados da JustWatch</small>' : ""}</div>`;
+          box.innerHTML = html;
         } catch (e) {
           delete aboutCache[h.id];
         }
       }
+      // ---------- Imagem para compartilhar
+      const loadImg = (src) =>
+        new Promise((res) => {
+          const i = new Image();
+          i.onload = () => res(i);
+          i.onerror = () => res(null);
+          i.src = src;
+        });
+      function wrapText(ctx, text, maxW, maxLines) {
+        const words = text.split(/\s+/),
+          lines = [];
+        let line = "";
+        for (const w of words) {
+          const t = line ? line + " " + w : w;
+          if (ctx.measureText(t).width <= maxW || !line) line = t;
+          else {
+            lines.push(line);
+            line = w;
+          }
+        }
+        if (line) lines.push(line);
+        if (lines.length > maxLines) {
+          lines.length = maxLines;
+          let l = lines[maxLines - 1];
+          while (l.length > 1 && ctx.measureText(l + "…").width > maxW)
+            l = l.slice(0, -1);
+          lines[maxLines - 1] = l.replace(/[\s,.;:]+$/, "") + "…";
+        }
+        return lines;
+      }
+      function rrect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+      async function makeCard(h, story) {
+        const W = 1080,
+          H = story ? 1920 : 1350,
+          FONT =
+            '-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Inter,Roboto,Arial,sans-serif';
+        const cv = document.createElement("canvas");
+        cv.width = W;
+        cv.height = H;
+        const c = cv.getContext("2d");
+        const [poster, logo] = await Promise.all([
+          h.img
+            ? loadImg("api/img?size=w500&path=" + encodeURIComponent(h.img))
+            : null,
+          loadImg("logo.svg"),
+        ]);
+        c.fillStyle = "#0a0a0c";
+        c.fillRect(0, 0, W, H);
+        if (poster) {
+          // fundo: o pôster bem desfocado (reduz e amplia, funciona em qualquer navegador)
+          const t = document.createElement("canvas");
+          t.width = 18;
+          t.height = 27;
+          t.getContext("2d").drawImage(poster, 0, 0, 18, 27);
+          c.save();
+          c.globalAlpha = 0.6;
+          c.imageSmoothingEnabled = true;
+          c.imageSmoothingQuality = "high";
+          const sc = Math.max(W / 18, H / 27) * 1.15;
+          c.drawImage(
+            t,
+            (W - 18 * sc) / 2,
+            (H - 27 * sc) / 2,
+            18 * sc,
+            27 * sc,
+          );
+          c.restore();
+        }
+        let g = c.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "rgba(10,10,12,.45)");
+        g.addColorStop(0.55, "rgba(10,10,12,.78)");
+        g.addColorStop(1, "rgba(10,10,12,.97)");
+        c.fillStyle = g;
+        c.fillRect(0, 0, W, H);
+        g = c.createRadialGradient(W * 0.3, 0, 0, W * 0.3, 0, W);
+        g.addColorStop(0, "rgba(227,180,104,.20)");
+        g.addColorStop(1, "rgba(227,180,104,0)");
+        c.fillStyle = g;
+        c.fillRect(0, 0, W, H);
+
+        const note = (h.note || "").trim(),
+          fy = H - (story ? 190 : 120),
+          top = story ? 150 : 70,
+          avail = fy - 50 - top;
+        c.font = `700 66px ${FONT}`;
+        const tl = wrapText(c, h.t, 900, 2);
+        c.font = `400 40px ${FONT}`;
+        const nl = note
+          ? wrapText(c, "“" + note + "”", 880, story ? 6 : 3)
+          : [];
+        const sub = [h.o && h.o !== h.t ? h.o : "", h.y || ""]
+          .filter(Boolean)
+          .join(" · ");
+        const rest =
+          tl.length * 78 +
+          (sub ? 56 : 10) +
+          50 +
+          96 +
+          26 +
+          52 +
+          (nl.length ? 44 + nl.length * 58 : 0);
+        // o pôster ocupa o espaço que sobrar, até um tamanho máximo
+        const ph = poster ? Math.min(story ? 810 : 660, avail - rest - 70) : 0,
+          pw = ph / 1.5;
+        let y = top + (avail - (rest + (poster ? ph + 70 : 0))) / 2;
+        if (poster) {
+          const x = (W - pw) / 2;
+          c.save();
+          c.shadowColor = "rgba(0,0,0,.65)";
+          c.shadowBlur = 70;
+          c.shadowOffsetY = 30;
+          rrect(c, x, y, pw, ph, 30);
+          c.fillStyle = "#111";
+          c.fill();
+          c.restore();
+          c.save();
+          rrect(c, x, y, pw, ph, 30);
+          c.clip();
+          c.drawImage(poster, x, y, pw, ph);
+          c.restore();
+          y += ph + 70;
+        }
+        c.textAlign = "center";
+        c.textBaseline = "top";
+        c.fillStyle = "#f5f5f7";
+        c.font = `700 66px ${FONT}`;
+        tl.forEach((l) => {
+          c.fillText(l, W / 2, y);
+          y += 78;
+        });
+        if (sub) {
+          c.fillStyle = "#a1a1a8";
+          c.font = `400 36px ${FONT}`;
+          c.fillText(wrapText(c, sub, 900, 1)[0], W / 2, y + 6);
+          y += 56;
+        } else y += 10;
+        y += 50;
+        const sz = 96,
+          gap = 16,
+          sx = (W - (5 * sz + 4 * gap)) / 2,
+          path = new Path2D(STAR);
+        for (let i = 0; i < 5; i++) {
+          const x = sx + i * (sz + gap),
+            f = Math.max(0, Math.min(1, h.s - i));
+          c.save();
+          c.translate(x, y);
+          c.scale(sz / 24, sz / 24);
+          c.fillStyle = "rgba(255,255,255,.16)";
+          c.fill(path);
+          if (f > 0) {
+            c.beginPath();
+            c.rect(0, 0, 24 * f, 24);
+            c.clip();
+            c.fillStyle = "#e3b468";
+            c.fill(path);
+          }
+          c.restore();
+        }
+        y += sz + 26;
+        c.fillStyle = "#e3b468";
+        c.font = `600 44px ${FONT}`;
+        c.fillText(fmt(h.s) + "  ·  " + LABELS[h.s], W / 2, y);
+        y += 52;
+        if (nl.length) {
+          y += 44;
+          c.fillStyle = "#e9e9ee";
+          c.font = `400 40px ${FONT}`;
+          nl.forEach((l) => {
+            c.fillText(l, W / 2, y);
+            y += 58;
+          });
+        }
+        // assinatura
+        c.font = `600 38px ${FONT}`;
+        const tw = c.measureText("Lanterninha").width,
+          lw = logo ? 64 : 0,
+          total = lw + (logo ? 18 : 0) + tw,
+          fx = (W - total) / 2;
+        if (logo) {
+          c.save();
+          rrect(c, fx, fy, 64, 64, 15);
+          c.clip();
+          c.drawImage(logo, fx, fy, 64, 64);
+          c.restore();
+        }
+        c.textAlign = "left";
+        c.fillStyle = "rgba(245,245,247,.9)";
+        c.fillText("Lanterninha", fx + lw + (logo ? 18 : 0), fy + 12);
+        return new Promise((res) => cv.toBlob(res, "image/png"));
+      }
+      function shareSheet(h) {
+        const d = document.createElement("div");
+        d.className = "shr";
+        let story = false,
+          blob = null,
+          url = "";
+        d.innerHTML = `<button class="x" aria-label="Fechar">✕</button><div class="pv" id="pv"></div>
+    <div class="seg"><button data-f="0" class="on">Post</button><button data-f="1">Story</button></div>
+    <div class="row"><button class="cta ghost2" id="sv">Salvar</button><button class="cta" id="sd">Enviar</button></div><small id="shm"></small>`;
+        document.body.appendChild(d);
+        const name = () =>
+          "lanterninha-" +
+          h.t
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")
+            .slice(0, 40) +
+          ".png";
+        const msg = (t) => {
+          d.querySelector("#shm").textContent = t;
+        };
+        const render = async () => {
+          msg("Gerando…");
+          blob = null;
+          try {
+            const b = await makeCard(h, story);
+            if (!b) throw 0;
+            blob = b;
+            if (url) URL.revokeObjectURL(url);
+            url = URL.createObjectURL(b);
+            d.querySelector("#pv").innerHTML =
+              `<img src="${url}" alt="Prévia">`;
+            msg("");
+          } catch (e) {
+            msg("Não consegui gerar a imagem.");
+          }
+        };
+        const close = () => {
+          d.remove();
+          if (url) URL.revokeObjectURL(url);
+        };
+        d.querySelector(".x").onclick = close;
+        d.querySelectorAll(".seg button").forEach(
+          (b) =>
+            (b.onclick = () => {
+              story = b.dataset.f === "1";
+              d.querySelectorAll(".seg button").forEach((x) =>
+                x.classList.toggle("on", x === b),
+              );
+              sfx.soft();
+              render();
+            }),
+        );
+        const save = () => {
+          if (!blob) return;
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = name();
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          msg("Imagem salva.");
+        };
+        d.querySelector("#sv").onclick = save;
+        d.querySelector("#sd").onclick = async () => {
+          if (!blob) return;
+          try {
+            const f = new File([blob], name(), { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [f] })) {
+              await navigator.share({ files: [f] });
+              return;
+            }
+          } catch (e) {
+            if (e && e.name === "AbortError") return;
+          }
+          save();
+        };
+        render();
+      }
+
       function filmPage(h) {
         if (!h) return;
         step = -1;
@@ -1759,12 +2178,14 @@
     <h3 class="sec">Minha review</h3>
     <textarea class="rev" id="rev" rows="1" maxlength="2000" placeholder="Escreva o que achou…">${esc(h.note || "")}</textarea>
     <div class="about" id="about" data-id="${h.id || ""}"></div>
+    <button class="share" id="shr"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Compartilhar</button>
     <div class="acts"><button class="main" id="are">Reassisti</button><button id="aco">Corrigir nota</button><button class="del" id="adel">Apagar</button></div>`,
           () => {
             window.scrollTo(0, 0);
             bindWhen(h);
             bindReview(h);
             loadAbout(h);
+            document.getElementById("shr").onclick = () => shareSheet(h);
             const again = (re) => {
               title = h.t;
               movie = h.id
@@ -2086,12 +2507,14 @@
     ${rewatch ? `<div><div class="seal" id="rw">${rw()}</div></div>` : ""}
     ${classic ? `<div class="seal" id="seal">${seal()}</div>` : ""}
     <div class="adj"><button id="minus" aria-label="Diminuir meia estrela">−</button><small id="hint">Não concorda? Ajuste.</small><button id="plus" aria-label="Aumentar meia estrela">+</button></div>
-    ${saved ? `<div class="meta">${whenHTML(hist[0])}<textarea class="rev box" id="rev" rows="1" maxlength="2000" placeholder="Escreva uma review (opcional)" style="margin-top:10px">${esc(hist[0].note || "")}</textarea></div>` : ""}
+    ${saved ? `<div class="meta">${whenHTML(hist[0])}<textarea class="rev box" id="rev" rows="1" maxlength="2000" placeholder="Escreva uma review (opcional)" style="margin-top:10px">${esc(hist[0].note || "")}</textarea></div><button class="share" id="shr"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Compartilhar</button>` : ""}
     <button class="cta" id="again">Avaliar outro filme</button></div>`,
           () => {
             if (saved) {
               bindWhen(hist[0]);
               bindReview(hist[0]);
+              document.getElementById("shr").onclick = () =>
+                shareSheet(hist[0]);
             }
             if (!calm) {
               const num = document.getElementById("num"),

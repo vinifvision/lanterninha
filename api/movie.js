@@ -15,7 +15,7 @@ export default {
     const url =
       "https://api.themoviedb.org/3/movie/" +
       id +
-      "?language=pt-BR&append_to_response=credits&api_key=" +
+      "?language=pt-BR&append_to_response=credits,watch/providers&api_key=" +
       encodeURIComponent(key);
     const r = await fetch(url);
     if (!r.ok)
@@ -31,6 +31,17 @@ export default {
       .slice(0, 2)
       .join(", ");
 
+    // Onde assistir no Brasil (o TMDB recebe esses dados da JustWatch)
+    const br =
+      (m["watch/providers"] &&
+        m["watch/providers"].results &&
+        m["watch/providers"].results.BR) ||
+      {};
+    const list = (a) =>
+      (a || [])
+        .slice(0, 6)
+        .map((x) => ({ name: x.provider_name, logo: x.logo_path || "" }));
+
     return Response.json(
       {
         overview: m.overview || "",
@@ -38,6 +49,11 @@ export default {
         genres: (m.genres || []).map((g) => g.name).slice(0, 3),
         director,
         backdrop: m.backdrop_path || "",
+        providers: {
+          stream: list(br.flatrate),
+          rent: list(br.rent),
+          buy: list(br.buy),
+        },
       },
       { headers: { "Cache-Control": "public, s-maxage=604800" } },
     );
