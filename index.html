@@ -1,323 +1,1576 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lanterninha</title>
-<meta name="apple-mobile-web-app-title" content="Lanterninha">
-<meta name="description" content="Perguntas rápidas pra decidir que nota dar a um filme no Letterboxd.">
-<meta name="theme-color" content="#0a0a0c">
-<link rel="icon" type="image/svg+xml" href="logo.svg">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<style>
-:root{
-  --bg:#0a0a0c; --card:#1a1a1d; --card2:#232327; --text:#f5f5f7; --muted:#8e8e93;
-  --gold:#e3b468; --gold-soft:rgba(227,180,104,.14);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Inter,Roboto,sans-serif;
-  -webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;
-  background:radial-gradient(120% 55% at 50% -10%,rgba(227,180,104,.13),transparent 60%)}
-.app{position:relative;max-width:480px;min-height:100%;margin:0 auto;padding:18px 22px 34px;display:flex;flex-direction:column}
-.top{height:44px;display:flex;align-items:center;gap:14px}
-.back{width:36px;height:36px;border-radius:50%;border:none;background:var(--card);color:var(--text);font-size:20px;line-height:1;
-  display:flex;align-items:center;justify-content:center;transition:opacity .3s,transform .15s}
-.back:active{transform:scale(.9)}
-.bar{flex:1;height:4px;border-radius:4px;background:var(--card2);overflow:hidden;transition:opacity .3s}
-.bar i{display:block;height:100%;width:0;background:var(--gold);border-radius:4px;transition:width .45s cubic-bezier(.2,.8,.2,1)}
-.hide{opacity:0;pointer-events:none}
-.stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:16px 0 8px}
-.screen{animation:in .45s cubic-bezier(.2,.8,.2,1) both}
-.screen.out{animation:out .2s ease both}
-@keyframes in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@keyframes out{to{opacity:0;transform:translateY(-12px)}}
-h1{font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.6px;margin:0 0 10px}
-.q{font-size:29px;line-height:1.15;font-weight:700;letter-spacing:-.5px;margin:0 0 8px}
-.sub{color:var(--muted);font-size:16px;line-height:1.4;margin:0 0 24px}
-.opts{display:flex;flex-direction:column;gap:9px}
-.opt{width:100%;text-align:left;padding:16px 20px;border-radius:16px;border:1.5px solid transparent;background:var(--card);
-  color:var(--text);font:inherit;font-size:17px;font-weight:500;
-  transition:transform .15s,background .2s,border-color .2s}
-.opt:active{transform:scale(.97);background:var(--card2)}
-.opt.on{border-color:var(--gold);background:var(--gold-soft)}
-input[type=text]{width:100%;padding:17px 20px;border-radius:18px;border:1.5px solid transparent;background:var(--card);color:var(--text);
-  font:inherit;font-size:17px;outline:none;transition:border-color .2s;margin-bottom:10px}
-input[type=text]:focus{border-color:var(--gold)}
-input::placeholder{color:#636366}
-.sw{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-radius:18px;background:var(--card);
-  font-size:17px;margin-bottom:14px;width:100%;border:none;color:var(--text);font-family:inherit;text-align:left}
-.sw i{position:relative;width:51px;height:31px;border-radius:31px;background:#39393d;transition:background .25s;flex:none}
-.sw i::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;
-  box-shadow:0 2px 4px rgba(0,0,0,.3);transition:transform .25s cubic-bezier(.3,1.3,.5,1)}
-.sw.on i{background:var(--gold)}
-.sw.on i::after{transform:translateX(20px)}
-.cta{width:100%;padding:17px;border-radius:18px;border:none;background:var(--gold);color:#1d1403;font:inherit;font-size:17px;font-weight:600;
-  transition:transform .15s,opacity .2s}
-.cta:active{transform:scale(.97);opacity:.9}
-.center{text-align:center}
-.film{color:var(--muted);font-size:15px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;margin-bottom:22px;min-height:18px}
-.stars{display:flex;justify-content:center;gap:6px;margin-bottom:18px}
-.star{position:relative;width:50px;height:50px;animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}
-.star svg{position:absolute;inset:0;width:50px;height:50px}
-.star .f{position:absolute;inset:0;overflow:hidden}
-@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
-.num{font-size:64px;font-weight:700;letter-spacing:-2px;line-height:1}
-.label{color:var(--gold);font-size:19px;font-weight:600;margin:8px 0 0}
-.seal{display:inline-block;margin-top:14px;padding:8px 14px;border-radius:30px;background:var(--card);color:var(--text);font-size:14px;font-weight:500}
-.adj{display:flex;align-items:center;justify-content:center;gap:18px;margin:28px 0}
-.adj button{width:46px;height:46px;border-radius:50%;border:none;background:var(--card);color:var(--text);font-size:24px;transition:transform .15s}
-.adj button:active{transform:scale(.88)}
-.adj small{color:var(--muted);font-size:14px;width:120px}
-.recent{margin-top:34px}
-.recent h3{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin:0 0 8px}
-.rc{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--card2);font-size:16px}
-.rc:last-child{border:none}
-.rc b{color:var(--gold);font-weight:500;white-space:nowrap;margin-left:12px}
-.rc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rc{width:100%;background:none;border-left:none;border-right:none;border-top:none;color:var(--text);font-family:inherit;text-align:left}
-.rc:active{opacity:.5}
-.dim{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px;z-index:5;animation:fade .2s both}
-.sheet{width:100%;max-width:456px;animation:up .32s cubic-bezier(.2,.9,.2,1) both}
-.sheet .grp{background:#242428;border-radius:16px;overflow:hidden;margin-bottom:8px}
-.sheet .ttl{padding:14px 16px;text-align:center;color:var(--muted);font-size:13px;border-bottom:1px solid #34343a}
-.sheet button{width:100%;padding:17px;border:none;background:none;color:var(--text);font:inherit;font-size:18px;border-bottom:1px solid #34343a}
-.sheet button:last-child{border:none}
-.sheet button:active{background:#2e2e33}
-.sheet .del{color:#ff5a52}
-.sheet .cancel{font-weight:600}
-@keyframes fade{from{opacity:0}}
-@keyframes up{from{transform:translateY(100%)}}
-.brand{display:flex;align-items:center;gap:11px;font-size:17px;font-weight:600;letter-spacing:-.2px;margin-bottom:26px}
-.brand img{border-radius:10px}
-.sr{background:var(--card);border-radius:18px;overflow:hidden;margin:-2px 0 12px}
-.sr:empty{display:none}
-.sri{width:100%;display:flex;align-items:center;gap:12px;padding:10px 14px;background:none;border:none;border-bottom:1px solid var(--card2);
-  color:var(--text);font:inherit;text-align:left;animation:in .3s both}
-.sri:last-child{border:none}
-.sri:active{background:var(--card2)}
-.sri img,.sri i{width:38px;height:57px;border-radius:6px;object-fit:cover;background:var(--card2);flex:none}
-.sri b{display:block;font-size:16px;font-weight:500}
-.sri small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-.sri div{min-width:0}.sri b,.sri small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rc{align-items:center}
-.rc span{display:flex;align-items:center;gap:10px;min-width:0}
-.rc span em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rc img{width:26px;height:39px;border-radius:4px;object-fit:cover;flex:none}
-.poster{display:block;width:118px;height:177px;object-fit:cover;border-radius:14px;margin:0 auto 18px;box-shadow:0 14px 40px rgba(0,0,0,.6)}
-.film small{display:block;text-transform:none;letter-spacing:0;font-size:13px;margin-top:3px;opacity:.8}
-.credit{margin-top:30px;text-align:center;color:#55555a;font-size:12px}
-.credit a{color:inherit}
-</style>
-</head>
-<body>
-<div class="app">
-  <div class="top">
-    <button class="back hide" id="back" aria-label="Voltar">‹</button>
-    <div class="bar hide" id="bar"><i id="fill"></i></div>
-  </div>
-  <div class="stage" id="stage"></div>
-</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lanterninha</title>
+    <meta name="apple-mobile-web-app-title" content="Lanterninha" />
+    <meta
+      name="description"
+      content="Perguntas rápidas pra decidir que nota dar a um filme no Letterboxd."
+    />
+    <meta name="theme-color" content="#0a0a0c" />
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <style>
+      :root {
+        --bg: #0a0a0c;
+        --card: #1a1a1d;
+        --card2: #232327;
+        --text: #f5f5f7;
+        --muted: #8e8e93;
+        --gold: #e3b468;
+        --gold-soft: rgba(227, 180, 104, 0.14);
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+          Inter, Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          120% 55% at 50% -10%,
+          rgba(227, 180, 104, 0.13),
+          transparent 60%
+        );
+      }
+      .app {
+        position: relative;
+        max-width: 480px;
+        min-height: 100%;
+        margin: 0 auto;
+        padding: 18px 22px 34px;
+        display: flex;
+        flex-direction: column;
+      }
+      .top {
+        height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .back {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: var(--card);
+        color: var(--text);
+        font-size: 20px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          opacity 0.3s,
+          transform 0.15s;
+      }
+      .back:active {
+        transform: scale(0.9);
+      }
+      .bar {
+        flex: 1;
+        height: 4px;
+        border-radius: 4px;
+        background: var(--card2);
+        overflow: hidden;
+        transition: opacity 0.3s;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--gold);
+        border-radius: 4px;
+        transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .stage {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 16px 0 8px;
+      }
+      .screen {
+        animation: in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .screen.out {
+        animation: out 0.2s ease both;
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes out {
+        to {
+          opacity: 0;
+          transform: translateY(-12px);
+        }
+      }
+      h1 {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+        margin: 0 0 10px;
+      }
+      .q {
+        font-size: 29px;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin: 0 0 8px;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.4;
+        margin: 0 0 24px;
+      }
+      .opts {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .opt {
+        width: 100%;
+        text-align: left;
+        padding: 16px 20px;
+        border-radius: 16px;
+        border: 1.5px solid transparent;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        font-size: 17px;
+        font-weight: 500;
+        transition:
+          transform 0.15s,
+          background 0.2s,
+          border-color 0.2s;
+      }
+      .opt:active {
+        transform: scale(0.97);
+        background: var(--card2);
+      }
+      .opt.on {
+        border-color: var(--gold);
+        background: var(--gold-soft);
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 17px 20px;
+        border-radius: 18px;
+        border: 1.5px solid transparent;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        font-size: 17px;
+        outline: none;
+        transition: border-color 0.2s;
+        margin-bottom: 10px;
+      }
+      input[type="text"]:focus {
+        border-color: var(--gold);
+      }
+      input::placeholder {
+        color: #636366;
+      }
+      .sw {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-radius: 18px;
+        background: var(--card);
+        font-size: 17px;
+        margin-bottom: 14px;
+        width: 100%;
+        border: none;
+        color: var(--text);
+        font-family: inherit;
+        text-align: left;
+      }
+      .sw i {
+        position: relative;
+        width: 51px;
+        height: 31px;
+        border-radius: 31px;
+        background: #39393d;
+        transition: background 0.25s;
+        flex: none;
+      }
+      .sw i::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 27px;
+        height: 27px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        transition: transform 0.25s cubic-bezier(0.3, 1.3, 0.5, 1);
+      }
+      .sw.on i {
+        background: var(--gold);
+      }
+      .sw.on i::after {
+        transform: translateX(20px);
+      }
+      .cta {
+        width: 100%;
+        padding: 17px;
+        border-radius: 18px;
+        border: none;
+        background: var(--gold);
+        color: #1d1403;
+        font: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        transition:
+          transform 0.15s,
+          opacity 0.2s;
+      }
+      .cta:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+      }
+      .center {
+        text-align: center;
+      }
+      .film {
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 22px;
+        min-height: 18px;
+      }
+      .stars {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 18px;
+      }
+      .star {
+        position: relative;
+        width: 50px;
+        height: 50px;
+        animation: pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+      }
+      .star svg {
+        position: absolute;
+        inset: 0;
+        width: 50px;
+        height: 50px;
+      }
+      .star .f {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: scale(0.3);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .num {
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: -2px;
+        line-height: 1;
+      }
+      .label {
+        color: var(--gold);
+        font-size: 19px;
+        font-weight: 600;
+        margin: 8px 0 0;
+      }
+      .seal {
+        display: inline-block;
+        margin-top: 14px;
+        padding: 8px 14px;
+        border-radius: 30px;
+        background: var(--card);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .adj {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin: 28px 0 24px;
+      }
+      .adj button {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: none;
+        background: var(--card);
+        color: var(--text);
+        font-size: 24px;
+        transition: transform 0.15s;
+      }
+      .adj button:active {
+        transform: scale(0.88);
+      }
+      .adj small {
+        color: var(--muted);
+        font-size: 14px;
+        width: 120px;
+      }
+      .recent {
+        margin-top: 34px;
+      }
+      .recent h3 {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0 0 8px;
+      }
+      .rc {
+        display: flex;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--card2);
+        font-size: 16px;
+      }
+      .rc:last-child {
+        border: none;
+      }
+      .rc b {
+        color: var(--gold);
+        font-weight: 500;
+        white-space: nowrap;
+        margin-left: 12px;
+      }
+      .rc span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .rc {
+        width: 100%;
+        background: none;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        color: var(--text);
+        font-family: inherit;
+        text-align: left;
+      }
+      .rc:active {
+        opacity: 0.5;
+      }
+      .dim {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 12px;
+        z-index: 5;
+        animation: fade 0.2s both;
+      }
+      .sheet {
+        width: 100%;
+        max-width: 456px;
+        animation: up 0.32s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+      }
+      .sheet .grp {
+        background: #242428;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .sheet .ttl {
+        padding: 14px 16px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        border-bottom: 1px solid #34343a;
+      }
+      .sheet button {
+        width: 100%;
+        padding: 17px;
+        border: none;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        font-size: 18px;
+        border-bottom: 1px solid #34343a;
+      }
+      .sheet button:last-child {
+        border: none;
+      }
+      .sheet button:active {
+        background: #2e2e33;
+      }
+      .sheet .del {
+        color: #ff5a52;
+      }
+      .sheet .cancel {
+        font-weight: 600;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+      }
+      @keyframes up {
+        from {
+          transform: translateY(100%);
+        }
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        margin-bottom: 26px;
+      }
+      .brand img {
+        border-radius: 10px;
+      }
+      .sr {
+        background: var(--card);
+        border-radius: 18px;
+        overflow: hidden;
+        margin: -2px 0 12px;
+      }
+      .sr:empty {
+        display: none;
+      }
+      .sri {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: none;
+        border: none;
+        border-bottom: 1px solid var(--card2);
+        color: var(--text);
+        font: inherit;
+        text-align: left;
+        animation: in 0.3s both;
+      }
+      .sri:last-child {
+        border: none;
+      }
+      .sri:active {
+        background: var(--card2);
+      }
+      .sri img,
+      .sri i {
+        width: 38px;
+        height: 57px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: var(--card2);
+        flex: none;
+      }
+      .sri b {
+        display: block;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .sri small {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+      }
+      .sri div {
+        min-width: 0;
+      }
+      .sri b,
+      .sri small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .rc {
+        align-items: center;
+      }
+      .rc span {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .rc span em {
+        font-style: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .rc img {
+        width: 26px;
+        height: 39px;
+        border-radius: 4px;
+        object-fit: cover;
+        flex: none;
+      }
+      .poster {
+        display: block;
+        width: 118px;
+        height: 177px;
+        object-fit: cover;
+        border-radius: 14px;
+        margin: 0 auto 18px;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+      }
+      .film small {
+        display: block;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 13px;
+        margin-top: 3px;
+        opacity: 0.8;
+      }
+      .credit {
+        margin-top: 30px;
+        text-align: center;
+        color: #55555a;
+        font-size: 12px;
+      }
+      .credit a {
+        color: inherit;
+      }
+      body.tabs-on .app {
+        padding-bottom: 104px;
+      }
+      .tabs {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 4;
+        display: flex;
+        justify-content: center;
+        background: rgba(14, 14, 17, 0.82);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        transition:
+          transform 0.3s,
+          opacity 0.3s;
+      }
+      .tabs.off {
+        transform: translateY(100%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .tabs div {
+        display: flex;
+        width: 100%;
+        max-width: 480px;
+      }
+      .tab {
+        flex: 1;
+        padding: 10px 0 12px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 500;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        transition:
+          color 0.2s,
+          transform 0.15s;
+      }
+      .tab:active {
+        transform: scale(0.94);
+      }
+      .tab svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+      .tab.on {
+        color: var(--gold);
+      }
+      .stage.top {
+        justify-content: flex-start;
+      }
+      .count {
+        color: var(--muted);
+        font-size: 16px;
+        margin: 0 0 20px;
+      }
+      .seg {
+        display: flex;
+        background: var(--card);
+        border-radius: 11px;
+        padding: 3px;
+        margin-bottom: 18px;
+      }
+      .seg button {
+        flex: 1;
+        padding: 8px;
+        border: none;
+        border-radius: 9px;
+        background: none;
+        color: var(--muted);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .seg button.on {
+        background: #3a3a40;
+        color: var(--text);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px 10px;
+      }
+      .fc {
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--text);
+        font: inherit;
+        text-align: left;
+        min-width: 0;
+        transition: transform 0.15s;
+        animation: in 0.4s both;
+      }
+      .fc:active {
+        transform: scale(0.95);
+      }
+      .fc .ph {
+        display: block;
+        width: 100%;
+        aspect-ratio: 2/3;
+        border-radius: 10px;
+        background: var(--card);
+        overflow: hidden;
+      }
+      .fc img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .fc .ph span {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.25;
+      }
+      .fc b {
+        display: block;
+        margin-top: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gold);
+      }
+      .empty {
+        color: var(--muted);
+        text-align: center;
+        padding: 50px 20px;
+        line-height: 1.5;
+      }
+      .bk {
+        margin-top: 36px;
+      }
+      .bk h3 {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0 0 10px;
+      }
+      .bk div {
+        display: flex;
+        gap: 10px;
+      }
+      .bk button {
+        flex: 1;
+        padding: 14px;
+        border-radius: 14px;
+        border: none;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .bk button:active {
+        background: var(--card2);
+      }
+      .bk p {
+        color: var(--muted);
+        font-size: 13px;
+        min-height: 18px;
+        margin: 10px 0 0;
+        text-align: center;
+      }
+      .meta {
+        margin: 0 0 22px;
+        text-align: left;
+      }
+      .frow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 8px 6px 20px;
+        border-radius: 18px;
+        background: var(--card);
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+      input[type="date"] {
+        background: none;
+        border: none;
+        color: var(--gold);
+        font: inherit;
+        font-size: 16px;
+        padding: 9px 8px;
+        outline: none;
+        color-scheme: dark;
+        min-height: 40px;
+      }
+      .meta input[type="text"] {
+        margin: 0;
+      }
+      .sheet .frow {
+        background: none;
+        border-bottom: 1px solid #34343a;
+        border-radius: 0;
+        margin: 0;
+        padding: 6px 8px 6px 16px;
+      }
+      .sheet input[type="text"] {
+        margin: 0;
+        border-radius: 0;
+        background: none;
+        border: none;
+        border-bottom: 1px solid #34343a;
+        padding: 15px 16px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="top">
+        <button class="back hide" id="back" aria-label="Voltar">‹</button>
+        <div class="bar hide" id="bar"><i id="fill"></i></div>
+      </div>
+      <div class="stage" id="stage"></div>
+    </div>
+    <nav class="tabs off" id="tabs">
+      <div>
+        <button class="tab on" data-v="home">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            /></svg
+          >Avaliar
+        </button>
+        <button class="tab" data-v="lib">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 3h7v8H4zM13 3h7v8h-7zM4 13h7v8H4zM13 13h7v8h-7z" /></svg
+          >Meus filmes
+        </button>
+      </div>
+    </nav>
 
-<script>
-// A busca de filmes passa por api/search.js (função no servidor). A chave do TMDB fica só lá, nunca neste arquivo.
-const IMG='https://image.tmdb.org/t/p/';
+    <script>
+      // A busca de filmes passa por api/search.js (função no servidor). A chave do TMDB fica só lá, nunca neste arquivo.
+      const IMG = "https://image.tmdb.org/t/p/";
 
-const V=[1,.78,.55,.3,.05];
-const BASE = [
-  {q:'Como você saiu do filme?', w:3, o:['Apaixonado','Feliz, gostei bastante','Satisfeito, foi ok','Meio frustrado','Decepcionado']},
-  {q:'Prendeu sua atenção?', w:2, o:['O tempo todo','Quase o tempo todo','Indo e voltando','Só em poucas partes','Quase nada']},
-  {q:'Sentiu alguma coisa?', s:'Riu, chorou, ficou tenso, se arrepiou…', w:2, o:['Muito, me pegou forte','Bastante','Um pouco','Bem pouco','Nada']},
-  {q:'Vai ficar na sua cabeça?', w:2, o:['Por anos','Por semanas','Por uns dias','Até amanhã','Já esqueci']},
-  {q:'Veria de novo?', w:2, o:['Hoje mesmo','Com certeza, um dia','Talvez','Difícil','Nunca']},
-  {q:'Algo te impressionou?', s:'Uma cena, uma atuação, uma imagem, a música…', w:1, o:['Quase tudo','Várias coisas','Uma coisa ou outra','Quase nada','Nada']},
-  {q:'Recomendaria?', w:1, o:['Pra todo mundo','Pra maioria','Pra quem curte o estilo','Pra poucos','Pra ninguém']},
-];
-const CLASSIC = [
-  {q:'Envelheceu bem?', s:'Assistindo hoje, como ele se sai?', w:1.5, o:['Parece feito hoje','Bem, com um detalhe ou outro','Dá pra sentir a idade','Bastante datado','Difícil de assistir hoje']},
-  {q:'Pra você, a fama é merecida?', s:'Esquece o que os outros dizem.', w:1.5, key:'fama', o:['Totalmente','Em boa parte','Mais ou menos','Pouco','Não entendi a fama']},
-];
-const REWATCH = [
-  {q:'Como foi rever?', s:'Comparando com a última vez.', w:2, o:['Ainda melhor','Tão bom quanto','Um pouco menos','Bem menos','Perdeu a graça']},
-];
-const LABELS={5:'Obra-prima',4.5:'Excelente',4:'Muito bom',3.5:'Bom',3:'Legal',2.5:'Mediano',2:'Fraco',1.5:'Ruim',1:'Muito ruim',.5:'Desastre'};
-const STAR='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+      const V = [1, 0.78, 0.55, 0.3, 0.05];
+      const BASE = [
+        {
+          q: "Como você saiu do filme?",
+          w: 3,
+          o: [
+            "Apaixonado",
+            "Feliz, gostei bastante",
+            "Satisfeito, foi ok",
+            "Meio frustrado",
+            "Decepcionado",
+          ],
+        },
+        {
+          q: "Prendeu sua atenção?",
+          w: 2,
+          o: [
+            "O tempo todo",
+            "Quase o tempo todo",
+            "Indo e voltando",
+            "Só em poucas partes",
+            "Quase nada",
+          ],
+        },
+        {
+          q: "Sentiu alguma coisa?",
+          s: "Riu, chorou, ficou tenso, se arrepiou…",
+          w: 2,
+          o: [
+            "Muito, me pegou forte",
+            "Bastante",
+            "Um pouco",
+            "Bem pouco",
+            "Nada",
+          ],
+        },
+        {
+          q: "Vai ficar na sua cabeça?",
+          w: 2,
+          o: [
+            "Por anos",
+            "Por semanas",
+            "Por uns dias",
+            "Até amanhã",
+            "Já esqueci",
+          ],
+        },
+        {
+          q: "Veria de novo?",
+          w: 2,
+          o: [
+            "Hoje mesmo",
+            "Com certeza, um dia",
+            "Talvez",
+            "Difícil",
+            "Nunca",
+          ],
+        },
+        {
+          q: "Algo te impressionou?",
+          s: "Uma cena, uma atuação, uma imagem, a música…",
+          w: 1,
+          o: [
+            "Quase tudo",
+            "Várias coisas",
+            "Uma coisa ou outra",
+            "Quase nada",
+            "Nada",
+          ],
+        },
+        {
+          q: "Recomendaria?",
+          w: 1,
+          o: [
+            "Pra todo mundo",
+            "Pra maioria",
+            "Pra quem curte o estilo",
+            "Pra poucos",
+            "Pra ninguém",
+          ],
+        },
+      ];
+      const CLASSIC = [
+        {
+          q: "Envelheceu bem?",
+          s: "Assistindo hoje, como ele se sai?",
+          w: 1.5,
+          o: [
+            "Parece feito hoje",
+            "Bem, com um detalhe ou outro",
+            "Dá pra sentir a idade",
+            "Bastante datado",
+            "Difícil de assistir hoje",
+          ],
+        },
+        {
+          q: "Pra você, a fama é merecida?",
+          s: "Esquece o que os outros dizem.",
+          w: 1.5,
+          key: "fama",
+          o: [
+            "Totalmente",
+            "Em boa parte",
+            "Mais ou menos",
+            "Pouco",
+            "Não entendi a fama",
+          ],
+        },
+      ];
+      const REWATCH = [
+        {
+          q: "Como foi rever?",
+          s: "Comparando com a última vez.",
+          w: 2,
+          o: [
+            "Ainda melhor",
+            "Tão bom quanto",
+            "Um pouco menos",
+            "Bem menos",
+            "Perdeu a graça",
+          ],
+        },
+      ];
+      const LABELS = {
+        5: "Obra-prima",
+        4.5: "Excelente",
+        4: "Muito bom",
+        3.5: "Bom",
+        3: "Legal",
+        2.5: "Mediano",
+        2: "Fraco",
+        1.5: "Ruim",
+        1: "Muito ruim",
+        0.5: "Desastre",
+      };
+      const STAR =
+        "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
 
-let QS=BASE, step=-1, ans=[], title='', classic=false, stars=3, base=3, rival=null, saved=false, rewatch=null, replaced=null, movie=null;
-const sameFilm=h=>(movie&&h.id)?h.id===movie.id:h.t.toLowerCase()===title.toLowerCase();
-const buildQS=()=>BASE.concat(rewatch?REWATCH:[],classic?CLASSIC:[]);
-const stage=document.getElementById('stage'), back=document.getElementById('back'), bar=document.getElementById('bar'), fill=document.getElementById('fill');
-const esc=s=>s.replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-const fmt=n=>String(n).replace('.',',');
-const clamp=n=>Math.min(5,Math.max(.5,n));
+      let QS = BASE,
+        step = -1,
+        ans = [],
+        title = "",
+        classic = false,
+        stars = 3,
+        base = 3,
+        rival = null,
+        saved = false,
+        rewatch = null,
+        replaced = null,
+        movie = null;
+      const sameFilm = (h) =>
+        movie && h.id
+          ? h.id === movie.id
+          : h.t.toLowerCase() === title.toLowerCase();
+      const buildQS = () =>
+        BASE.concat(rewatch ? REWATCH : [], classic ? CLASSIC : []);
+      const stage = document.getElementById("stage"),
+        back = document.getElementById("back"),
+        bar = document.getElementById("bar"),
+        fill = document.getElementById("fill");
+      const esc = (s) =>
+        s.replace(
+          /[<>&"]/g,
+          (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c],
+        );
+      const fmt = (n) => String(n).replace(".", ",");
+      const clamp = (n) => Math.min(5, Math.max(0.5, n));
 
-function loadH(){try{return JSON.parse(localStorage.getItem('notaFilmeV2')||'[]')}catch(e){return[]}}
-function saveH(){try{localStorage.setItem('notaFilmeV2',JSON.stringify(hist.slice(0,40)))}catch(e){}}
-let hist=loadH();
+      function loadH() {
+        try {
+          return JSON.parse(localStorage.getItem("notaFilmeV2") || "[]");
+        } catch (e) {
+          return [];
+        }
+      }
+      function saveH() {
+        try {
+          localStorage.setItem("notaFilmeV2", JSON.stringify(hist));
+        } catch (e) {}
+      }
+      let hist = loadH(),
+        view = "home",
+        libSort = "recent";
+      const tabs = document.getElementById("tabs");
+      const pad = (n) => String(n).padStart(2, "0");
+      const today = () => {
+        const d = new Date();
+        return (
+          d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+        );
+      };
+      const fd = (iso) => (iso ? iso.split("-").reverse().join("/") : "");
 
-function show(html,after){
-  const old=stage.firstElementChild;
-  const put=()=>{stage.innerHTML='<div class="screen">'+html+'</div>'; delete stage.dataset.lock; after&&after();};
-  if(old){old.classList.add('out'); setTimeout(put,180);} else put();
-}
-function chrome(mode){ // home | q | cmp | res
-  back.classList.toggle('hide',mode==='home');
-  bar.classList.toggle('hide',mode==='home'||mode==='res');
-  fill.style.width=(mode==='q'?step/QS.length*100:100)+'%';
-}
-function pick(cb){
-  stage.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
-    if(stage.dataset.lock) return; stage.dataset.lock=1;
-    stage.querySelectorAll('.opt').forEach(x=>x.classList.remove('on')); b.classList.add('on');
-    setTimeout(()=>cb(+b.dataset.i),260);
-  });
-}
+      function show(html, after) {
+        const old = stage.firstElementChild;
+        const put = () => {
+          stage.innerHTML = '<div class="screen">' + html + "</div>";
+          delete stage.dataset.lock;
+          after && after();
+        };
+        if (old) {
+          old.classList.add("out");
+          setTimeout(put, 180);
+        } else put();
+      }
+      function chrome(mode) {
+        // home | lib | q | cmp | res
+        const main = mode === "home" || mode === "lib";
+        back.classList.toggle("hide", main);
+        bar.classList.toggle("hide", main || mode === "res");
+        tabs.classList.toggle("off", !main);
+        document.body.classList.toggle("tabs-on", main);
+        stage.classList.toggle("top", mode === "lib");
+        if (main) {
+          view = mode;
+          tabs
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.toggle("on", t.dataset.v === mode));
+        }
+        fill.style.width =
+          (mode === "q" ? (step / QS.length) * 100 : 100) + "%";
+      }
+      function pick(cb) {
+        stage.querySelectorAll(".opt").forEach(
+          (b) =>
+            (b.onclick = () => {
+              if (stage.dataset.lock) return;
+              stage.dataset.lock = 1;
+              stage
+                .querySelectorAll(".opt")
+                .forEach((x) => x.classList.remove("on"));
+              b.classList.add("on");
+              setTimeout(() => cb(+b.dataset.i), 260);
+            }),
+        );
+      }
 
-function home(){
-  step=-1; ans=[]; saved=false; rival=null; rewatch=null; replaced=null; chrome('home');
-  const rec=hist.slice(0,8).map((h,i)=>`<button class="rc" data-i="${i}"><span>${h.img?`<img src="${IMG}w92${h.img}" alt="" onerror="this.remove()">`:''}<em>${esc(h.t)}</em></span><b>${h.n>1?'↻ ':''}★ ${fmt(h.s)}</b></button>`).join('');
-  show(`<div class="brand"><img src="logo.svg" alt="" width="40" height="40">Lanterninha</div>
+      function home() {
+        step = -1;
+        ans = [];
+        saved = false;
+        rival = null;
+        rewatch = null;
+        replaced = null;
+        chrome("home");
+        const rec = hist
+          .slice(0, 4)
+          .map(
+            (h, i) =>
+              `<button class="rc" data-i="${i}"><span>${h.img ? `<img src="${IMG}w92${h.img}" alt="" onerror="this.remove()">` : ""}<em>${esc(h.t)}</em></span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
+          )
+          .join("");
+        show(
+          `<div class="brand"><img src="logo.svg" alt="" width="40" height="40">Lanterninha</div>
     <h1>Que nota<br>dar pro filme?</h1>
     <p class="sub">Perguntas rápidas sobre o que você sentiu.</p>
     <input type="text" id="t" placeholder="Nome do filme" maxlength="80" value="${esc(title)}" autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="sr" id="sr"></div>
-    <button class="sw${classic?' on':''}" id="sw" role="switch" aria-checked="${classic}">Clássico ou filme antigo<i></i></button>
+    <button class="sw${classic ? " on" : ""}" id="sw" role="switch" aria-checked="${classic}">Clássico ou filme antigo<i></i></button>
     <button class="cta" id="go">Começar</button>
-    ${rec?`<div class="recent"><h3>Recentes</h3>${rec}</div>`:''}
-    <p class="credit">Dados e imagens de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a></p>`,()=>{
-    setupSearch();
-    const sw=document.getElementById('sw');
-    sw.onclick=()=>{classic=!classic; sw.classList.toggle('on',classic); sw.setAttribute('aria-checked',classic);};
-    stage.querySelectorAll('.rc').forEach(b=>b.onclick=()=>sheet(+b.dataset.i));
-    document.getElementById('go').onclick=()=>{title=document.getElementById('t').value.trim(); rewatch=title?hist.find(sameFilm)||null:null; QS=buildQS(); step=0; question();};
-  });
-}
+    ${rec ? `<div class="recent"><h3>Recentes</h3>${rec}</div>` : ""}
+    <p class="credit">Dados e imagens de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a></p>`,
+          () => {
+            setupSearch();
+            const sw = document.getElementById("sw");
+            sw.onclick = () => {
+              classic = !classic;
+              sw.classList.toggle("on", classic);
+              sw.setAttribute("aria-checked", classic);
+            };
+            stage
+              .querySelectorAll(".rc")
+              .forEach((b) => (b.onclick = () => sheet(hist[+b.dataset.i])));
+            document.getElementById("go").onclick = () => {
+              title = document.getElementById("t").value.trim();
+              rewatch = title ? hist.find(sameFilm) || null : null;
+              QS = buildQS();
+              step = 0;
+              question();
+            };
+          },
+        );
+      }
 
-function setupSearch(){
-  const inp=document.getElementById('t'), box=document.getElementById('sr'), sw=document.getElementById('sw');
-  let timer=null, ctl=null;
-  inp.oninput=()=>{
-    movie=null; clearTimeout(timer); if(ctl) ctl.abort();
-    const q=inp.value.trim();
-    if(q.length<2){box.innerHTML=''; return;}
-    timer=setTimeout(async()=>{
-      try{
-        ctl=new AbortController();
-        const r=await fetch('api/search?q='+encodeURIComponent(q),{signal:ctl.signal});
-        if(!r.ok) throw 0;
-        const list=(await r.json()).results||[];
-        if(inp.value.trim()!==q) return;
-        box.innerHTML=list.map((m,i)=>`<button class="sri" data-i="${i}">${m.poster?`<img src="${IMG}w92${m.poster}" alt="" loading="lazy">`:'<i></i>'}
-          <div><b>${esc(m.title)}</b><small>${esc([m.original!==m.title?m.original:'',m.year].filter(Boolean).join(' · '))}</small></div></button>`).join('');
-        box.querySelectorAll('.sri').forEach(b=>b.onclick=()=>{
-          movie=list[+b.dataset.i]; inp.value=movie.title; box.innerHTML=''; inp.blur();
-          if(movie.year&&+movie.year<=new Date().getFullYear()-35&&!classic){classic=true; sw.classList.add('on'); sw.setAttribute('aria-checked',true);}
-        });
-      }catch(e){ if(!e||e.name!=='AbortError') box.innerHTML=''; }
-    },320);
-  };
-}
+      function setupSearch() {
+        const inp = document.getElementById("t"),
+          box = document.getElementById("sr"),
+          sw = document.getElementById("sw");
+        let timer = null,
+          ctl = null;
+        inp.oninput = () => {
+          movie = null;
+          clearTimeout(timer);
+          if (ctl) ctl.abort();
+          const q = inp.value.trim();
+          if (q.length < 2) {
+            box.innerHTML = "";
+            return;
+          }
+          timer = setTimeout(async () => {
+            try {
+              ctl = new AbortController();
+              const r = await fetch("api/search?q=" + encodeURIComponent(q), {
+                signal: ctl.signal,
+              });
+              if (!r.ok) throw 0;
+              const list = (await r.json()).results || [];
+              if (inp.value.trim() !== q) return;
+              box.innerHTML = list
+                .map(
+                  (
+                    m,
+                    i,
+                  ) => `<button class="sri" data-i="${i}">${m.poster ? `<img src="${IMG}w92${m.poster}" alt="" loading="lazy">` : "<i></i>"}
+          <div><b>${esc(m.title)}</b><small>${esc([m.original !== m.title ? m.original : "", m.year].filter(Boolean).join(" · "))}</small></div></button>`,
+                )
+                .join("");
+              box.querySelectorAll(".sri").forEach(
+                (b) =>
+                  (b.onclick = () => {
+                    movie = list[+b.dataset.i];
+                    inp.value = movie.title;
+                    box.innerHTML = "";
+                    inp.blur();
+                    if (
+                      movie.year &&
+                      +movie.year <= new Date().getFullYear() - 35 &&
+                      !classic
+                    ) {
+                      classic = true;
+                      sw.classList.add("on");
+                      sw.setAttribute("aria-checked", true);
+                    }
+                  }),
+              );
+            } catch (e) {
+              if (!e || e.name !== "AbortError") box.innerHTML = "";
+            }
+          }, 320);
+        };
+      }
 
-function sheet(i){
-  const h=hist[i]; if(!h) return;
-  const d=document.createElement('div'); d.className='dim';
-  d.innerHTML=`<div class="sheet"><div class="grp"><div class="ttl">${esc(h.t)} · ★ ${fmt(h.s)}</div>
+      function sheet(h) {
+        if (!h) return;
+        const d = document.createElement("div");
+        d.className = "dim";
+        d.innerHTML = `<div class="sheet"><div class="grp"><div class="ttl">${esc(h.t)} · ★ ${fmt(h.s)}</div>
+    <label class="frow">Assistido em <input type="date" id="sdt" value="${h.d || ""}" max="${today()}"></label>
+    <input type="text" id="snt" placeholder="Uma frase sobre o filme" maxlength="280" value="${esc(h.note || "")}">
     <button data-a="re">Reassisti</button><button data-a="redo">Corrigir avaliação</button><button class="del" data-a="del">Apagar</button></div>
-    <div class="grp"><button class="cancel" data-a="x">Cancelar</button></div></div>`;
-  d.onclick=e=>{
-    const a=e.target.dataset.a; if(!a&&e.target!==d) return;
-    d.remove();
-    if(a==='del'){hist.splice(i,1); saveH(); home();}
-    if(a==='redo'||a==='re'){title=h.t; movie=h.id?{id:h.id,title:h.t,original:h.o,year:h.y,poster:h.img}:null; classic=!!h.c; rewatch=a==='re'?h:null; QS=buildQS(); step=0; ans=[]; question();}
-  };
-  document.body.appendChild(d);
-}
+    <div class="grp"><button class="cancel" data-a="x">Fechar</button></div></div>`;
+        let dirty = false;
+        d.querySelector("#sdt").onchange = (e) => {
+          h.d = e.target.value || undefined;
+          dirty = true;
+          saveH();
+        };
+        d.querySelector("#snt").oninput = (e) => {
+          h.note = e.target.value.trim() || undefined;
+          dirty = true;
+          saveH();
+        };
+        d.onclick = (e) => {
+          const a = e.target.dataset.a;
+          if (!a && e.target !== d) return;
+          d.remove();
+          if (a === "del") {
+            const i = hist.indexOf(h);
+            if (i >= 0) hist.splice(i, 1);
+            saveH();
+            view === "lib" ? library() : home();
+          } else if (a === "redo" || a === "re") {
+            title = h.t;
+            movie = h.id
+              ? {
+                  id: h.id,
+                  title: h.t,
+                  original: h.o,
+                  year: h.y,
+                  poster: h.img,
+                }
+              : null;
+            classic = !!h.c;
+            rewatch = a === "re" ? h : null;
+            QS = buildQS();
+            step = 0;
+            ans = [];
+            question();
+          } else if (dirty && view === "lib") library();
+        };
+        document.body.appendChild(d);
+      }
 
-function question(){
-  chrome('q');
-  const Q=QS[step];
-  show(`<div class="q">${Q.q}</div><p class="sub">${Q.s||'&nbsp;'}</p>
-    <div class="opts">${Q.o.map((o,i)=>`<button class="opt${ans[step]===i?' on':''}" data-i="${i}">${o}</button>`).join('')}</div>`,
-    ()=>pick(i=>{ans[step]=i; step++; step<QS.length?question():afterQuestions();}));
-}
+      function library() {
+        step = -1;
+        chrome("lib");
+        const list = hist.map((h, i) => ({ h, i }));
+        if (libSort === "nota") list.sort((a, b) => b.h.s - a.h.s || a.i - b.i);
+        else
+          list.sort(
+            (a, b) => (b.h.d || "").localeCompare(a.h.d || "") || a.i - b.i,
+          );
+        const grid = list
+          .map(
+            ({ h, i }, k) =>
+              `<button class="fc" data-i="${i}" style="animation-delay:${Math.min(k, 12) * 25}ms"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="this.outerHTML='<span>'+this.alt+'</span>'">` : `<span>${esc(h.t)}</span>`}</span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
+          )
+          .join("");
+        show(
+          `<h1>Meus filmes</h1>
+    <p class="count">${hist.length === 1 ? "1 filme" : hist.length + " filmes"}</p>
+    ${
+      hist.length
+        ? `<div class="seg"><button data-s="recent" class="${libSort === "recent" ? "on" : ""}">Recentes</button><button data-s="nota" class="${libSort === "nota" ? "on" : ""}">Maior nota</button></div>
+    <div class="grid">${grid}</div>`
+        : '<p class="empty">Nada por aqui ainda.<br>Avalie um filme e ele aparece nesta tela.</p>'
+    }
+    <div class="bk"><h3>Backup</h3><div><button id="exp">Exportar</button><button id="imp">Importar</button></div><p id="bkmsg"></p>
+    <input type="file" id="impf" accept=".json,application/json" hidden></div>`,
+          () => {
+            stage
+              .querySelectorAll(".fc")
+              .forEach((b) => (b.onclick = () => sheet(hist[+b.dataset.i])));
+            stage.querySelectorAll(".seg button").forEach(
+              (b) =>
+                (b.onclick = () => {
+                  libSort = b.dataset.s;
+                  library();
+                }),
+            );
+            document.getElementById("exp").onclick = exportBackup;
+            const f = document.getElementById("impf");
+            document.getElementById("imp").onclick = () => f.click();
+            f.onchange = () => {
+              if (f.files[0]) importBackup(f.files[0]);
+            };
+          },
+        );
+      }
 
-function compute(){
-  let s=0,w=0; QS.forEach((Q,i)=>{s+=V[ans[i]]*Q.w; w+=Q.w;});
-  return clamp(Math.round((.5+(s/w)*4.5)*2)/2);
-}
-function afterQuestions(){
-  base=stars=compute();
-  const ok=h=>!sameFilm(h)&&Math.abs(h.s-base)<=.5;
-  rival=hist.find(h=>ok(h)&&!!h.c===classic)||hist.find(ok)||null;
-  rival?compare():result(true);
-}
-function compare(){
-  chrome('cmp');
-  show(`<div class="q">Qual te marcou mais?</div><p class="sub">Se tivesse que escolher um pra ficar na memória.</p>
-    <div class="opts"><button class="opt" data-i="0">${esc(title||'Este filme')}</button><button class="opt" data-i="2">${esc(rival.t)}</button><button class="opt" data-i="1">Empate</button><button class="opt" data-i="3" style="background:none;color:var(--muted);text-align:center">Não dá pra comparar</button></div>`,
-    ()=>pick(i=>{
-      if(i===0&&stars<=rival.s) stars=clamp(rival.s+.5);
-      if(i===1) stars=rival.s;
-      if(i===2&&stars>=rival.s) stars=clamp(rival.s-.5);
-      base=stars; result(true);
-    }));
-}
+      const bkMsg = (t) => {
+        const el = document.getElementById("bkmsg");
+        if (el) el.textContent = t;
+      };
+      async function exportBackup() {
+        if (!hist.length) {
+          bkMsg("Ainda não há filmes pra exportar.");
+          return;
+        }
+        const name = "lanterninha-backup-" + today() + ".json";
+        const json = JSON.stringify(
+          {
+            app: "lanterninha",
+            versao: 1,
+            exportadoEm: new Date().toISOString(),
+            filmes: hist,
+          },
+          null,
+          1,
+        );
+        try {
+          const file = new File([json], name, { type: "application/json" });
+          if (
+            /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })
+          ) {
+            await navigator.share({ files: [file] });
+            bkMsg("Backup pronto.");
+            return;
+          }
+        } catch (e) {
+          if (e && e.name === "AbortError") return;
+        }
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(
+          new Blob([json], { type: "application/json" }),
+        );
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        bkMsg("Backup baixado: " + name);
+      }
+      function cleanFilm(x) {
+        if (!x || typeof x.t !== "string" || !x.t.trim()) return null;
+        const s = Math.round(+x.s * 2) / 2;
+        if (!(s >= 0.5 && s <= 5)) return null;
+        const e = { t: x.t.trim().slice(0, 120), s, c: !!x.c };
+        if (Number.isInteger(x.id)) e.id = x.id;
+        if (typeof x.y === "string" && /^\d{4}$/.test(x.y)) e.y = x.y;
+        if (typeof x.o === "string") e.o = x.o.slice(0, 160);
+        if (typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img))
+          e.img = x.img;
+        if (typeof x.p === "number" && x.p >= 0.5 && x.p <= 5) e.p = x.p;
+        if (Number.isInteger(x.n) && x.n > 1) e.n = x.n;
+        if (typeof x.d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x.d))
+          e.d = x.d;
+        if (typeof x.note === "string" && x.note.trim())
+          e.note = x.note.trim().slice(0, 280);
+        return e;
+      }
+      async function importBackup(file) {
+        try {
+          const data = JSON.parse(await file.text());
+          const films = (Array.isArray(data) ? data : data.filmes || [])
+            .map(cleanFilm)
+            .filter(Boolean);
+          if (!films.length) throw 0;
+          let novos = 0,
+            trocados = 0;
+          films.reverse().forEach((f) => {
+            const i = hist.findIndex((h) =>
+              f.id && h.id
+                ? h.id === f.id
+                : h.t.toLowerCase() === f.t.toLowerCase(),
+            );
+            if (i >= 0) {
+              hist[i] = f;
+              trocados++;
+            } else {
+              hist.unshift(f);
+              novos++;
+            }
+          });
+          saveH();
+          library();
+          setTimeout(
+            () => bkMsg(novos + " novos, " + trocados + " atualizados."),
+            260,
+          );
+        } catch (e) {
+          bkMsg("Não consegui ler esse arquivo.");
+        }
+      }
 
-function starsHTML(n,anim){
-  return [0,1,2,3,4].map(i=>{const f=Math.max(0,Math.min(1,n-i))*100;
-    return `<div class="star" style="animation-delay:${anim?i*90:0}ms;${anim?'':'animation:none'}">
+      function question() {
+        chrome("q");
+        const Q = QS[step];
+        show(
+          `<div class="q">${Q.q}</div><p class="sub">${Q.s || "&nbsp;"}</p>
+    <div class="opts">${Q.o.map((o, i) => `<button class="opt${ans[step] === i ? " on" : ""}" data-i="${i}">${o}</button>`).join("")}</div>`,
+          () =>
+            pick((i) => {
+              ans[step] = i;
+              step++;
+              step < QS.length ? question() : afterQuestions();
+            }),
+        );
+      }
+
+      function compute() {
+        let s = 0,
+          w = 0;
+        QS.forEach((Q, i) => {
+          s += V[ans[i]] * Q.w;
+          w += Q.w;
+        });
+        return clamp(Math.round((0.5 + (s / w) * 4.5) * 2) / 2);
+      }
+      function afterQuestions() {
+        base = stars = compute();
+        const ok = (h) => !sameFilm(h) && Math.abs(h.s - base) <= 0.5;
+        rival =
+          hist.find((h) => ok(h) && !!h.c === classic) || hist.find(ok) || null;
+        rival ? compare() : result(true);
+      }
+      function compare() {
+        chrome("cmp");
+        show(
+          `<div class="q">Qual te marcou mais?</div><p class="sub">Se tivesse que escolher um pra ficar na memória.</p>
+    <div class="opts"><button class="opt" data-i="0">${esc(title || "Este filme")}</button><button class="opt" data-i="2">${esc(rival.t)}</button><button class="opt" data-i="1">Empate</button><button class="opt" data-i="3" style="background:none;color:var(--muted);text-align:center">Não dá pra comparar</button></div>`,
+          () =>
+            pick((i) => {
+              if (i === 0 && stars <= rival.s) stars = clamp(rival.s + 0.5);
+              if (i === 1) stars = rival.s;
+              if (i === 2 && stars >= rival.s) stars = clamp(rival.s - 0.5);
+              base = stars;
+              result(true);
+            }),
+        );
+      }
+
+      function starsHTML(n, anim) {
+        return [0, 1, 2, 3, 4]
+          .map((i) => {
+            const f = Math.max(0, Math.min(1, n - i)) * 100;
+            return `<div class="star" style="animation-delay:${anim ? i * 90 : 0}ms;${anim ? "" : "animation:none"}">
       <svg viewBox="0 0 24 24"><path d="${STAR}" fill="#2c2c30"/></svg>
-      <div class="f" style="width:${f}%"><svg viewBox="0 0 24 24"><path d="${STAR}" fill="#e3b468"/></svg></div></div>`}).join('');
-}
-function seal(){
-  if(!classic) return '';
-  return stars>=4?'Clássico que merece a fama':stars>=3?'Respeito mais do que amo':'Importante, mas não é pra mim';
-}
-function rw(){
-  if(!rewatch) return '';
-  const d=stars-rewatch.s;
-  return 'Antes ★ '+fmt(rewatch.s)+' · '+(d>0?'Cresceu na revisão':d<0?'Caiu na revisão':'Continua igual');
-}
-function result(){
-  if(title&&!saved){const same=sameFilm;
-    replaced=hist.find(same)||null; hist=hist.filter(h=>!same(h));
-    const e={t:title,s:stars,c:classic}; if(movie){e.id=movie.id; e.y=movie.year; e.o=movie.original; e.img=movie.poster;} if(rewatch){e.p=rewatch.s; e.n=(rewatch.n||1)+1;} else if(replaced&&replaced.n){e.p=replaced.p; e.n=replaced.n;}
-    hist.unshift(e); saved=true; saveH();}
-  chrome('res');
-  show(`<div class="center">
-    ${movie&&movie.poster?`<img class="poster" src="${IMG}w342${movie.poster}" alt="" onerror="this.remove()">`:''}
-    <div class="film">${esc(title)}${movie?`<small>${esc([movie.original&&movie.original!==title?movie.original:'',movie.year||''].filter(Boolean).join(' · '))}</small>`:''}</div>
-    <div class="stars" id="st">${starsHTML(stars,true)}</div>
+      <div class="f" style="width:${f}%"><svg viewBox="0 0 24 24"><path d="${STAR}" fill="#e3b468"/></svg></div></div>`;
+          })
+          .join("");
+      }
+      function seal() {
+        if (!classic) return "";
+        return stars >= 4
+          ? "Clássico que merece a fama"
+          : stars >= 3
+            ? "Respeito mais do que amo"
+            : "Importante, mas não é pra mim";
+      }
+      function rw() {
+        if (!rewatch) return "";
+        const d = stars - rewatch.s;
+        return (
+          "Antes ★ " +
+          fmt(rewatch.s) +
+          " · " +
+          (d > 0
+            ? "Cresceu na revisão"
+            : d < 0
+              ? "Caiu na revisão"
+              : "Continua igual")
+        );
+      }
+      function result() {
+        if (title && !saved) {
+          const same = sameFilm;
+          replaced = hist.find(same) || null;
+          hist = hist.filter((h) => !same(h));
+          const e = {
+            t: title,
+            s: stars,
+            c: classic,
+            d: (!rewatch && replaced && replaced.d) || today(),
+          };
+          const keep = rewatch || replaced;
+          if (keep && keep.note) e.note = keep.note;
+          if (movie) {
+            e.id = movie.id;
+            e.y = movie.year;
+            e.o = movie.original;
+            e.img = movie.poster;
+          }
+          if (rewatch) {
+            e.p = rewatch.s;
+            e.n = (rewatch.n || 1) + 1;
+          } else if (replaced && replaced.n) {
+            e.p = replaced.p;
+            e.n = replaced.n;
+          }
+          hist.unshift(e);
+          saved = true;
+          saveH();
+        }
+        chrome("res");
+        show(
+          `<div class="center">
+    ${movie && movie.poster ? `<img class="poster" src="${IMG}w342${movie.poster}" alt="" onerror="this.remove()">` : ""}
+    <div class="film">${esc(title)}${movie ? `<small>${esc([movie.original && movie.original !== title ? movie.original : "", movie.year || ""].filter(Boolean).join(" · "))}</small>` : ""}</div>
+    <div class="stars" id="st">${starsHTML(stars, true)}</div>
     <div class="num" id="num">${fmt(stars)}</div>
     <div class="label" id="lb">${LABELS[stars]}</div>
-    ${rewatch?`<div><div class="seal" id="rw">${rw()}</div></div>`:''}
-    ${classic?`<div class="seal" id="seal">${seal()}</div>`:''}
+    ${rewatch ? `<div><div class="seal" id="rw">${rw()}</div></div>` : ""}
+    ${classic ? `<div class="seal" id="seal">${seal()}</div>` : ""}
     <div class="adj"><button id="minus" aria-label="Diminuir meia estrela">−</button><small id="hint">Não concorda? Ajuste.</small><button id="plus" aria-label="Aumentar meia estrela">+</button></div>
-    <button class="cta" id="again">Avaliar outro filme</button></div>`,()=>{
-    const upd=d=>{stars=clamp(stars+d);
-      document.getElementById('st').innerHTML=starsHTML(stars,false);
-      document.getElementById('num').textContent=fmt(stars);
-      document.getElementById('lb').textContent=LABELS[stars];
-      const se=document.getElementById('seal'); if(se) se.textContent=seal();
-      const re=document.getElementById('rw'); if(re) re.textContent=rw();
-      document.getElementById('hint').textContent=stars===base?'Não concorda? Ajuste.':'Sugestão era '+fmt(base);
-      if(saved&&hist[0]){hist[0].s=stars; saveH();}
-    };
-    document.getElementById('minus').onclick=()=>upd(-.5);
-    document.getElementById('plus').onclick=()=>upd(.5);
-    document.getElementById('again').onclick=()=>{title=''; movie=null; classic=false; home();};
-  });
-}
+    ${
+      saved
+        ? `<div class="meta"><label class="frow">Assistido em <input type="date" id="dt" value="${hist[0].d || ""}" max="${today()}"></label>
+    <input type="text" id="nt" placeholder="Uma frase sobre o filme (opcional)" maxlength="280" value="${esc(hist[0].note || "")}"></div>`
+        : ""
+    }
+    <button class="cta" id="again">Avaliar outro filme</button></div>`,
+          () => {
+            if (saved) {
+              document.getElementById("dt").onchange = (e) => {
+                if (saved && hist[0]) {
+                  hist[0].d = e.target.value || undefined;
+                  saveH();
+                }
+              };
+              document.getElementById("nt").oninput = (e) => {
+                if (saved && hist[0]) {
+                  hist[0].note = e.target.value.trim() || undefined;
+                  saveH();
+                }
+              };
+            }
+            const upd = (d) => {
+              stars = clamp(stars + d);
+              document.getElementById("st").innerHTML = starsHTML(stars, false);
+              document.getElementById("num").textContent = fmt(stars);
+              document.getElementById("lb").textContent = LABELS[stars];
+              const se = document.getElementById("seal");
+              if (se) se.textContent = seal();
+              const re = document.getElementById("rw");
+              if (re) re.textContent = rw();
+              document.getElementById("hint").textContent =
+                stars === base
+                  ? "Não concorda? Ajuste."
+                  : "Sugestão era " + fmt(base);
+              if (saved && hist[0]) {
+                hist[0].s = stars;
+                saveH();
+              }
+            };
+            document.getElementById("minus").onclick = () => upd(-0.5);
+            document.getElementById("plus").onclick = () => upd(0.5);
+            document.getElementById("again").onclick = () => {
+              title = "";
+              movie = null;
+              classic = false;
+              home();
+            };
+          },
+        );
+      }
 
-back.onclick=()=>{
-  if(stage.dataset.lock) return;
-  if(step>=QS.length){ if(saved){hist.shift(); if(replaced) hist.unshift(replaced); replaced=null; saved=false; saveH();} step=QS.length-1; question(); }
-  else if(step>0){step--; question();}
-  else home();
-};
-home();
-</script>
-</body>
+      tabs.querySelectorAll(".tab").forEach(
+        (t) =>
+          (t.onclick = () => {
+            if (t.dataset.v === view) return;
+            t.dataset.v === "lib" ? library() : home();
+          }),
+      );
+
+      back.onclick = () => {
+        if (stage.dataset.lock) return;
+        if (step >= QS.length) {
+          if (saved) {
+            hist.shift();
+            if (replaced) hist.unshift(replaced);
+            replaced = null;
+            saved = false;
+            saveH();
+          }
+          step = QS.length - 1;
+          question();
+        } else if (step > 0) {
+          step--;
+          question();
+        } else home();
+      };
+      home();
+    </script>
+  </body>
 </html>
