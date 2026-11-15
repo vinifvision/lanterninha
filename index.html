@@ -1020,6 +1020,140 @@
       .acts .del {
         color: #ff5a52;
       }
+      .snd {
+        margin-left: auto;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: var(--card);
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        transition:
+          transform 0.15s,
+          color 0.2s;
+      }
+      .snd:active {
+        transform: scale(0.9);
+      }
+      .snd.on {
+        color: var(--gold);
+      }
+      .snd svg {
+        width: 19px;
+        height: 19px;
+        fill: currentColor;
+      }
+      .snd .w {
+        opacity: 0;
+      }
+      .snd.on .w {
+        opacity: 1;
+      }
+      .snd .x {
+        opacity: 1;
+      }
+      .snd.on .x {
+        opacity: 0;
+      }
+      .proj {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        background: #060607;
+        animation: projout 0.45s ease 1.05s forwards;
+      }
+      .proj i {
+        position: absolute;
+        inset: 0;
+        transform-origin: 14% 86%;
+        animation:
+          beam 0.55s cubic-bezier(0.2, 0.9, 0.2, 1) both,
+          flick 0.11s steps(2) infinite;
+      }
+      .proj i:nth-child(1) {
+        background: linear-gradient(40deg, #f0575b, rgba(199, 50, 58, 0.25));
+        clip-path: polygon(14% 86%, 52% 0, 92% 0);
+        animation-delay: 0s, 0s;
+      }
+      .proj i:nth-child(2) {
+        background: linear-gradient(30deg, #f2c97f, rgba(212, 159, 78, 0.25));
+        clip-path: polygon(14% 86%, 100% 2%, 100% 40%);
+        animation-delay: 0.09s, 0.03s;
+      }
+      .proj i:nth-child(3) {
+        background: linear-gradient(15deg, #fbf3e2, rgba(227, 214, 186, 0.25));
+        clip-path: polygon(14% 86%, 100% 45%, 100% 80%);
+        animation-delay: 0.18s, 0.06s;
+      }
+      .proj b {
+        position: absolute;
+        left: 14%;
+        top: 86%;
+        width: 56px;
+        height: 56px;
+        margin: -28px;
+        border-radius: 50%;
+        background: #fbf3e2;
+        box-shadow:
+          0 0 0 12px #060607,
+          0 0 40px rgba(251, 243, 226, 0.5);
+        animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+      }
+      .proj b::after {
+        content: "";
+        position: absolute;
+        inset: 16px;
+        border-radius: 50%;
+        background: #060607;
+      }
+      @keyframes beam {
+        from {
+          transform: scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 0.92;
+        }
+      }
+      @keyframes flick {
+        0% {
+          filter: brightness(1);
+        }
+        100% {
+          filter: brightness(0.86);
+        }
+      }
+      @keyframes projout {
+        to {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+      .num.tick {
+        animation: numpop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+      }
+      @keyframes numpop {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(1.14);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proj {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1027,6 +1161,19 @@
       <div class="top">
         <button class="back hide" id="back" aria-label="Voltar">‹</button>
         <div class="bar hide" id="bar"><i id="fill"></i></div>
+        <button class="snd" id="snd" aria-label="Som">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" />
+            <path
+              class="w"
+              d="M16 8.2a5 5 0 0 1 0 7.6l-1.2-1.4a3.2 3.2 0 0 0 0-4.8L16 8.2zm2.6-2.6a8.7 8.7 0 0 1 0 12.8l-1.3-1.4a6.8 6.8 0 0 0 0-10l1.3-1.4z"
+            />
+            <path
+              class="x"
+              d="M16.2 9.4l1.4-1.4 2 2 2-2 1.4 1.4-2 2 2 2-1.4 1.4-2-2-2 2-1.4-1.4 2-2-2-2z"
+            />
+          </svg>
+        </button>
       </div>
       <div class="stage" id="stage"></div>
     </div>
@@ -1219,6 +1366,118 @@
       const fmt = (n) => String(n).replace(".", ",");
       const clamp = (n) => Math.min(5, Math.max(0.5, n));
 
+      // ---------- Som (gerado na hora, sem arquivos de áudio)
+      const sfx = (() => {
+        let ctx = null,
+          on = true,
+          noiseBuf = null;
+        try {
+          on = localStorage.getItem("lantSom") !== "0";
+        } catch (e) {}
+        const ac = () => {
+          if (!on) return null;
+          try {
+            if (!ctx)
+              ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === "suspended") ctx.resume();
+            return ctx;
+          } catch (e) {
+            return null;
+          }
+        };
+        const tone = (f, dur, vol, when = 0, type = "sine") => {
+          const c = ac();
+          if (!c) return;
+          const t = c.currentTime + when,
+            o = c.createOscillator(),
+            g = c.createGain();
+          o.type = type;
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(vol, t + 0.008);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+          o.connect(g).connect(c.destination);
+          o.start(t);
+          o.stop(t + dur + 0.02);
+        };
+        const noise = (dur, vol, freq, when = 0) => {
+          const c = ac();
+          if (!c) return;
+          const t = c.currentTime + when;
+          if (!noiseBuf) {
+            noiseBuf = c.createBuffer(1, c.sampleRate * 0.2, c.sampleRate);
+            const d = noiseBuf.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+          }
+          const n = c.createBufferSource(),
+            f = c.createBiquadFilter(),
+            g = c.createGain();
+          n.buffer = noiseBuf;
+          f.type = "bandpass";
+          f.frequency.value = freq;
+          f.Q.value = 1.2;
+          g.gain.setValueAtTime(vol, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+          n.connect(f).connect(g).connect(c.destination);
+          n.start(t);
+          n.stop(t + dur + 0.02);
+        };
+        const buzz = (ms) => {
+          try {
+            if (on && navigator.vibrate) navigator.vibrate(ms);
+          } catch (e) {}
+        };
+        const NOTES = [523.25, 587.33, 659.25, 783.99, 880];
+        return {
+          get on() {
+            return on;
+          },
+          toggle() {
+            on = !on;
+            try {
+              localStorage.setItem("lantSom", on ? "1" : "0");
+            } catch (e) {}
+            if (on) {
+              tone(660, 0.12, 0.06);
+            }
+            return on;
+          },
+          tap(i = 0) {
+            noise(0.035, 0.16, 2200);
+            tone(440 + Math.min(i, 9) * 38, 0.11, 0.05, 0, "triangle");
+            buzz(8);
+          },
+          tick(up) {
+            tone(up ? 740 : 520, 0.08, 0.05, 0, "triangle");
+            buzz(6);
+          },
+          soft() {
+            noise(0.03, 0.08, 1500);
+          },
+          projector(dur) {
+            for (let t = 0; t < dur; t += 1 / 17)
+              noise(0.022, 0.035 + 0.05 * (t / dur), 950, t);
+            tone(82, dur, 0.035, 0, "sawtooth");
+          },
+          star(i, when, half) {
+            tone(NOTES[i], half ? 0.3 : 0.55, half ? 0.045 : 0.085, when);
+            tone(
+              NOTES[i] * 2,
+              half ? 0.2 : 0.4,
+              half ? 0.012 : 0.022,
+              when,
+              "triangle",
+            );
+            setTimeout(() => buzz(half ? 6 : 12), when * 1000);
+          },
+          fanfare(when) {
+            [1046.5, 1318.5, 1568].forEach((f, k) =>
+              tone(f, 0.7, 0.035, when + k * 0.07),
+            );
+          },
+        };
+      })();
+
       function loadH() {
         try {
           return JSON.parse(localStorage.getItem("notaFilmeV2") || "[]");
@@ -1285,6 +1544,7 @@
                 .querySelectorAll(".opt")
                 .forEach((x) => x.classList.remove("on"));
               b.classList.add("on");
+              sfx.tap(Math.max(step, 0));
               setTimeout(() => cb(+b.dataset.i), 260);
             }),
         );
@@ -1727,11 +1987,11 @@
         );
       }
 
-      function starsHTML(n, anim) {
+      function starsHTML(n, anim, base = 0, gap = 90) {
         return [0, 1, 2, 3, 4]
           .map((i) => {
             const f = Math.max(0, Math.min(1, n - i)) * 100;
-            return `<div class="star" style="animation-delay:${anim ? i * 90 : 0}ms;${anim ? "" : "animation:none"}">
+            return `<div class="star" style="animation-delay:${anim ? base + i * gap : 0}ms;${anim ? "" : "animation:none"}">
       <svg viewBox="0 0 24 24"><path d="${STAR}" fill="#2c2c30"/></svg>
       <div class="f" style="width:${f}%"><svg viewBox="0 0 24 24"><path d="${STAR}" fill="#e3b468"/></svg></div></div>`;
           })
@@ -1790,13 +2050,29 @@
           saveH();
         }
         chrome("res");
+        const calm =
+          window.matchMedia &&
+          matchMedia("(prefers-reduced-motion:reduce)").matches;
+        const T0 = calm ? 200 : 1150,
+          GAP = 170;
+        if (!calm) {
+          const pj = document.createElement("div");
+          pj.className = "proj";
+          pj.innerHTML = "<i></i><i></i><i></i><b></b>";
+          document.body.appendChild(pj);
+          setTimeout(() => pj.remove(), 1700);
+          sfx.projector(1.05);
+        }
+        for (let i = 0; i < Math.ceil(stars); i++)
+          sfx.star(i, (T0 + i * GAP) / 1000, stars - i < 1);
+        if (stars >= 4.5) sfx.fanfare((T0 + 5 * GAP) / 1000);
         show(
           `<div class="center">
     ${movie && movie.poster ? `<img class="poster" src="${IMG}w342${movie.poster}" alt="" onerror="this.remove()">` : ""}
     <div class="film">${esc(title)}${movie ? `<small>${esc([movie.original && movie.original !== title ? movie.original : "", movie.year || ""].filter(Boolean).join(" · "))}</small>` : ""}</div>
-    <div class="stars" id="st">${starsHTML(stars, true)}</div>
-    <div class="num" id="num">${fmt(stars)}</div>
-    <div class="label" id="lb">${LABELS[stars]}</div>
+    <div class="stars" id="st">${starsHTML(stars, true, T0 - 180, GAP)}</div>
+    <div class="num" id="num">${calm ? fmt(stars) : "0"}</div>
+    <div class="label" id="lb" style="transition:opacity .4s;opacity:${calm ? 1 : 0}">${LABELS[stars]}</div>
     ${rewatch ? `<div><div class="seal" id="rw">${rw()}</div></div>` : ""}
     ${classic ? `<div class="seal" id="seal">${seal()}</div>` : ""}
     <div class="adj"><button id="minus" aria-label="Diminuir meia estrela">−</button><small id="hint">Não concorda? Ajuste.</small><button id="plus" aria-label="Aumentar meia estrela">+</button></div>
@@ -1807,8 +2083,26 @@
               bindWhen(hist[0]);
               bindReview(hist[0]);
             }
+            if (!calm) {
+              const num = document.getElementById("num"),
+                target = stars;
+              let v = 0;
+              const run = () => {
+                if (!num.isConnected || stars !== target) return;
+                v = Math.min(target, v + 0.5);
+                num.textContent = fmt(v);
+                if (v < target) setTimeout(run, GAP / (target > 2.5 ? 1.6 : 1));
+                else {
+                  num.classList.add("tick");
+                  document.getElementById("lb").style.opacity = 1;
+                }
+              };
+              setTimeout(run, T0 - 180);
+            }
             const upd = (d) => {
               stars = clamp(stars + d);
+              sfx.tick(d > 0);
+              document.getElementById("lb").style.opacity = 1;
               document.getElementById("st").innerHTML = starsHTML(stars, false);
               document.getElementById("num").textContent = fmt(stars);
               document.getElementById("lb").textContent = LABELS[stars];
@@ -1837,10 +2131,14 @@
         );
       }
 
+      const sndBtn = document.getElementById("snd");
+      sndBtn.classList.toggle("on", sfx.on);
+      sndBtn.onclick = () => sndBtn.classList.toggle("on", sfx.toggle());
       tabs.querySelectorAll(".tab").forEach(
         (t) =>
           (t.onclick = () => {
             if (t.dataset.v === view) return;
+            sfx.soft();
             t.dataset.v === "lib" ? library() : home();
           }),
       );
