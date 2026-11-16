@@ -1,6 +1,6 @@
 // A moldura do app: barra de cima, a tela atual, as abas e o que estiver aberto por cima.
 import { useEffect, useState } from 'react';
-import { TAB_ICONS } from './components/icons';
+import { GearIcon, TAB_ICONS } from './components/icons';
 import { sfx, useSound } from './lib/sfx';
 import { pname } from './lib/format';
 import { nav, scroller, useNav, type Overlay as OverlayState, type Screen, type Tab } from './nav';
@@ -10,6 +10,7 @@ import { GuessGame } from './overlays/GuessGame';
 import { Recommend } from './overlays/Recommend';
 import { ReviewEditor } from './overlays/ReviewEditor';
 import { ReviewsPage } from './overlays/ReviewsPage';
+import { Settings } from './overlays/Settings';
 import { ShareSheet } from './overlays/ShareSheet';
 import { FilmPage } from './screens/FilmPage';
 import { FriendPage } from './screens/FriendPage';
@@ -47,6 +48,7 @@ function overlayView(o: OverlayState, i: number) {
     case 'share': return <ShareSheet key={i} filmKey={o.key} />;
     case 'editProfile': return <EditProfile key={i} />;
     case 'addFriend': return <AddFriend key={i} />;
+    case 'settings': return <Settings key={i} />;
     case 'recommend': return <Recommend key={i} info={o.info} />;
     case 'guess': return <GuessGame key={i} friend={o.friend} films={o.films} />;
   }
@@ -102,7 +104,9 @@ export function App() {
                     <path className="x" d="M16.2 9.4l1.4-1.4 2 2 2-2 1.4 1.4-2 2 2 2-1.4 1.4-2-2-2 2-1.4-1.4 2-2-2-2z" />
                   </svg>
                 </button>
-              ) : <span className="tsp" />}
+              ) : main && tab === 'prof'
+                ? <button className="gear" id="cfg" aria-label="Configurações" onClick={() => nav.open({ k: 'settings' })}><GearIcon /></button>
+                : <span className="tsp" />}
             </div>
           </div>
           <div className={`stage${alignTop ? ' up' : ''}`} id="stage" data-mode={mode}>

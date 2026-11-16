@@ -506,3 +506,16 @@ html.native{touch-action:pan-x pan-y}
 .fc .ph .bdg{position:absolute;left:0;right:0;bottom:0;display:block;height:auto;padding:26px 8px 7px;text-align:left;font-size:13px;font-weight:700;line-height:1.2;
   color:var(--gold);background:linear-gradient(180deg,transparent,rgba(0,0,0,.55) 45%,rgba(0,0,0,.92));text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .fc .ph .bdg.tag{color:#e6e6ea;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- Configurações */
+.gear{width:40px;height:40px;border-radius:50%;border:none;background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;flex:none;pointer-events:auto;margin-left:auto;transition:transform .15s}
+.gear:active{transform:scale(.9)}
+.gear svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.set{background:var(--card);border-radius:18px;padding:2px 18px;margin-bottom:10px}
+.set>div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;font-size:16px}
+.set>div+div{border-top:1px solid rgba(255,255,255,.07)}
+.set span{color:var(--muted);flex:none}
+.set b{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.setnote{color:var(--muted);font-size:13px;line-height:1.45;margin:0 4px 30px}
+.ov .sw{width:100%;border:none;color:var(--text);font:inherit;font-size:16px}
+.ov .bk{margin-top:30px}

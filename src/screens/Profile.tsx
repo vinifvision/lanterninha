@@ -1,18 +1,15 @@
 // Aba Perfil: entrar ou criar conta; depois, o perfil com top 4, amigos, placar e sincronização.
 import { useState } from 'react';
 import { Avatar } from '../components/Avatar';
-import { Backup } from '../components/Backup';
 import { FriendRow } from '../components/FriendRow';
-import { useArmed, useAsync } from '../components/hooks';
+import { useAsync } from '../components/hooks';
 import { TopFour } from '../components/TopFour';
 import { cleanProfile, cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, nFriends } from '../lib/format';
 import type { Profile as ProfileData } from '../lib/types';
 import { nav } from '../nav';
-import { resetLibraryView } from './Library';
 
-const SYNC_TEXT = { ok: 'Tudo salvo na conta', busy: 'Sincronizando…', err: 'Sem conexão. Tento de novo depois.', off: '' };
 const EMPTY_PROFILE = cleanProfile({}) as ProfileData;
 
 export function Profile() {
@@ -22,7 +19,6 @@ export function Profile() {
       <div className="screen">
         <h1>Perfil</h1><p className="count">Conectando…</p>
         <p className="empty">Se isso não mudar, confere tua internet.</p>
-        <Backup />
       </div>
     );
   }
@@ -71,7 +67,6 @@ function AuthForm() {
         <button className="cta" id="ago" type="submit" disabled={busy}>{up ? 'Criar conta' : 'Entrar'}</button>
       </form>
       <p className={`fmsg${msg?.bad ? ' bad' : ''}`} id="fm">{msg ? msg.t : hint}</p>
-      <Backup />
     </div>
   );
 }
@@ -85,8 +80,6 @@ function Account() {
   const avg = rated.length ? rated.reduce((a, h) => a + h.s, 0) / rated.length : 0;
   const title = pr.display_name || (pr.username ? '@' + pr.username : 'Minha conta');
   const [err, setErr] = useState('');
-  const [armed, press] = useArmed(4000);
-  const [leaving, setLeaving] = useState(false);
 
   const openTop = (i: number) => {
     const f = pr.top4[i];
@@ -94,13 +87,6 @@ function Account() {
     const h = all.find((x) => fkey(x) === fkey(f));
     if (h) nav.openFilm(h);
   };
-  const signOut = async () => {
-    if (!press()) return;
-    setLeaving(true); resetLibraryView();
-    const e = await cloud.signOut();
-    if (e) { setLeaving(false); setErr(e); }
-  };
-
   return (
     <div className="screen">
       <h1>Perfil</h1><p className="count">&nbsp;</p>
@@ -109,7 +95,7 @@ function Account() {
         <div>
           <b>{title}</b>
           {pr.display_name && pr.username && <em>@{pr.username}</em>}
-          <small>{user.email}{account.social ? ' · ' + nFriends(account.friends.list.length) : ''}</small>
+          {account.social && <small>{nFriends(account.friends.list.length)}</small>}
         </div>
       </div>
       {pr.bio && <p className="bio">{pr.bio}</p>}
@@ -125,13 +111,7 @@ function Account() {
         <div><b>{rated.length}</b><span>{rated.length === 1 ? 'filme' : 'filmes'}</span></div>
         <div><b>{rated.length ? fmt(Math.round(avg * 10) / 10) : '–'}</b><span>nota média</span></div>
       </div>
-      <p className={`sync ${account.sync === 'off' ? '' : account.sync}`} id="sync"><i /><span>{SYNC_TEXT[account.sync]}</span></p>
-      <div className="sm">
-        <button className="plain" id="snow" onClick={() => void cloud.syncNow()}>Sincronizar</button>
-        <button className="plain out" id="sout" disabled={leaving} onClick={signOut}>{armed ? 'Sair mesmo?' : 'Sair da conta'}</button>
-      </div>
-      <p className={`fmsg${err ? ' bad' : ''}`} id="fm">{err || (armed ? 'Teus filmes continuam salvos na conta.' : '')}</p>
-      <Backup />
+      <p className={`fmsg${err ? ' bad' : ''}`} id="fm">{err}</p>
     </div>
   );
 }

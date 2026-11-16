@@ -8,6 +8,9 @@ export const SendIcon = () => (
 export const PlayIcon = () => (
   <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" /></svg>
 );
+export const GearIcon = () => (
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.5-2.4 1a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.6 7.6 0 0 0 7 6.5l-2.4-1-2 3.5 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.5 2.4-1a7.6 7.6 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5z" /></svg>
+);
 export const TAB_ICONS = {
   rate: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   home: 'M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3z',

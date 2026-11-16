@@ -16,6 +16,7 @@ export type Overlay =
   | { k: 'share'; key: string }
   | { k: 'editProfile' }
   | { k: 'addFriend' }
+  | { k: 'settings' }
   | { k: 'recommend'; info: FilmInfo }
   | { k: 'guess'; friend: Profile; films: RatedFilm[] };
 
