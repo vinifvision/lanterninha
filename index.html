@@ -3287,6 +3287,7 @@
           .join("");
       const UUID =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const nFriends = (n) => n + (n === 1 ? " amigo" : " amigos");
       const pname = (p) =>
         p
           ? p.display_name || (p.username ? "@" + p.username : "Alguém")
@@ -3672,6 +3673,15 @@
             return recs;
           },
           loadFriends,
+          async friendCount(id) {
+            if (!UUID.test(id)) return null;
+            try {
+              const { data, error } = await sb.rpc("friend_count", { who: id });
+              return error || typeof data !== "number" ? null : data;
+            } catch (e) {
+              return null;
+            }
+          },
           async sendRec(ids, film, note) {
             ids = ids.filter((i) => UUID.test(i));
             if (!ids.length) return "Escolhe pelo menos um amigo.";
@@ -4200,7 +4210,7 @@
           ? `<div class="sech"><h3>Top 4</h3></div><div class="t4" id="ft4">${t4HTML(p.top4, "")}</div>`
           : "";
         show(
-          `<div class="pf" style="margin-top:10px">${avatarHTML(p)}<div><b>${esc(pname(p))}</b>${p.display_name && p.username ? `<em>@${esc(p.username)}</em>` : ""}</div></div>
+          `<div class="pf" style="margin-top:10px">${avatarHTML(p)}<div><b>${esc(pname(p))}</b>${p.display_name && p.username ? `<em>@${esc(p.username)}</em>` : ""}<small id="fcount"></small></div></div>
     ${p.bio ? `<p class="bio">${esc(p.bio)}</p>` : ""}${t4}
     <div id="ffilms"><p class="empty">Carregando os filmes…</p></div>
     <button class="plain out" id="unf" style="margin-top:36px">Desfazer amizade</button><p class="fmsg" id="fm"></p>`,
@@ -4229,6 +4239,10 @@
               }
               goView("prof");
             };
+            cloud.friendCount(p.id).then((n) => {
+              const el = document.getElementById("fcount");
+              if (el && n != null) el.textContent = nFriends(n);
+            });
             const films = await cloud.friendFilms(p.id),
               box = document.getElementById("ffilms");
             if (!box || cur !== "friend") return;
@@ -4489,7 +4503,7 @@
           const t4 = t4HTML(pr.top4, "+");
           show(
             `<h1>Perfil</h1><p class="count">&nbsp;</p>
-      <div class="pf">${avatarHTML(pr, u.email)}<div><b>${esc(title)}</b>${pr.display_name && pr.username ? `<em>@${esc(pr.username)}</em>` : ""}<small>${esc(u.email || "")}</small></div></div>
+      <div class="pf">${avatarHTML(pr, u.email)}<div><b>${esc(title)}</b>${pr.display_name && pr.username ? `<em>@${esc(pr.username)}</em>` : ""}<small>${esc(u.email || "")}${cloud.social ? " · " + nFriends(cloud.friends.list.length) : ""}</small></div></div>
       ${pr.bio ? `<p class="bio">${esc(pr.bio)}</p>` : ""}
       ${
         ext
