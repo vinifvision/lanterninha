@@ -186,7 +186,9 @@
         border-color: var(--gold);
         background: var(--gold-soft);
       }
-      input[type="text"] {
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
         width: 100%;
         padding: 17px 20px;
         border-radius: 18px;
@@ -199,7 +201,9 @@
         transition: border-color 0.2s;
         margin-bottom: 10px;
       }
-      input[type="text"]:focus {
+      input[type="text"]:focus,
+      input[type="email"]:focus,
+      input[type="password"]:focus {
         border-color: var(--gold);
       }
       input::placeholder {
@@ -1333,6 +1337,126 @@
         color: var(--gold);
         background: var(--gold-soft);
       }
+      .pf {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 6px 0 26px;
+      }
+      .av {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 700;
+        color: #1d1403;
+        background: conic-gradient(
+          from 210deg,
+          #f0575b,
+          #f2c97f,
+          #fbf3e2,
+          #f2c97f,
+          #f0575b
+        );
+      }
+      .pf b {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+      }
+      .pf small {
+        display: block;
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .pf div {
+        min-width: 0;
+      }
+      .stat {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+      .stat div {
+        flex: 1;
+        background: var(--card);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .stat b {
+        display: block;
+        font-size: 26px;
+        font-weight: 700;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .sync {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0 0 22px;
+      }
+      .sync i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #55555a;
+      }
+      .sync.ok i {
+        background: #4cd08a;
+      }
+      .sync.busy i {
+        background: var(--gold);
+        animation: blink 1s infinite;
+      }
+      .sync.err i {
+        background: #ff5a52;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .fmsg {
+        color: var(--muted);
+        font-size: 14px;
+        min-height: 20px;
+        margin: 12px 0 0;
+        text-align: center;
+      }
+      .fmsg.bad {
+        color: #ff7a73;
+      }
+      .plain {
+        width: 100%;
+        padding: 15px;
+        border-radius: 16px;
+        border: none;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+      .plain:active {
+        background: var(--card2);
+      }
+      .plain.out {
+        color: #ff5a52;
+      }
     </style>
   </head>
   <body>
@@ -1369,6 +1493,13 @@
           <svg viewBox="0 0 24 24">
             <path d="M4 3h7v8H4zM13 3h7v8h-7zM4 13h7v8H4zM13 13h7v8h-7z" /></svg
           >Meus filmes
+        </button>
+        <button class="tab" data-v="prof">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"
+            /></svg
+          >Perfil
         </button>
       </div>
     </nav>
@@ -1675,6 +1806,7 @@
         try {
           localStorage.setItem("notaFilmeV2", JSON.stringify(hist));
         } catch (e) {}
+        if (typeof cloud !== "undefined") cloud.changed();
       }
       let hist = loadH(),
         view = "home",
@@ -1707,12 +1839,15 @@
         // home | lib | film | q | cmp | res
         cur = mode;
         if (mode !== "film") setTint(null);
-        const main = mode === "home" || mode === "lib";
+        const main = mode === "home" || mode === "lib" || mode === "prof";
         back.classList.toggle("hide", main);
         bar.classList.toggle("hide", main || mode === "res" || mode === "film");
         tabs.classList.toggle("off", !main);
         document.body.classList.toggle("tabs-on", main);
-        stage.classList.toggle("up", mode === "lib" || mode === "film");
+        stage.classList.toggle(
+          "up",
+          mode === "lib" || mode === "film" || mode === "prof",
+        );
         if (main) {
           view = mode;
           tabs
@@ -2378,7 +2513,460 @@
               const i = hist.indexOf(h);
               if (i >= 0) hist.splice(i, 1);
               saveH();
-              view === "lib" ? library() : home();
+              goView(view);
+            };
+          },
+        );
+      }
+
+      // ---------- Conta e sincronização (Supabase)
+      const SUPA_URL = "https://diyqoytezequhjzobxpi.supabase.co";
+      const SUPA_KEY = "sb_publishable_2e2wmfwPRpExRQ_KMrqBfQ_V_VumbRg"; // chave pública: pode ficar no código
+      const fkey = (h) => (h.id ? "m" + h.id : "t:" + h.t.toLowerCase());
+      const fhash = (h) => {
+        const j = JSON.stringify(cleanFilm(h) || h);
+        let x = 5381;
+        for (let i = 0; i < j.length; i++)
+          x = ((x << 5) + x + j.charCodeAt(i)) | 0;
+        return x + ":" + j.length;
+      };
+      const lsGet = (k, d) => {
+        try {
+          const v = localStorage.getItem(k);
+          return v == null ? d : JSON.parse(v);
+        } catch (e) {
+          return d;
+        }
+      };
+      const lsSet = (k, v) => {
+        try {
+          localStorage.setItem(k, JSON.stringify(v));
+        } catch (e) {}
+      };
+      hist.forEach((h, i) => {
+        if (!h.ts) h.ts = Date.now() - i * 1000;
+      });
+
+      const cloud = (() => {
+        let sb = null,
+          user = null,
+          profile = null,
+          state = "off",
+          timer = null,
+          busy = false,
+          again = false,
+          lastPull = 0;
+        let synced = lsGet("lantSynced", {}),
+          owner = lsGet("lantOwner", null);
+        const set = (st) => {
+          state = st;
+          if (cur === "prof") paintSync();
+        };
+        const keep = () => {
+          lsSet("lantSynced", synced);
+          lsSet("lantOwner", owner);
+        };
+        const store = () => {
+          try {
+            localStorage.setItem("notaFilmeV2", JSON.stringify(hist));
+          } catch (e) {}
+        };
+        const refresh = () => {
+          if (cur === "home") home();
+          else if (cur === "lib") library();
+          else if (cur === "prof") profilePage();
+        };
+
+        async function pull() {
+          // junta o que está na nuvem com o que está no aparelho
+          if (!sb || !user || busy) return;
+          if (cur === "q" || cur === "cmp" || cur === "res") return;
+          busy = true;
+          set("busy");
+          try {
+            const before = JSON.stringify(hist);
+            if (owner && owner !== user.id) {
+              hist = [];
+              synced = {};
+            }
+            owner = user.id;
+            const remote = {};
+            for (let from = 0; ; from += 1000) {
+              const { data, error } = await sb
+                .from("films")
+                .select("key,data")
+                .range(from, from + 999);
+              if (error) throw error;
+              data.forEach((r) => (remote[r.key] = r.data));
+              if (data.length < 1000) break;
+            }
+            const out = [],
+              up = [],
+              del = [],
+              seen = {};
+            hist.forEach((h) => {
+              const k = fkey(h),
+                hs = fhash(h),
+                same = synced[k] === hs;
+              seen[k] = 1;
+              if (k in remote) {
+                if (same) {
+                  const c = cleanFilm(remote[k]);
+                  out.push(c && fhash(c) !== hs ? c : h);
+                } else {
+                  out.push(h);
+                  up.push(h);
+                }
+              } else if (same) {
+                /* apagado em outro aparelho */
+              } else {
+                out.push(h);
+                up.push(h);
+              }
+            });
+            Object.keys(remote).forEach((k) => {
+              if (seen[k]) return;
+              if (k in synced) del.push(k);
+              else {
+                const c = cleanFilm(remote[k]);
+                if (c) out.push(c);
+              }
+            });
+            await send(up, del);
+            out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+            hist = out;
+            synced = {};
+            hist.forEach((h) => (synced[fkey(h)] = fhash(h)));
+            store();
+            keep();
+            lastPull = Date.now();
+            busy = false;
+            set("ok");
+            if (JSON.stringify(hist) !== before || cur === "prof") refresh();
+          } catch (e) {
+            busy = false;
+            set("err");
+          }
+          if (again) {
+            again = false;
+            push();
+          }
+        }
+        async function send(up, del) {
+          if (up.length) {
+            const { error } = await sb.from("films").upsert(
+              up.map((h) => ({
+                user_id: user.id,
+                key: fkey(h),
+                data: h,
+                updated_at: new Date().toISOString(),
+              })),
+              { onConflict: "user_id,key" },
+            );
+            if (error) throw error;
+          }
+          if (del.length) {
+            const { error } = await sb
+              .from("films")
+              .delete()
+              .eq("user_id", user.id)
+              .in("key", del);
+            if (error) throw error;
+          }
+        }
+        async function push() {
+          // manda só o que mudou desde a última sincronização
+          if (!sb || !user) return true;
+          if (busy) {
+            again = true;
+            return false;
+          }
+          busy = true;
+          set("busy");
+          try {
+            const now = {},
+              up = [];
+            hist.forEach((h) => {
+              const k = fkey(h),
+                hs = fhash(h);
+              now[k] = hs;
+              if (synced[k] !== hs) up.push(h);
+            });
+            const del = Object.keys(synced).filter((k) => !(k in now));
+            await send(up, del);
+            synced = now;
+            keep();
+            busy = false;
+            set("ok");
+            if (again) {
+              again = false;
+              return push();
+            }
+            return true;
+          } catch (e) {
+            busy = false;
+            set("err");
+            return false;
+          }
+        }
+        async function onAuth(session) {
+          const u = (session && session.user) || null;
+          if ((u && u.id) === (user && user.id)) return;
+          user = u;
+          profile = null;
+          if (!u) {
+            set("off");
+            if (cur === "prof") profilePage();
+            return;
+          }
+          if (cur === "prof") profilePage();
+          try {
+            const { data } = await sb
+              .from("profiles")
+              .select("username")
+              .eq("id", u.id)
+              .maybeSingle();
+            profile = data || null;
+          } catch (e) {}
+          if (cur === "prof") profilePage();
+          pull();
+        }
+        function init() {
+          if (sb || !window.supabase) return;
+          try {
+            sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+            sb.auth.onAuthStateChange((ev, session) =>
+              setTimeout(() => onAuth(session), 0),
+            );
+            if (cur === "prof") profilePage();
+          } catch (e) {
+            sb = null;
+          }
+        }
+        const sc = document.createElement("script");
+        sc.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+        sc.async = true;
+        sc.onload = init;
+        document.head.appendChild(sc);
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden && user && Date.now() - lastPull > 60000) pull();
+        });
+        const nice = (e) => {
+          const m = ((e && e.message) || "").toLowerCase();
+          if (m.includes("invalid login")) return "E-mail ou senha errados.";
+          if (
+            m.includes("already registered") ||
+            m.includes("already been registered")
+          )
+            return "Esse e-mail já tem conta. Tenta entrar.";
+          if (m.includes("password"))
+            return "A senha precisa ter pelo menos 6 caracteres.";
+          if (m.includes("not confirmed"))
+            return "Confirma teu e-mail pelo link que te mandei e tenta de novo.";
+          if (m.includes("rate") || m.includes("seconds"))
+            return "Muitas tentativas. Espera um pouco e tenta de novo.";
+          if (
+            m.includes("valid email") ||
+            m.includes("invalid format") ||
+            m.includes("is invalid")
+          )
+            return "Esse e-mail não parece válido.";
+          return "Não deu certo agora. Tenta de novo.";
+        };
+        return {
+          get ready() {
+            return !!sb;
+          },
+          get user() {
+            return user;
+          },
+          get profile() {
+            return profile;
+          },
+          get state() {
+            return state;
+          },
+          changed() {
+            if (!user) return;
+            clearTimeout(timer);
+            timer = setTimeout(push, 1200);
+          },
+          syncNow() {
+            return pull();
+          },
+          async signIn(email, password) {
+            const { error } = await sb.auth.signInWithPassword({
+              email,
+              password,
+            });
+            return error ? nice(error) : "";
+          },
+          async signUp(username, email, password) {
+            try {
+              const { data, error } = await sb.rpc("username_available", {
+                name: username,
+              });
+              if (!error && data === false)
+                return "Esse nome de usuário já existe.";
+            } catch (e) {}
+            const { data, error } = await sb.auth.signUp({
+              email,
+              password,
+              options: { data: { username } },
+            });
+            if (error) return nice(error);
+            return data.session ? "" : "CONFIRM";
+          },
+          async signOut() {
+            clearTimeout(timer);
+            const ok = await push();
+            if (!ok)
+              return "Não consegui salvar as últimas mudanças. Confere a internet e tenta de novo.";
+            await sb.auth.signOut();
+            hist = [];
+            synced = {};
+            owner = null;
+            store();
+            keep();
+            return "";
+          },
+        };
+      })();
+
+      function paintSync() {
+        const el = document.getElementById("sync");
+        if (!el) return;
+        const st = cloud.state;
+        el.className =
+          "sync " +
+          (st === "ok"
+            ? "ok"
+            : st === "busy"
+              ? "busy"
+              : st === "err"
+                ? "err"
+                : "");
+        el.lastChild.textContent =
+          st === "ok"
+            ? "Tudo salvo na conta"
+            : st === "busy"
+              ? "Sincronizando…"
+              : st === "err"
+                ? "Sem conexão. Tento de novo depois."
+                : "";
+      }
+      let authMode = "in";
+      function profilePage() {
+        step = -1;
+        chrome("prof");
+        if (!cloud.ready) {
+          show(
+            `<h1>Perfil</h1><p class="count">Conectando…</p><p class="empty">Se isso não mudar, confere tua internet.</p>`,
+          );
+          return;
+        }
+        const u = cloud.user;
+        if (u) {
+          const name = (cloud.profile && cloud.profile.username) || "",
+            seen = hist.length,
+            avg = seen ? hist.reduce((a, h) => a + h.s, 0) / seen : 0;
+          show(
+            `<h1>Perfil</h1><p class="count">&nbsp;</p>
+      <div class="pf"><div class="av">${esc((name || u.email || "?")[0].toUpperCase())}</div><div><b>${name ? "@" + esc(name) : "Minha conta"}</b><small>${esc(u.email || "")}</small></div></div>
+      <div class="stat"><div><b>${seen}</b><span>${seen === 1 ? "filme" : "filmes"}</span></div><div><b>${seen ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
+      <p class="sync" id="sync"><i></i><span></span></p>
+      <button class="plain" id="snow">Sincronizar agora</button>
+      <button class="plain out" id="sout">Sair da conta</button>
+      <p class="fmsg" id="fm"></p>`,
+            () => {
+              paintSync();
+              document.getElementById("snow").onclick = () => cloud.syncNow();
+              const out = document.getElementById("sout");
+              let armed = false;
+              out.onclick = async () => {
+                const fm = document.getElementById("fm");
+                if (!armed) {
+                  armed = true;
+                  out.textContent = "Sair mesmo?";
+                  fm.className = "fmsg";
+                  fm.textContent = "Teus filmes continuam salvos na conta.";
+                  setTimeout(() => {
+                    armed = false;
+                    if (out.isConnected) out.textContent = "Sair da conta";
+                  }, 4000);
+                  return;
+                }
+                out.disabled = true;
+                const err = await cloud.signOut();
+                if (err) {
+                  out.disabled = false;
+                  fm.className = "fmsg bad";
+                  fm.textContent = err;
+                }
+              };
+            },
+          );
+          return;
+        }
+        const up = authMode === "up";
+        show(
+          `<h1>Perfil</h1><p class="count">Entre pra guardar teus filmes na conta e ver em qualquer aparelho.</p>
+    <div class="seg"><button data-m="in" class="${up ? "" : "on"}">Entrar</button><button data-m="up" class="${up ? "on" : ""}">Criar conta</button></div>
+    <form id="af" novalidate>
+    ${up ? '<input type="text" id="un" placeholder="Nome de usuário" maxlength="20" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">' : ""}
+    <input type="email" id="em" placeholder="E-mail" autocomplete="email" autocapitalize="none">
+    <input type="password" id="pw" placeholder="Senha" autocomplete="${up ? "new-password" : "current-password"}">
+    <button class="cta" id="ago" type="submit">${up ? "Criar conta" : "Entrar"}</button></form>
+    <p class="fmsg" id="fm">${hist.length && up ? "Os filmes deste aparelho vão junto pra tua conta." : ""}</p>`,
+          () => {
+            stage.querySelectorAll(".seg button").forEach(
+              (b) =>
+                (b.onclick = () => {
+                  authMode = b.dataset.m;
+                  profilePage();
+                }),
+            );
+            const fm = document.getElementById("fm"),
+              say = (t, bad) => {
+                fm.className = "fmsg" + (bad ? " bad" : "");
+                fm.textContent = t;
+              };
+            const un = document.getElementById("un");
+            if (un)
+              un.oninput = () => {
+                un.value = un.value.toLowerCase().replace(/[^a-z0-9_.]/g, "");
+              };
+            document.getElementById("af").onsubmit = async (ev) => {
+              ev.preventDefault();
+              const email = document.getElementById("em").value.trim(),
+                pw = document.getElementById("pw").value,
+                name = un ? un.value : "";
+              if (up && !/^[a-z0-9_.]{3,20}$/.test(name))
+                return say(
+                  "O nome de usuário precisa de 3 a 20 letras, números, ponto ou _.",
+                  true,
+                );
+              if (!/^\S+@\S+\.\S+$/.test(email))
+                return say("Esse e-mail não parece válido.", true);
+              if (pw.length < 6)
+                return say(
+                  "A senha precisa ter pelo menos 6 caracteres.",
+                  true,
+                );
+              const btn = document.getElementById("ago");
+              btn.disabled = true;
+              say(up ? "Criando…" : "Entrando…");
+              const r = up
+                ? await cloud.signUp(name, email, pw)
+                : await cloud.signIn(email, pw);
+              if (!btn.isConnected) return;
+              btn.disabled = false;
+              if (r === "CONFIRM") {
+                authMode = "in";
+                say(
+                  "Conta criada. Te mandei um e-mail: confirma por lá e depois entra aqui.",
+                );
+              } else if (r) say(r, true);
             };
           },
         );
@@ -2505,6 +3093,7 @@
           e.d = x.d;
         if (typeof x.col === "string" && /^#[0-9a-f]{6}$/.test(x.col))
           e.col = x.col;
+        if (typeof x.ts === "number" && x.ts > 0) e.ts = Math.round(x.ts);
         if (typeof x.note === "string" && x.note.trim())
           e.note = x.note.trim().slice(0, 2000);
         return e;
@@ -2524,6 +3113,7 @@
                 ? h.id === f.id
                 : h.t.toLowerCase() === f.t.toLowerCase(),
             );
+            if (!f.ts) f.ts = Date.now();
             if (i >= 0) {
               hist[i] = f;
               trocados++;
@@ -2631,6 +3221,7 @@
             t: title,
             s: stars,
             c: classic,
+            ts: Date.now(),
             d: (!rewatch && replaced && replaced.d) || today(),
           };
           const keep = rewatch || replaced;
@@ -2739,17 +3330,19 @@
       const sndBtn = document.getElementById("snd");
       sndBtn.classList.toggle("on", sfx.on);
       sndBtn.onclick = () => sndBtn.classList.toggle("on", sfx.toggle());
+      const goView = (v) =>
+        v === "lib" ? library() : v === "prof" ? profilePage() : home();
       tabs.querySelectorAll(".tab").forEach(
         (t) =>
           (t.onclick = () => {
             if (t.dataset.v === view) return;
-            t.dataset.v === "lib" ? library() : home();
+            goView(t.dataset.v);
           }),
       );
 
       back.onclick = () => {
         if (cur === "film") {
-          view === "lib" ? library() : home();
+          goView(view);
           return;
         }
         if (stage.dataset.lock) return;
