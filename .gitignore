@@ -1,0 +1,11 @@
+node_modules
+dist
+.vercel
+*.local
+.DS_Store
+# Projeto Android gerado pelo Capacitor: pastas de compilação
+android/app/build
+android/build
+android/.gradle
+android/local.properties
+android/app/src/main/assets/public
