@@ -1457,6 +1457,99 @@
       .plain.out {
         color: #ff5a52;
       }
+      @media (min-width: 900px) {
+        .app {
+          max-width: 1080px;
+          padding: 26px 44px 60px;
+        }
+        body.tabs-on .app {
+          padding-top: 92px;
+          padding-bottom: 60px;
+        }
+        .tabs {
+          top: 0;
+          bottom: auto;
+          border-top: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .tabs.off {
+          transform: translateY(-100%);
+        }
+        .tabs div {
+          max-width: 520px;
+        }
+        .tab {
+          flex-direction: row;
+          justify-content: center;
+          gap: 9px;
+          font-size: 15px;
+          padding: 18px 0;
+        }
+        .tab svg {
+          width: 20px;
+          height: 20px;
+        }
+        .stage .screen {
+          width: 100%;
+          max-width: 480px;
+          margin: 0 auto;
+        }
+        .stage[data-mode="lib"] .screen {
+          max-width: none;
+        }
+        .stage[data-mode="film"] .screen {
+          max-width: 780px;
+        }
+        .stage[data-mode="lib"] .seg,
+        .stage[data-mode="lib"] .bk {
+          max-width: 480px;
+        }
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 22px 16px;
+        }
+        .chipsf {
+          margin: 0 0 22px;
+          padding: 0;
+        }
+        .hero {
+          height: 360px;
+          margin: -70px 0 0;
+          border-radius: 0 0 26px 26px;
+        }
+        .fhead {
+          padding: 0 26px;
+          margin-top: -120px;
+        }
+        .fposter {
+          width: 150px;
+          height: 225px;
+        }
+        .fhead h2 {
+          font-size: 34px;
+        }
+        .hero.noimg + .fhead {
+          padding: 0;
+        }
+        .opt:hover,
+        .plain:hover,
+        .bk button:hover,
+        .acts button:hover {
+          background: var(--card2);
+        }
+        .fc:hover {
+          transform: translateY(-4px);
+        }
+        .cta:hover {
+          filter: brightness(1.06);
+        }
+        button {
+          cursor: pointer;
+        }
+        .shr .pv img {
+          max-height: 62vh;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1838,6 +1931,7 @@
       function chrome(mode) {
         // home | lib | film | q | cmp | res
         cur = mode;
+        stage.dataset.mode = mode;
         if (mode !== "film") setTint(null);
         const main = mode === "home" || mode === "lib" || mode === "prof";
         back.classList.toggle("hide", main);
@@ -1942,7 +2036,18 @@
                 signal: ctl.signal,
               });
               if (!r.ok) throw 0;
-              const list = (await r.json()).results || [];
+              const list = ((await r.json()).results || [])
+                .filter(
+                  (m) =>
+                    m && Number.isInteger(m.id) && typeof m.title === "string",
+                )
+                .map((m) => ({
+                  id: m.id,
+                  title: m.title,
+                  original: typeof m.original === "string" ? m.original : "",
+                  year: /^\d{4}$/.test(m.year || "") ? m.year : "",
+                  poster: /^\/[\w.-]+$/.test(m.poster || "") ? m.poster : "",
+                }));
               if (inp.value.trim() !== q) return;
               box.innerHTML = list
                 .map(
@@ -2543,6 +2648,7 @@
           localStorage.setItem(k, JSON.stringify(v));
         } catch (e) {}
       };
+      hist = hist.map(cleanFilm).filter(Boolean); // descarta qualquer dado fora do formato esperado
       hist.forEach((h, i) => {
         if (!h.ts) h.ts = Date.now() - i * 1000;
       });
@@ -2972,6 +3078,12 @@
         );
       }
 
+      function phFallback(img) {
+        const sp = document.createElement("span");
+        sp.textContent = img.alt;
+        img.replaceWith(sp);
+      }
+
       function library() {
         step = -1;
         chrome("lib");
@@ -2989,7 +3101,7 @@
         const grid = list
           .map(
             ({ h, i }, k) =>
-              `<button class="fc" data-i="${i}" style="animation-delay:${Math.min(k, 12) * 25}ms"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="this.outerHTML='<span>'+this.alt+'</span>'">` : `<span>${esc(h.t)}</span>`}</span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
+              `<button class="fc" data-i="${i}" style="animation-delay:${Math.min(k, 12) * 25}ms"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
           )
           .join("");
         show(
