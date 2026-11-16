@@ -1759,7 +1759,7 @@
         height: 46px;
         font-size: 19px;
       }
-      .fr > div:not(.av) {
+      .fr > div:not(.av):not(.stars) {
         flex: 1;
         min-width: 0;
       }
@@ -2076,6 +2076,76 @@
         text-align: center;
         font-weight: 700;
         color: var(--text);
+      }
+      input.need {
+        border-color: #ff5a52 !important;
+        animation: shake 0.35s;
+      }
+      @keyframes shake {
+        20% {
+          transform: translateX(-7px);
+        }
+        40% {
+          transform: translateX(6px);
+        }
+        60% {
+          transform: translateX(-4px);
+        }
+        80% {
+          transform: translateX(3px);
+        }
+      }
+      .rev {
+        field-sizing: content;
+      }
+      .gal .fr {
+        align-items: center;
+        cursor: pointer;
+      }
+      .gal .stars {
+        gap: 2px;
+        margin: 0;
+        justify-content: flex-end;
+        flex: none;
+      }
+      .gal .star,
+      .gal .star svg {
+        width: 17px;
+        height: 17px;
+      }
+      .gal .fr i {
+        margin-left: 4px;
+      }
+      .fview {
+        position: relative;
+        z-index: 0;
+      }
+      .fvbg {
+        position: absolute;
+        z-index: -1;
+        left: -22px;
+        right: -22px;
+        top: -80px;
+        height: 380px;
+        background-size: cover;
+        background-position: center;
+        filter: blur(30px) saturate(1.2);
+        opacity: 0.5;
+        -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent);
+        mask-image: linear-gradient(180deg, #000 30%, transparent);
+        pointer-events: none;
+      }
+      .fview .rvh {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        text-align: left;
+        margin: 28px 0 12px;
+      }
+      .fview .rev {
+        margin-top: 0;
       }
     </style>
   </head>
@@ -2445,6 +2515,7 @@
       const fd = (iso) => (iso ? iso.split("-").reverse().join("/") : "");
 
       function show(html, after) {
+        if (typeof flushReview === "function") flushReview();
         const old = stage.firstElementChild;
         const put = () => {
           stage.innerHTML = '<div class="screen">' + html + "</div>";
@@ -2538,8 +2609,18 @@
             stage
               .querySelectorAll(".rc")
               .forEach((b) => (b.onclick = () => filmPage(recL[+b.dataset.i])));
+            const need = () => {
+              const i = document.getElementById("t");
+              i.placeholder = "Digita o nome do filme primeiro";
+              i.classList.remove("need");
+              void i.offsetWidth;
+              i.classList.add("need");
+              i.focus();
+              setTimeout(() => i.classList.remove("need"), 1200);
+            };
             document.getElementById("go").onclick = () => {
               title = document.getElementById("t").value.trim();
+              if (!title) return need();
               rewatch = title
                 ? hist.find((h) => !h.st && sameFilm(h)) || null
                 : null;
@@ -2549,10 +2630,7 @@
             };
             const mark = (st) => {
               const t = document.getElementById("t").value.trim();
-              if (!t) {
-                document.getElementById("t").focus();
-                return;
-              }
+              if (!t) return need();
               const e = setStatus(
                 movie && movie.title === t
                   ? {
@@ -2665,20 +2743,52 @@
           saveH();
         };
       }
+      let flushReview = null; // salva o que estiver pendente antes de trocar de tela
       function bindReview(h) {
         const r = document.getElementById("rev");
         if (!r) return;
+        const native =
+          window.CSS && CSS.supports && CSS.supports("field-sizing", "content");
+        let t = null;
+        // cresce junto com o texto sem deixar a página pular
         const grow = () => {
+          if (native) return;
+          const y = window.scrollY,
+            box = r.parentNode,
+            keep = box.style.minHeight;
+          box.style.minHeight = box.offsetHeight + "px";
           r.style.height = "auto";
           r.style.height = r.scrollHeight + "px";
+          box.style.minHeight = keep;
+          if (window.scrollY !== y) window.scrollTo(0, y);
+        };
+        const commit = () => {
+          clearTimeout(t);
+          t = null;
+          const v = r.value.trim() || undefined;
+          if (h.note !== v) {
+            h.note = v;
+            saveH();
+          }
         };
         r.oninput = () => {
-          h.note = r.value.trim() || undefined;
-          saveH();
           grow();
+          clearTimeout(t);
+          t = setTimeout(commit, 700);
+        };
+        r.onblur = commit;
+        flushReview = () => {
+          if (t) commit();
+          flushReview = null;
         };
         grow();
       }
+      window.addEventListener("pagehide", () => {
+        if (flushReview) flushReview();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && flushReview) flushReview();
+      });
       const aboutCache = {};
       async function loadAbout(h) {
         if (!h.id) return;
@@ -3188,7 +3298,7 @@
     ${chips.length ? `<div class="chips">${chips.map((c) => `<span>${c}</span>`).join("")}</div>` : ""}
     ${whenHTML(h)}
     <h3 class="sec">Minha review</h3>
-    <textarea class="rev" id="rev" rows="1" maxlength="2000" placeholder="Escreva o que achou…">${esc(h.note || "")}</textarea>`
+    <textarea class="rev" id="rev" rows="1" maxlength="5000" placeholder="Escreva o que achou…">${esc(h.note || "")}</textarea>`
     }
     <div id="crowd" data-k="${esc(fkey(h))}"></div>
     <div class="about" id="about" data-id="${h.id || ""}"></div>
@@ -3313,21 +3423,19 @@
           /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p.avatar)
             ? p.avatar
             : "";
-        o.top4 = (Array.isArray(p.top4) ? p.top4 : [])
-          .slice(0, 4)
-          .map((x) =>
-            x && typeof x.t === "string" && x.t.trim()
-              ? {
-                  id: Number.isInteger(x.id) ? x.id : null,
-                  t: x.t.trim().slice(0, 120),
-                  img:
-                    typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
-                      ? x.img
-                      : "",
-                  y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
-                }
-              : null,
-          );
+        o.top4 = (Array.isArray(p.top4) ? p.top4 : []).slice(0, 4).map((x) =>
+          x && typeof x.t === "string" && x.t.trim()
+            ? {
+                id: Number.isInteger(x.id) ? x.id : null,
+                t: x.t.trim().slice(0, 120),
+                img:
+                  typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
+                    ? x.img
+                    : "",
+                y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
+              }
+            : null,
+        );
         while (o.top4.length < 4) o.top4.push(null);
         return o;
       }
@@ -3695,14 +3803,12 @@
             const key = film.id ? "m" + film.id : "t:" + film.t.toLowerCase();
             let ok = 0;
             for (const to of ids) {
-              const { error } = await sb
-                .from("recs")
-                .insert({
-                  to_id: to,
-                  film_key: key,
-                  film: f,
-                  note: note || null,
-                });
+              const { error } = await sb.from("recs").insert({
+                to_id: to,
+                film_key: key,
+                film: f,
+                note: note || null,
+              });
               if (
                 !error ||
                 /duplicate|unique/i.test(error.message || "") ||
@@ -4282,20 +4388,22 @@
             .join(" · ");
         const d =
           overlay(`<div class="ovh"><button id="vx">Fechar</button><b>${esc(pname(p))}</b><span style="width:52px"></span></div>
-    <div class="fview">${h.img ? `<img class="poster" src="${IMG}w342${h.img}" alt="" onerror="this.remove()">` : ""}<h2>${esc(h.t)}</h2>${sub ? `<p class="count" style="margin:0">${esc(sub)}</p>` : ""}
+    <div class="fview">${h.img ? `<div class="fvbg" style="background-image:url(${IMG}w342${h.img})"></div><img class="poster" src="${IMG}w342${h.img}" alt="" onerror="this.remove()">` : ""}<h2>${esc(h.t)}</h2>${sub ? `<p class="count" style="margin:0">${esc(sub)}</p>` : ""}
     <div class="stars">${starsHTML(h.s, true)}</div><div class="num">${fmt(h.s)}</div><div class="label">${LABELS[h.s]}</div>
     ${h.d ? `<p class="count" style="margin:14px 0 0;font-size:14px">Visto em ${fd(h.d)}</p>` : ""}
-    ${h.note ? `<div class="rev">${esc(h.note)}</div>` : ""}
+    <div class="rvh">Review de ${esc(pname(p))}</div>${h.note ? `<div class="rev">${esc(h.note)}</div>` : '<p class="count" style="text-align:left;margin:0;font-size:15px">Não escreveu review.</p>'}
     <div class="mine"><span>Tua nota</span>${mine && !mine.st ? `<b>★ ${fmt(mine.s)}</b>` : `<span style="color:var(--muted)">${mine ? STATE[mine.st].toLowerCase() + ", sem nota" : "ainda não avaliou"}</span>`}</div>
-    <button class="cta" id="vgo" style="margin-top:12px">${mine && !mine.st ? "Abrir minha página do filme" : "Avaliar também"}</button>
+    ${mine && !mine.st && cur === "film" ? "" : `<button class="cta" id="vgo" style="margin-top:12px">${mine && !mine.st ? "Abrir minha página do filme" : "Avaliar também"}</button>`}
     ${mine && !mine.st ? "" : `<div class="two"><button id="vseen">${mine && mine.st === "seen" ? "✓ Já vi" : "Já vi"}</button><button id="vwant">${mine && mine.st === "want" ? "✓ Quero ver" : "Quero ver"}</button></div>`}</div>`);
         const info = { id: h.id, t: h.t, y: h.y, o: h.o, img: h.img };
         d.querySelector("#vx").onclick = () => d.remove();
-        d.querySelector("#vgo").onclick = () => {
-          d.remove();
-          if (mine && !mine.st) return filmPage(mine);
-          startQuiz(info);
-        };
+        const vgo = d.querySelector("#vgo");
+        if (vgo)
+          vgo.onclick = () => {
+            d.remove();
+            if (mine && !mine.st) return filmPage(mine);
+            startQuiz(info);
+          };
         const mk = (id, st) => {
           const b = d.querySelector(id);
           if (b)
@@ -4478,7 +4586,14 @@
         if (!box || !cloud.user) return;
         const rs = await cloud.filmRatings(fkey(h));
         if (!rs.length || !box.isConnected || box.dataset.k !== fkey(h)) return;
-        box.innerHTML = `<h3 class="sec">Nota da galera</h3><div class="gal">${rs.map((r) => `<div class="fr">${avatarHTML(r.p)}<div><b>${esc(pname(r.p))}</b>${r.f.note ? `<p>${esc(r.f.note.length > 140 ? r.f.note.slice(0, 140) + "…" : r.f.note)}</p>` : ""}</div><span class="rt">★ ${fmt(r.f.s)}</span></div>`).join("")}</div>`;
+        box.innerHTML = `<h3 class="sec">Nota da galera</h3><div class="gal">${rs.map((r, i) => `<button class="fr" data-i="${i}">${avatarHTML(r.p)}<div><b>${esc(pname(r.p))}</b></div><div class="stars">${starsHTML(r.f.s, false)}</div><i>›</i></button>`).join("")}</div>`;
+        box
+          .querySelectorAll("[data-i]")
+          .forEach(
+            (b) =>
+              (b.onclick = () =>
+                friendFilm(rs[+b.dataset.i].p, rs[+b.dataset.i].f)),
+          );
       }
 
       let authMode = "in";
@@ -4818,7 +4933,7 @@
           e.col = x.col;
         if (typeof x.ts === "number" && x.ts > 0) e.ts = Math.round(x.ts);
         if (typeof x.note === "string" && x.note.trim())
-          e.note = x.note.trim().slice(0, 2000);
+          e.note = x.note.trim().slice(0, 5000);
         return e;
       }
       async function importBackup(file) {
@@ -4993,7 +5108,7 @@
     ${rewatch ? `<div><div class="seal" id="rw">${rw()}</div></div>` : ""}
     ${classic ? `<div class="seal" id="seal">${seal()}</div>` : ""}
     <div class="adj"><button id="minus" aria-label="Diminuir meia estrela">−</button><small id="hint">Não concorda? Ajuste.</small><button id="plus" aria-label="Aumentar meia estrela">+</button></div>
-    ${saved ? `<div class="meta">${whenHTML(hist[0])}<textarea class="rev box" id="rev" rows="1" maxlength="2000" placeholder="Escreva uma review (opcional)" style="margin-top:10px">${esc(hist[0].note || "")}</textarea></div><button class="share" id="shr"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Compartilhar</button>` : ""}
+    ${saved ? `<div class="meta">${whenHTML(hist[0])}<textarea class="rev box" id="rev" rows="1" maxlength="5000" placeholder="Escreva uma review (opcional)" style="margin-top:10px">${esc(hist[0].note || "")}</textarea></div><button class="share" id="shr"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Compartilhar</button>` : ""}
     <button class="cta" id="again">Avaliar outro filme</button></div>`,
           () => {
             if (saved) {
