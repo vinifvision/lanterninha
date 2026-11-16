@@ -86,10 +86,14 @@ export function App() {
         <div className="app">
           <div className={`top${scrolled ? ' solid' : ''}`}>
             <div className="topin">
-              <button className={`back${main ? ' hide' : ''}`} id="back" aria-label="Voltar" onClick={() => nav.back()}>‹</button>
+              <button className={`back${main ? ' gone' : ''}`} id="back" aria-label="Voltar" onClick={() => nav.back()}>
+                <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></svg>
+              </button>
               {top?.k === 'quiz'
                 ? <div className="bar" id="bar"><i id="fill" style={{ width: `${(progress ?? 1) * 100}%` }} /></div>
-                : <b className="ttl">{title}</b>}
+                : main && tab === 'rate'
+                  ? <div className="brand"><img src="/logo.svg" alt="" width={30} height={30} />Lanterninha</div>
+                  : <b className="ttl">{title}</b>}
               {rating ? (
                 <button className={`snd${soundOn ? ' on' : ''}`} id="snd" aria-label="Som" onClick={() => { sfx.toggle(); }}>
                   <svg viewBox="0 0 24 24">

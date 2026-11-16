@@ -64,7 +64,6 @@ export function RateHome() {
 
   return (
     <div className="screen">
-      <div className="brand"><img src="/logo.svg" alt="" width={40} height={40} />Lanterninha</div>
       <h1>Que nota<br />dar pro filme?</h1>
       <p className="sub">Perguntas rápidas sobre o que você sentiu.</p>
       <input

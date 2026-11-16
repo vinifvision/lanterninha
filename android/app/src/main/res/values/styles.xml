@@ -13,6 +13,8 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Fundo da janela na cor do app: é o que aparece atrás da barra de status e dos botões do celular -->
+        <item name="android:windowBackground">@color/appBackground</item>
     </style>
 
 

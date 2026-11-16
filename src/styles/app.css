@@ -487,3 +487,22 @@ body.tabs-on .app{padding-bottom:calc(104px + var(--sab))}
 }
 /* Dentro do aplicativo instalado: sem zoom de pinça */
 html.native{touch-action:pan-x pan-y}
+
+/* Botão de voltar: seta desenhada (não depende da fonte do celular) e área de toque maior */
+.back{width:40px;height:40px;font-size:0;flex:none}
+.back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;margin-left:-2px}
+.back.gone{display:none}
+/* Marca no topo da aba Avaliar: fica presa como o cabeçalho do app */
+.top .brand{flex:1;margin:0;font-size:17px}
+.top .brand img{border-radius:8px}
+.top .back.gone~.tsp{display:none}
+@media (max-width:899px){
+  .top .back{background:rgba(22,22,25,.82);border:1px solid rgba(255,255,255,.1);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+  body.root .app{padding-top:calc(var(--sat) + 76px)}
+  .top .ttl{padding:0 6px}
+  .top .back.gone+.ttl{text-align:left;font-size:17px}
+}
+/* Nota em cima do pôster: estrela dourada e número claro, sempre legíveis */
+.fc .ph .bdg{position:absolute;left:0;right:0;bottom:0;display:block;height:auto;padding:26px 8px 7px;text-align:left;font-size:13px;font-weight:700;line-height:1.2;
+  color:var(--gold);background:linear-gradient(180deg,transparent,rgba(0,0,0,.55) 45%,rgba(0,0,0,.92));text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.fc .ph .bdg.tag{color:#e6e6ea;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
