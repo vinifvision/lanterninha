@@ -1550,6 +1550,183 @@
           max-height: 62vh;
         }
       }
+      .av {
+        overflow: hidden;
+      }
+      .av img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .pf b {
+        font-size: 23px;
+      }
+      .pf em {
+        display: block;
+        font-style: normal;
+        color: var(--gold);
+        font-size: 14px;
+        font-weight: 500;
+        margin-top: 2px;
+      }
+      .bio {
+        color: #d5d5da;
+        font-size: 16px;
+        line-height: 1.45;
+        margin: -10px 0 22px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .t4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 28px;
+      }
+      .t4 button {
+        aspect-ratio: 2/3;
+        border-radius: 10px;
+        border: 1.5px dashed #3a3a40;
+        background: none;
+        color: #636366;
+        font-size: 26px;
+        font-weight: 300;
+        padding: 0;
+        overflow: hidden;
+        transition: transform 0.15s;
+      }
+      .t4 button:active {
+        transform: scale(0.95);
+      }
+      .t4 button.has {
+        border: none;
+        background: var(--card);
+      }
+      .t4 img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .t4 span {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 11px;
+        color: var(--muted);
+        padding: 5px;
+        line-height: 1.2;
+      }
+      .sech {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 0 0 12px;
+      }
+      .sech h3 {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0;
+      }
+      .ov {
+        position: fixed;
+        inset: 0;
+        z-index: 7;
+        background: rgba(6, 6, 7, 0.96);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        overflow: auto;
+        animation: fade 0.25s both;
+      }
+      .ov > div {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 18px 22px 40px;
+        animation: in 0.35s both;
+      }
+      .ovh {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 44px;
+        margin-bottom: 18px;
+      }
+      .ovh b {
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .ovh button {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font: inherit;
+        font-size: 16px;
+        padding: 8px 0;
+      }
+      .ovh .ok {
+        color: var(--gold);
+        font-weight: 600;
+      }
+      .avedit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 26px;
+      }
+      .avedit .av {
+        width: 104px;
+        height: 104px;
+        font-size: 42px;
+      }
+      .avedit button {
+        background: none;
+        border: none;
+        color: var(--gold);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 500;
+        padding: 4px;
+      }
+      .lbl {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 7px 4px;
+      }
+      .ov textarea {
+        display: block;
+        width: 100%;
+        min-height: 92px;
+        resize: none;
+        padding: 16px 20px;
+        border-radius: 18px;
+        border: 1.5px solid transparent;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        font-size: 17px;
+        line-height: 1.4;
+        outline: none;
+      }
+      .ov textarea:focus {
+        border-color: var(--gold);
+      }
+      .sm {
+        display: flex;
+        gap: 10px;
+      }
+      .sm .plain {
+        font-size: 14px;
+        padding: 13px;
+        margin: 0;
+      }
     </style>
   </head>
   <body>
@@ -2653,10 +2830,50 @@
         if (!h.ts) h.ts = Date.now() - i * 1000;
       });
 
+      function cleanProfile(p) {
+        if (!p || typeof p !== "object") return null;
+        const o = {
+          username:
+            typeof p.username === "string" &&
+            /^[a-z0-9_.]{3,20}$/.test(p.username)
+              ? p.username
+              : "",
+        };
+        o.display_name =
+          typeof p.display_name === "string"
+            ? p.display_name.trim().slice(0, 40)
+            : "";
+        o.bio = typeof p.bio === "string" ? p.bio.trim().slice(0, 160) : "";
+        o.avatar =
+          typeof p.avatar === "string" &&
+          p.avatar.length <= 80000 &&
+          /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p.avatar)
+            ? p.avatar
+            : "";
+        o.top4 = (Array.isArray(p.top4) ? p.top4 : []).slice(0, 4).map((x) =>
+          x && typeof x.t === "string" && x.t.trim()
+            ? {
+                id: Number.isInteger(x.id) ? x.id : null,
+                t: x.t.trim().slice(0, 120),
+                img:
+                  typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
+                    ? x.img
+                    : "",
+                y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
+              }
+            : null,
+        );
+        while (o.top4.length < 4) o.top4.push(null);
+        return o;
+      }
+      const avatarHTML = (p, fallback) =>
+        `<div class="av">${p && p.avatar ? `<img src="${p.avatar}" alt="">` : esc(((p && (p.display_name || p.username)) || fallback || "?")[0].toUpperCase())}</div>`;
+
       const cloud = (() => {
         let sb = null,
           user = null,
           profile = null,
+          extended = false,
           state = "off",
           timer = null,
           busy = false,
@@ -2827,12 +3044,20 @@
           }
           if (cur === "prof") profilePage();
           try {
-            const { data } = await sb
+            let r = await sb
               .from("profiles")
-              .select("username")
+              .select("username,display_name,bio,avatar,top4")
               .eq("id", u.id)
               .maybeSingle();
-            profile = data || null;
+            if (r.error) {
+              r = await sb
+                .from("profiles")
+                .select("username")
+                .eq("id", u.id)
+                .maybeSingle();
+              extended = false;
+            } else extended = true;
+            profile = cleanProfile(r.data);
           } catch (e) {}
           if (cur === "prof") profilePage();
           pull();
@@ -2891,6 +3116,19 @@
           },
           get state() {
             return state;
+          },
+          get extended() {
+            return extended;
+          },
+          async saveProfile(patch) {
+            if (!sb || !user) return "Entre na conta primeiro.";
+            const { error } = await sb
+              .from("profiles")
+              .update(patch)
+              .eq("id", user.id);
+            if (error) return "Não consegui salvar agora. Tenta de novo.";
+            profile = cleanProfile(Object.assign({}, profile, patch));
+            return "";
           },
           changed() {
             if (!user) return;
@@ -2961,6 +3199,149 @@
                 ? "Sem conexão. Tento de novo depois."
                 : "";
       }
+      function overlay(html) {
+        const d = document.createElement("div");
+        d.className = "ov";
+        d.innerHTML = "<div>" + html + "</div>";
+        document.body.appendChild(d);
+        return d;
+      }
+      async function photoToAvatar(file) {
+        // corta no centro e reduz para 256px
+        const url = URL.createObjectURL(file);
+        const im = await loadImg(url);
+        URL.revokeObjectURL(url);
+        if (!im) return "";
+        const cv = document.createElement("canvas");
+        cv.width = cv.height = 256;
+        const c = cv.getContext("2d"),
+          m = Math.min(im.naturalWidth, im.naturalHeight);
+        c.drawImage(
+          im,
+          (im.naturalWidth - m) / 2,
+          (im.naturalHeight - m) / 2,
+          m,
+          m,
+          0,
+          0,
+          256,
+          256,
+        );
+        let q = 0.82,
+          out = cv.toDataURL("image/jpeg", q);
+        while (out.length > 78000 && q > 0.4) {
+          q -= 0.1;
+          out = cv.toDataURL("image/jpeg", q);
+        }
+        return out.length <= 78000 ? out : "";
+      }
+      function editProfile() {
+        const pr = cloud.profile || cleanProfile({});
+        let avatar = pr.avatar;
+        const d =
+          overlay(`<div class="ovh"><button id="ex">Cancelar</button><b>Editar perfil</b><button class="ok" id="eok">Salvar</button></div>
+    <div class="avedit"><span id="eav">${avatarHTML(pr, cloud.user && cloud.user.email)}</span><div><button id="eph">Trocar foto</button>${pr.avatar ? '<button id="erm" style="color:var(--muted)">Remover</button>' : ""}</div>
+    <input type="file" id="ef" accept="image/*" hidden></div>
+    <label class="lbl" for="edn">Nome</label><input type="text" id="edn" maxlength="40" placeholder="Como teus amigos te veem" value="${esc(pr.display_name)}">
+    <label class="lbl" for="ebio" style="margin-top:8px">Bio</label><textarea id="ebio" maxlength="160" placeholder="Uma linha sobre ti e teus filmes">${esc(pr.bio)}</textarea>
+    <p class="fmsg" id="em2"></p>`);
+        const say = (t, bad) => {
+          const m = d.querySelector("#em2");
+          m.className = "fmsg" + (bad ? " bad" : "");
+          m.textContent = t;
+        };
+        const paint = () => {
+          d.querySelector("#eav").innerHTML = avatarHTML(
+            {
+              avatar,
+              display_name: d.querySelector("#edn").value,
+              username: pr.username,
+            },
+            cloud.user && cloud.user.email,
+          );
+        };
+        d.querySelector("#ex").onclick = () => d.remove();
+        d.querySelector("#eph").onclick = () => d.querySelector("#ef").click();
+        const rm = d.querySelector("#erm");
+        if (rm)
+          rm.onclick = () => {
+            avatar = "";
+            paint();
+            rm.remove();
+          };
+        d.querySelector("#ef").onchange = async (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          say("Preparando a foto…");
+          const a = await photoToAvatar(f);
+          if (!a) return say("Não consegui usar essa imagem.", true);
+          avatar = a;
+          paint();
+          say("");
+        };
+        d.querySelector("#eok").onclick = async () => {
+          const ok = d.querySelector("#eok");
+          ok.disabled = true;
+          say("Salvando…");
+          const err = await cloud.saveProfile({
+            display_name: d.querySelector("#edn").value.trim() || null,
+            bio: d.querySelector("#ebio").value.trim() || null,
+            avatar: avatar || null,
+          });
+          if (err) {
+            ok.disabled = false;
+            return say(err, true);
+          }
+          d.remove();
+          if (cur === "prof") profilePage();
+        };
+      }
+      function pickTop(slot) {
+        const pr = cloud.profile;
+        if (!pr) return;
+        const used = pr.top4.map((f, i) =>
+          f && i !== slot
+            ? f.id
+              ? "m" + f.id
+              : "t:" + f.t.toLowerCase()
+            : null,
+        );
+        const list = hist
+          .filter((h) => !used.includes(fkey(h)))
+          .slice()
+          .sort((a, b) => b.s - a.s);
+        const d =
+          overlay(`<div class="ovh"><button id="px">Cancelar</button><b>Favorito ${slot + 1}</b>${pr.top4[slot] ? '<button id="prm" style="color:#ff5a52">Remover</button>' : '<span style="width:60px"></span>'}</div>
+    ${
+      list.length
+        ? `<div class="grid">${list.map((h, i) => `<button class="fc" data-i="${i}"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span><b>★ ${fmt(h.s)}</b></button>`).join("")}</div>`
+        : '<p class="empty">Teus favoritos saem dos filmes que tu já avaliou.<br>Avalia alguns e volta aqui.</p>'
+    }<p class="fmsg" id="pm"></p>`);
+        const set = async (f) => {
+          const top4 = pr.top4.slice();
+          top4[slot] = f;
+          const err = await cloud.saveProfile({ top4 });
+          if (err) {
+            const m = d.querySelector("#pm");
+            m.className = "fmsg bad";
+            m.textContent = err;
+            return;
+          }
+          d.remove();
+          if (cur === "prof") profilePage();
+        };
+        d.querySelector("#px").onclick = () => d.remove();
+        const rm = d.querySelector("#prm");
+        if (rm) rm.onclick = () => set(null);
+        d.querySelectorAll(".fc").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const h = list[+b.dataset.i];
+              set({ id: h.id || null, t: h.t, img: h.img || "", y: h.y || "" });
+            }),
+        );
+      }
+
       let authMode = "in";
       function profilePage() {
         step = -1;
@@ -2973,20 +3354,42 @@
         }
         const u = cloud.user;
         if (u) {
-          const name = (cloud.profile && cloud.profile.username) || "",
+          const pr = cloud.profile || cleanProfile({}),
+            ext = cloud.extended,
             seen = hist.length,
             avg = seen ? hist.reduce((a, h) => a + h.s, 0) / seen : 0;
+          const title =
+            pr.display_name ||
+            (pr.username ? "@" + pr.username : "Minha conta");
+          const t4 = pr.top4
+            .map(
+              (f, i) =>
+                `<button data-i="${i}" class="${f ? "has" : ""}" aria-label="Favorito ${i + 1}">${f ? (f.img ? `<img src="${IMG}w185${f.img}" alt="${esc(f.t)}" onerror="phFallback(this)">` : `<span>${esc(f.t)}</span>`) : "+"}</button>`,
+            )
+            .join("");
           show(
             `<h1>Perfil</h1><p class="count">&nbsp;</p>
-      <div class="pf"><div class="av">${esc((name || u.email || "?")[0].toUpperCase())}</div><div><b>${name ? "@" + esc(name) : "Minha conta"}</b><small>${esc(u.email || "")}</small></div></div>
+      <div class="pf">${avatarHTML(pr, u.email)}<div><b>${esc(title)}</b>${pr.display_name && pr.username ? `<em>@${esc(pr.username)}</em>` : ""}<small>${esc(u.email || "")}</small></div></div>
+      ${pr.bio ? `<p class="bio">${esc(pr.bio)}</p>` : ""}
+      ${
+        ext
+          ? `<button class="plain" id="ped" style="margin:-6px 0 28px">Editar perfil</button>
+      <div class="sech"><h3>Top 4</h3></div><div class="t4" id="t4">${t4}</div>`
+          : ""
+      }
       <div class="stat"><div><b>${seen}</b><span>${seen === 1 ? "filme" : "filmes"}</span></div><div><b>${seen ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
       <p class="sync" id="sync"><i></i><span></span></p>
-      <button class="plain" id="snow">Sincronizar agora</button>
-      <button class="plain out" id="sout">Sair da conta</button>
+      <div class="sm"><button class="plain" id="snow">Sincronizar</button><button class="plain out" id="sout">Sair da conta</button></div>
       <p class="fmsg" id="fm"></p>`,
             () => {
               paintSync();
               document.getElementById("snow").onclick = () => cloud.syncNow();
+              if (ext) {
+                document.getElementById("ped").onclick = editProfile;
+                document
+                  .querySelectorAll("#t4 button")
+                  .forEach((b) => (b.onclick = () => pickTop(+b.dataset.i)));
+              }
               const out = document.getElementById("sout");
               let armed = false;
               out.onclick = async () => {
