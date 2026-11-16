@@ -934,6 +934,8 @@
         display: block;
         width: 100%;
         min-height: 58px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
         resize: none;
         overflow: hidden;
         background: none;
@@ -1727,6 +1729,132 @@
         padding: 13px;
         margin: 0;
       }
+      .sech button {
+        background: none;
+        border: none;
+        color: var(--gold);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 2px 0;
+      }
+      .fr {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 0;
+        background: none;
+        border: none;
+        border-bottom: 1px solid var(--card2);
+        color: var(--text);
+        font: inherit;
+        text-align: left;
+      }
+      .fr:last-child {
+        border: none;
+      }
+      .fr .av {
+        width: 46px;
+        height: 46px;
+        font-size: 19px;
+      }
+      .fr > div:nth-child(2) {
+        flex: 1;
+        min-width: 0;
+      }
+      .fr b {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .fr small {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .fr .mini {
+        flex: none;
+        padding: 8px 13px;
+        border-radius: 30px;
+        border: none;
+        background: var(--gold);
+        color: #1d1403;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .fr .mini.no {
+        background: var(--card);
+        color: var(--muted);
+      }
+      .fr i {
+        font-style: normal;
+        color: var(--muted);
+        font-size: 13px;
+        flex: none;
+      }
+      .fr .rt {
+        color: var(--gold);
+        font-size: 15px;
+        font-weight: 600;
+        flex: none;
+      }
+      .frs {
+        margin-bottom: 28px;
+      }
+      .gal {
+        margin-top: 6px;
+      }
+      .gal .fr {
+        align-items: flex-start;
+      }
+      .gal p {
+        margin: 3px 0 0;
+        color: #c9c9cf;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      .fview {
+        text-align: center;
+        padding-top: 10px;
+      }
+      .fview .poster {
+        width: 150px;
+        height: 225px;
+      }
+      .fview h2 {
+        font-size: 24px;
+        margin: 0 0 4px;
+        letter-spacing: -0.4px;
+      }
+      .fview .stars {
+        margin: 22px 0 10px;
+      }
+      .fview .rev {
+        text-align: left;
+        margin-top: 26px;
+        pointer-events: none;
+      }
+      .mine {
+        margin-top: 24px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: var(--card);
+        font-size: 15px;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+      }
+      .mine b {
+        color: var(--gold);
+      }
     </style>
   </head>
   <body>
@@ -2112,12 +2240,18 @@
         if (mode !== "film") setTint(null);
         const main = mode === "home" || mode === "lib" || mode === "prof";
         back.classList.toggle("hide", main);
-        bar.classList.toggle("hide", main || mode === "res" || mode === "film");
+        bar.classList.toggle(
+          "hide",
+          main || mode === "res" || mode === "film" || mode === "friend",
+        );
         tabs.classList.toggle("off", !main);
         document.body.classList.toggle("tabs-on", main);
         stage.classList.toggle(
           "up",
-          mode === "lib" || mode === "film" || mode === "prof",
+          mode === "lib" ||
+            mode === "film" ||
+            mode === "prof" ||
+            mode === "friend",
         );
         if (main) {
           view = mode;
@@ -2742,6 +2876,7 @@
     ${whenHTML(h)}
     <h3 class="sec">Minha review</h3>
     <textarea class="rev" id="rev" rows="1" maxlength="2000" placeholder="Escreva o que achou…">${esc(h.note || "")}</textarea>
+    <div id="crowd" data-k="${esc(fkey(h))}"></div>
     <div class="about" id="about" data-id="${h.id || ""}"></div>
     <button class="share" id="shr"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Compartilhar</button>
     <div class="acts"><button class="main" id="are">Reassisti</button><button id="aco">Corrigir nota</button><button class="del" id="adel">Apagar</button></div>`,
@@ -2750,6 +2885,7 @@
             bindWhen(h);
             bindReview(h);
             loadAbout(h);
+            loadCrowd(h);
             posterColor(h).then((col) => {
               if (
                 cur === "film" &&
@@ -2830,6 +2966,12 @@
         if (!h.ts) h.ts = Date.now() - i * 1000;
       });
 
+      const UUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const pname = (p) =>
+        p
+          ? p.display_name || (p.username ? "@" + p.username : "Alguém")
+          : "Alguém";
       function cleanProfile(p) {
         if (!p || typeof p !== "object") return null;
         const o = {
@@ -2839,6 +2981,7 @@
               ? p.username
               : "",
         };
+        if (typeof p.id === "string" && UUID.test(p.id)) o.id = p.id;
         o.display_name =
           typeof p.display_name === "string"
             ? p.display_name.trim().slice(0, 40)
@@ -2850,19 +2993,21 @@
           /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p.avatar)
             ? p.avatar
             : "";
-        o.top4 = (Array.isArray(p.top4) ? p.top4 : []).slice(0, 4).map((x) =>
-          x && typeof x.t === "string" && x.t.trim()
-            ? {
-                id: Number.isInteger(x.id) ? x.id : null,
-                t: x.t.trim().slice(0, 120),
-                img:
-                  typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
-                    ? x.img
-                    : "",
-                y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
-              }
-            : null,
-        );
+        o.top4 = (Array.isArray(p.top4) ? p.top4 : [])
+          .slice(0, 4)
+          .map((x) =>
+            x && typeof x.t === "string" && x.t.trim()
+              ? {
+                  id: Number.isInteger(x.id) ? x.id : null,
+                  t: x.t.trim().slice(0, 120),
+                  img:
+                    typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
+                      ? x.img
+                      : "",
+                  y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
+                }
+              : null,
+          );
         while (o.top4.length < 4) o.top4.push(null);
         return o;
       }
@@ -2874,6 +3019,8 @@
           user = null,
           profile = null,
           extended = false,
+          social = false,
+          friends = { list: [], incoming: [], outgoing: [] },
           state = "off",
           timer = null,
           busy = false,
@@ -2918,6 +3065,7 @@
               const { data, error } = await sb
                 .from("films")
                 .select("key,data")
+                .eq("user_id", user.id)
                 .range(from, from + 999);
               if (error) throw error;
               data.forEach((r) => (remote[r.key] = r.data));
@@ -3037,6 +3185,8 @@
           if ((u && u.id) === (user && user.id)) return;
           user = u;
           profile = null;
+          friends = { list: [], incoming: [], outgoing: [] };
+          social = false;
           if (!u) {
             set("off");
             if (cur === "prof") profilePage();
@@ -3061,6 +3211,53 @@
           } catch (e) {}
           if (cur === "prof") profilePage();
           pull();
+          loadFriends().then(() => {
+            if (cur === "prof") profilePage();
+          });
+        }
+        async function loadFriends() {
+          if (!sb || !user) return;
+          try {
+            const { data, error } = await sb
+              .from("friendships")
+              .select("requester,addressee,status");
+            if (error) throw error;
+            social = true;
+            const ids = [
+                ...new Set(
+                  data.map((r) =>
+                    r.requester === user.id ? r.addressee : r.requester,
+                  ),
+                ),
+              ].filter((i) => UUID.test(i)),
+              map = {};
+            if (ids.length) {
+              const pr = await sb
+                .from("profiles")
+                .select("id,username,display_name,bio,avatar,top4")
+                .in("id", ids);
+              (pr.data || []).forEach((x) => {
+                const c = cleanProfile(x);
+                if (c && c.id) map[c.id] = c;
+              });
+            }
+            const f = { list: [], incoming: [], outgoing: [] };
+            data.forEach((r) => {
+              const other = r.requester === user.id ? r.addressee : r.requester,
+                pf = map[other];
+              if (!pf) return;
+              (r.status === "accepted"
+                ? f.list
+                : r.requester === user.id
+                  ? f.outgoing
+                  : f.incoming
+              ).push(pf);
+            });
+            f.list.sort((a, b) => pname(a).localeCompare(pname(b)));
+            friends = f;
+          } catch (e) {
+            social = false;
+          }
         }
         function init() {
           if (sb || !window.supabase) return;
@@ -3119,6 +3316,97 @@
           },
           get extended() {
             return extended;
+          },
+          get social() {
+            return social;
+          },
+          get friends() {
+            return friends;
+          },
+          loadFriends,
+          async findUser(name) {
+            name = name.trim().toLowerCase().replace(/^@/, "");
+            if (!/^[a-z0-9_.]{3,20}$/.test(name)) return null;
+            try {
+              const { data, error } = await sb.rpc("find_user", { name });
+              if (error) return null;
+              const row = Array.isArray(data) ? data[0] : data;
+              const c = cleanProfile(row);
+              return c && c.id ? c : null;
+            } catch (e) {
+              return null;
+            }
+          },
+          async requestFriend(id) {
+            if (!UUID.test(id)) return "Não deu certo.";
+            if (friends.incoming.some((p) => p.id === id))
+              return this.acceptFriend(id);
+            const { error } = await sb
+              .from("friendships")
+              .insert({ addressee: id });
+            if (error) return "Não consegui enviar o pedido.";
+            await loadFriends();
+            return "";
+          },
+          async acceptFriend(id) {
+            if (!UUID.test(id)) return "Não deu certo.";
+            const { error } = await sb.rpc("accept_friend", { other: id });
+            if (error) return "Não consegui aceitar agora.";
+            await loadFriends();
+            return "";
+          },
+          async removeFriend(id) {
+            if (!UUID.test(id)) return "Não deu certo.";
+            const { error } = await sb
+              .from("friendships")
+              .delete()
+              .or(
+                `and(requester.eq.${user.id},addressee.eq.${id}),and(requester.eq.${id},addressee.eq.${user.id})`,
+              );
+            if (error) return "Não consegui remover agora.";
+            await loadFriends();
+            return "";
+          },
+          async friendFilms(id) {
+            if (!UUID.test(id)) return null;
+            try {
+              const out = [];
+              for (let from = 0; ; from += 1000) {
+                const { data, error } = await sb
+                  .from("films")
+                  .select("key,data")
+                  .eq("user_id", id)
+                  .range(from, from + 999);
+                if (error) return null;
+                data.forEach((r) => {
+                  const c = cleanFilm(r.data);
+                  if (c) out.push(c);
+                });
+                if (data.length < 1000) break;
+              }
+              return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+            } catch (e) {
+              return null;
+            }
+          },
+          async filmRatings(key) {
+            if (!sb || !user || !friends.list.length) return [];
+            try {
+              const { data, error } = await sb
+                .from("films")
+                .select("user_id,data")
+                .eq("key", key)
+                .neq("user_id", user.id);
+              if (error) return [];
+              return data
+                .map((r) => ({
+                  p: friends.list.find((f) => f.id === r.user_id),
+                  f: cleanFilm(r.data),
+                }))
+                .filter((x) => x.p && x.f);
+            } catch (e) {
+              return [];
+            }
           },
           async saveProfile(patch) {
             if (!sb || !user) return "Entre na conta primeiro.";
@@ -3342,6 +3630,194 @@
         );
       }
 
+      // ---------- Amigos
+      const frRow = (p, right, tag = "div", attrs = "") =>
+        `<${tag} class="fr" ${attrs}>${avatarHTML(p)}<div><b>${esc(pname(p))}</b>${p.display_name && p.username ? `<small>@${esc(p.username)}</small>` : ""}</div>${right || ""}</${tag}>`;
+      function friendsHTML() {
+        const f = cloud.friends;
+        const inc = f.incoming
+          .map((p) =>
+            frRow(
+              p,
+              `<button class="mini" data-ok="${p.id}">Aceitar</button><button class="mini no" data-no="${p.id}">Recusar</button>`,
+            ),
+          )
+          .join("");
+        const list = f.list
+          .map((p) => frRow(p, "<i>›</i>", "button", `data-open="${p.id}"`))
+          .join("");
+        const out = f.outgoing
+          .map((p) => frRow(p, "<i>Pedido enviado</i>"))
+          .join("");
+        return `${inc ? `<div class="sech"><h3>Pedidos de amizade</h3></div><div class="frs">${inc}</div>` : ""}
+    <div class="sech"><h3>Amigos${f.list.length ? " · " + f.list.length : ""}</h3><button id="fadd">Adicionar</button></div>
+    <div class="frs">${list || out ? list + out : '<p class="tip" style="color:var(--muted);font-size:14px;margin:0">Ninguém por aqui ainda. Adiciona um amigo pelo @ dele.</p>'}</div>`;
+      }
+      function bindFriends() {
+        const act = async (fn, id, btn) => {
+          btn.disabled = true;
+          const err = await fn.call(cloud, id);
+          if (err) {
+            btn.disabled = false;
+            const fm = document.getElementById("fm");
+            if (fm) {
+              fm.className = "fmsg bad";
+              fm.textContent = err;
+            }
+            return;
+          }
+          if (cur === "prof") profilePage();
+        };
+        stage
+          .querySelectorAll("[data-ok]")
+          .forEach(
+            (b) => (b.onclick = () => act(cloud.acceptFriend, b.dataset.ok, b)),
+          );
+        stage
+          .querySelectorAll("[data-no]")
+          .forEach(
+            (b) => (b.onclick = () => act(cloud.removeFriend, b.dataset.no, b)),
+          );
+        stage
+          .querySelectorAll("[data-open]")
+          .forEach(
+            (b) =>
+              (b.onclick = () =>
+                friendPage(
+                  cloud.friends.list.find((p) => p.id === b.dataset.open),
+                )),
+          );
+        const add = document.getElementById("fadd");
+        if (add) add.onclick = addFriend;
+      }
+      function addFriend() {
+        const d =
+          overlay(`<div class="ovh"><button id="ax">Fechar</button><b>Adicionar amigo</b><span style="width:52px"></span></div>
+    <form id="afm"><input type="text" id="aq" placeholder="@ do teu amigo" maxlength="21" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="cta" type="submit">Procurar</button></form>
+    <div id="ar" style="margin-top:22px"></div><p class="fmsg" id="am"></p>`);
+        const say = (t, bad) => {
+          const m = d.querySelector("#am");
+          m.className = "fmsg" + (bad ? " bad" : "");
+          m.textContent = t;
+        };
+        d.querySelector("#ax").onclick = () => {
+          d.remove();
+          if (cur === "prof") profilePage();
+        };
+        d.querySelector("#afm").onsubmit = async (e) => {
+          e.preventDefault();
+          const box = d.querySelector("#ar");
+          box.innerHTML = "";
+          say("Procurando…");
+          const p = await cloud.findUser(d.querySelector("#aq").value);
+          if (!p) return say("Não achei ninguém com esse @.", true);
+          say("");
+          const f = cloud.friends,
+            st = f.list.some((x) => x.id === p.id)
+              ? "<i>Já é teu amigo</i>"
+              : f.outgoing.some((x) => x.id === p.id)
+                ? "<i>Pedido enviado</i>"
+                : `<button class="mini" id="arq">${f.incoming.some((x) => x.id === p.id) ? "Aceitar" : "Pedir amizade"}</button>`;
+          box.innerHTML = frRow(p, st);
+          const b = box.querySelector("#arq");
+          if (b)
+            b.onclick = async () => {
+              b.disabled = true;
+              const err = await cloud.requestFriend(p.id);
+              if (err) {
+                b.disabled = false;
+                return say(err, true);
+              }
+              b.outerHTML =
+                "<i>" +
+                (cloud.friends.list.some((x) => x.id === p.id)
+                  ? "Agora são amigos"
+                  : "Pedido enviado") +
+                "</i>";
+            };
+        };
+        setTimeout(() => d.querySelector("#aq").focus(), 300);
+      }
+      async function friendPage(p) {
+        if (!p) return;
+        step = -1;
+        chrome("friend");
+        const t4 = p.top4.some(Boolean)
+          ? `<div class="sech"><h3>Top 4</h3></div><div class="t4">${p.top4.map((f) => `<button class="${f ? "has" : ""}" disabled>${f ? (f.img ? `<img src="${IMG}w185${f.img}" alt="${esc(f.t)}" onerror="phFallback(this)">` : `<span>${esc(f.t)}</span>`) : ""}</button>`).join("")}</div>`
+          : "";
+        show(
+          `<div class="pf" style="margin-top:10px">${avatarHTML(p)}<div><b>${esc(pname(p))}</b>${p.display_name && p.username ? `<em>@${esc(p.username)}</em>` : ""}</div></div>
+    ${p.bio ? `<p class="bio">${esc(p.bio)}</p>` : ""}${t4}
+    <div id="ffilms"><p class="empty">Carregando os filmes…</p></div>
+    <button class="plain out" id="unf" style="margin-top:36px">Desfazer amizade</button><p class="fmsg" id="fm"></p>`,
+          async () => {
+            window.scrollTo(0, 0);
+            const un = document.getElementById("unf");
+            let armed = false;
+            un.onclick = async () => {
+              if (!armed) {
+                armed = true;
+                un.textContent = "Desfazer mesmo?";
+                setTimeout(() => {
+                  armed = false;
+                  if (un.isConnected) un.textContent = "Desfazer amizade";
+                }, 4000);
+                return;
+              }
+              un.disabled = true;
+              const err = await cloud.removeFriend(p.id);
+              if (err) {
+                un.disabled = false;
+                const fm = document.getElementById("fm");
+                fm.className = "fmsg bad";
+                fm.textContent = err;
+                return;
+              }
+              goView("prof");
+            };
+            const films = await cloud.friendFilms(p.id),
+              box = document.getElementById("ffilms");
+            if (!box || cur !== "friend") return;
+            if (!films) {
+              box.innerHTML =
+                '<p class="empty">Não consegui carregar os filmes agora.</p>';
+              return;
+            }
+            const avg = films.length
+              ? films.reduce((a, h) => a + h.s, 0) / films.length
+              : 0;
+            box.innerHTML = `<div class="stat"><div><b>${films.length}</b><span>${films.length === 1 ? "filme" : "filmes"}</span></div><div><b>${films.length ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
+      ${films.length ? `<div class="grid">${films.map((h, i) => `<button class="fc" data-i="${i}"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span><b>★ ${fmt(h.s)}</b></button>`).join("")}</div>` : '<p class="empty">Ainda não avaliou nenhum filme.</p>'}`;
+            box
+              .querySelectorAll(".fc")
+              .forEach(
+                (b) => (b.onclick = () => friendFilm(p, films[+b.dataset.i])),
+              );
+          },
+        );
+      }
+      function friendFilm(p, h) {
+        const mine = hist.find((x) => fkey(x) === fkey(h)),
+          sub = [h.o && h.o !== h.t ? h.o : "", h.y || ""]
+            .filter(Boolean)
+            .join(" · ");
+        const d =
+          overlay(`<div class="ovh"><button id="vx">Fechar</button><b>${esc(pname(p))}</b><span style="width:52px"></span></div>
+    <div class="fview">${h.img ? `<img class="poster" src="${IMG}w342${h.img}" alt="" onerror="this.remove()">` : ""}<h2>${esc(h.t)}</h2>${sub ? `<p class="count" style="margin:0">${esc(sub)}</p>` : ""}
+    <div class="stars">${starsHTML(h.s, true)}</div><div class="num">${fmt(h.s)}</div><div class="label">${LABELS[h.s]}</div>
+    ${h.d ? `<p class="count" style="margin:14px 0 0;font-size:14px">Visto em ${fd(h.d)}</p>` : ""}
+    ${h.note ? `<div class="rev">${esc(h.note)}</div>` : ""}
+    <div class="mine"><span>Tua nota</span>${mine ? `<b>★ ${fmt(mine.s)}</b>` : '<span style="color:var(--muted)">ainda não avaliou</span>'}</div></div>`);
+        d.querySelector("#vx").onclick = () => d.remove();
+      }
+      async function loadCrowd(h) {
+        const box = document.getElementById("crowd");
+        if (!box || !cloud.user) return;
+        const rs = await cloud.filmRatings(fkey(h));
+        if (!rs.length || !box.isConnected || box.dataset.k !== fkey(h)) return;
+        box.innerHTML = `<h3 class="sec">Nota da galera</h3><div class="gal">${rs.map((r) => `<div class="fr">${avatarHTML(r.p)}<div><b>${esc(pname(r.p))}</b>${r.f.note ? `<p>${esc(r.f.note.length > 140 ? r.f.note.slice(0, 140) + "…" : r.f.note)}</p>` : ""}</div><span class="rt">★ ${fmt(r.f.s)}</span></div>`).join("")}</div>`;
+      }
+
       let authMode = "in";
       function profilePage() {
         step = -1;
@@ -3377,6 +3853,7 @@
       <div class="sech"><h3>Top 4</h3></div><div class="t4" id="t4">${t4}</div>`
           : ""
       }
+      ${cloud.social ? friendsHTML() : ""}
       <div class="stat"><div><b>${seen}</b><span>${seen === 1 ? "filme" : "filmes"}</span></div><div><b>${seen ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
       <p class="sync" id="sync"><i></i><span></span></p>
       <div class="sm"><button class="plain" id="snow">Sincronizar</button><button class="plain out" id="sout">Sair da conta</button></div>
@@ -3384,6 +3861,7 @@
             () => {
               paintSync();
               document.getElementById("snow").onclick = () => cloud.syncNow();
+              if (cloud.social) bindFriends();
               if (ext) {
                 document.getElementById("ped").onclick = editProfile;
                 document
@@ -3406,6 +3884,7 @@
                   return;
                 }
                 out.disabled = true;
+                authMode = "in";
                 const err = await cloud.signOut();
                 if (err) {
                   out.disabled = false;
@@ -3856,7 +4335,7 @@
       );
 
       back.onclick = () => {
-        if (cur === "film") {
+        if (cur === "film" || cur === "friend") {
           goView(view);
           return;
         }
