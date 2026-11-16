@@ -438,3 +438,52 @@ input.need{border-color:#ff5a52!important;animation:shake .35s}
 @media (min-width:900px){
   .stage[data-mode=feed] .screen{max-width:780px}
 }
+
+
+/* ---------- Cara de aplicativo
+   O corpo da página fica parado e só a área .scroller rola: assim a barra de cima e as abas
+   não saem do lugar, e não existe o "elástico" de site ao puxar a tela. */
+:root{
+  --sat:var(--safe-area-inset-top,env(safe-area-inset-top,0px));
+  --sab:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));
+}
+html,body,#root{height:100%;overflow:hidden;overscroll-behavior:none}
+.scroller{position:fixed;inset:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+.topin{height:44px;display:flex;align-items:center;gap:14px}
+.top{height:auto;display:block}
+.ttl{flex:1;min-width:0;text-align:center;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s}
+.tsp{width:36px;flex:none}
+.tabs{padding-bottom:var(--sab)}
+body.tabs-on .app{padding-bottom:calc(104px + var(--sab))}
+.ov>div{padding-top:calc(18px + var(--sat));padding-bottom:calc(40px + var(--sab))}
+.red .ovh{margin-top:calc(-18px - var(--sat));padding-top:calc(18px + var(--sat));height:calc(62px + var(--sat))}
+.shr{padding-top:calc(18px + var(--sat));padding-bottom:calc(26px + var(--sab))}
+
+@media (max-width:899px){
+  /* Barra de cima presa: transparente no topo, e com fundo e título quando a tela rola */
+  .top{position:fixed;top:0;left:0;right:0;z-index:5;padding:calc(var(--sat) + 10px) 22px 8px;pointer-events:none;
+    border-bottom:1px solid transparent;transition:background .25s,border-color .25s}
+  .top .back,.top .snd,.top .bar{pointer-events:auto}
+  .topin{max-width:436px;margin:0 auto}
+  .top.solid{background:rgba(12,12,14,.8);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);border-bottom-color:rgba(255,255,255,.06)}
+  .top.solid .ttl{opacity:1;transform:none}
+  .top .back{background:rgba(26,26,29,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .app{padding-top:calc(var(--sat) + 62px)}
+  body.root .app{padding-top:calc(var(--sat) + 34px)}
+  /* O banner do filme vai até o topo da tela, por baixo da barra de status */
+  .hero{margin-top:calc(-78px - var(--sat));height:calc(286px + var(--sat))}
+  .hero.noimg{height:calc(112px + var(--sat))}
+}
+@media (min-width:900px){
+  .ttl{display:none}
+  .tsp{display:none}
+  .topin .snd{margin-left:auto}
+}
+/* Em tela de toque: nada de selecionar texto da interface, menu de segurar ou arrastar imagem */
+@media (hover:none){
+  body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  input,textarea,.txt,.about p,.bio{-webkit-user-select:text;user-select:text}
+  img{-webkit-user-drag:none}
+}
+/* Dentro do aplicativo instalado: sem zoom de pinça */
+html.native{touch-action:pan-x pan-y}
