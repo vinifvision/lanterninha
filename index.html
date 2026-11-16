@@ -2565,6 +2565,36 @@
         font-size: 14px;
         cursor: pointer;
       }
+      .when {
+        padding-right: 6px;
+      }
+      .when input[type="date"] {
+        min-width: 0;
+        flex: 0 1 auto;
+        text-align: right;
+      }
+      .nodate {
+        display: block;
+        margin: 2px 0 0 auto;
+        padding: 8px 6px;
+      }
+      .nodate[hidden] {
+        display: none;
+      }
+      @media (max-width: 350px) {
+        .mybox .rate {
+          gap: 12px;
+        }
+        .mybox .rate > b {
+          font-size: 44px;
+          min-width: 60px;
+        }
+        .rate .star,
+        .rate .star svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -3163,7 +3193,7 @@
       }
 
       const whenHTML = (h) =>
-        `<div class="when">Visto em<div><input type="date" id="dt" value="${h.d || ""}" max="${today()}"><button class="nodate" id="nd"${h.d ? "" : " hidden"}>Não lembro</button></div></div>`;
+        `<div class="when">Visto em<input type="date" id="dt" value="${h.d || ""}" max="${today()}"></div><button class="nodate" id="nd"${h.d ? "" : " hidden"}>Não lembro a data</button>`;
       function bindWhen(h) {
         const dt = document.getElementById("dt"),
           nd = document.getElementById("nd");
