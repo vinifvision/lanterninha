@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Lanterninha</string>
+    <string name="title_activity_main">Lanterninha</string>
+    <string name="package_name">app.lanterninha</string>
+    <string name="custom_url_scheme">app.lanterninha</string>
+</resources>
