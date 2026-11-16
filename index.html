@@ -45,11 +45,14 @@
         position: fixed;
         inset: 0;
         pointer-events: none;
-        background: radial-gradient(
-          120% 55% at 50% -10%,
-          rgba(227, 180, 104, 0.13),
-          transparent 60%
-        );
+        background:
+          radial-gradient(
+            120% 55% at 50% -10%,
+            var(--glow, rgba(227, 180, 104, 0.13)),
+            transparent 60%
+          ),
+          linear-gradient(180deg, var(--wash, transparent), transparent 640px);
+        transition: opacity 0.5s;
       }
       .app {
         position: relative;
@@ -831,6 +834,10 @@
         transform: scale(1.3);
         opacity: 0.55;
       }
+      .hero {
+        -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 35%, transparent 100%);
+      }
       .hero::after {
         content: "";
         position: absolute;
@@ -839,8 +846,7 @@
           180deg,
           rgba(10, 10, 12, 0.35) 0%,
           rgba(10, 10, 12, 0) 30%,
-          rgba(10, 10, 12, 0.75) 75%,
-          var(--bg) 100%
+          rgba(10, 10, 12, 0.55) 100%
         );
       }
       .fhead {
@@ -1282,6 +1288,51 @@
         background: var(--card);
         font-size: 13px;
       }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0;
+        transition: opacity 0.6s;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      }
+      body.tinted::after {
+        opacity: 0.5;
+      }
+      .app {
+        z-index: 2;
+      }
+      .chipsf {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        margin: 0 -22px 18px;
+        padding: 0 22px;
+        scrollbar-width: none;
+      }
+      .chipsf::-webkit-scrollbar {
+        display: none;
+      }
+      .chipsf button {
+        flex: none;
+        padding: 8px 14px;
+        border-radius: 30px;
+        border: 1.5px solid transparent;
+        background: var(--card);
+        color: var(--muted);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .chipsf button.on {
+        border-color: var(--gold);
+        color: var(--gold);
+        background: var(--gold-soft);
+      }
     </style>
   </head>
   <body>
@@ -1631,6 +1682,7 @@
       let hist = loadH(),
         view = "home",
         libSort = "recent",
+        libStar = 0,
         cur = "home";
       const tabs = document.getElementById("tabs");
       const pad = (n) => String(n).padStart(2, "0");
@@ -1657,6 +1709,7 @@
       function chrome(mode) {
         // home | lib | film | q | cmp | res
         cur = mode;
+        if (mode !== "film") setTint(null);
         const main = mode === "home" || mode === "lib";
         back.classList.toggle("hide", main);
         bar.classList.toggle("hide", main || mode === "res" || mode === "film");
@@ -2158,6 +2211,105 @@
         render();
       }
 
+      // ---------- Cor do filme: puxa do pôster uma cor viva para o fundo da página
+      function setTint(hex) {
+        const st = document.body.style;
+        if (!hex) {
+          st.removeProperty("--glow");
+          st.removeProperty("--wash");
+          document.body.classList.remove("tinted");
+          return;
+        }
+        const n = parseInt(hex.slice(1), 16),
+          r = n >> 16,
+          g = (n >> 8) & 255,
+          b = n & 255;
+        st.setProperty("--glow", `rgba(${r},${g},${b},.5)`);
+        st.setProperty("--wash", `rgba(${r},${g},${b},.26)`);
+        document.body.classList.add("tinted");
+      }
+      async function posterColor(h) {
+        if (h.col) return h.col;
+        if (!h.img) return null;
+        const im = await loadImg(
+          "api/img?size=w342&path=" + encodeURIComponent(h.img),
+        );
+        if (!im) return null;
+        try {
+          const cv = document.createElement("canvas");
+          cv.width = 24;
+          cv.height = 36;
+          const c = cv.getContext("2d");
+          c.drawImage(im, 0, 0, 24, 36);
+          const d = c.getImageData(0, 0, 24, 36).data;
+          let R = 0,
+            G = 0,
+            B = 0,
+            Wt = 0;
+          for (let i = 0; i < d.length; i += 4) {
+            const r = d[i],
+              g = d[i + 1],
+              b = d[i + 2],
+              mx = Math.max(r, g, b),
+              mn = Math.min(r, g, b),
+              sat = mx ? (mx - mn) / mx : 0,
+              w = sat * sat * (mx / 255) + 0.002;
+            R += r * w;
+            G += g * w;
+            B += b * w;
+            Wt += w;
+          }
+          let r = R / Wt / 255,
+            g = G / Wt / 255,
+            b = B / Wt / 255;
+          // para HSL, deixa a cor viva (saturação alta, brilho médio) e volta para RGB
+          const mx = Math.max(r, g, b),
+            mn = Math.min(r, g, b),
+            dl = mx - mn;
+          let hh = 0,
+            l = (mx + mn) / 2,
+            sa = dl ? dl / (1 - Math.abs(2 * l - 1)) : 0;
+          if (dl) {
+            hh =
+              mx === r
+                ? ((g - b) / dl) % 6
+                : mx === g
+                  ? (b - r) / dl + 2
+                  : (r - g) / dl + 4;
+            hh *= 60;
+            if (hh < 0) hh += 360;
+          }
+          if (sa < 0.12) return null; // pôster quase sem cor: mantém o dourado do app
+          sa = Math.max(sa, 0.72);
+          l = Math.min(0.58, Math.max(0.48, l));
+          const C = (1 - Math.abs(2 * l - 1)) * sa,
+            X = C * (1 - Math.abs(((hh / 60) % 2) - 1)),
+            m = l - C / 2,
+            k = Math.floor(hh / 60) % 6;
+          const [r1, g1, b1] = [
+            [C, X, 0],
+            [X, C, 0],
+            [0, C, X],
+            [0, X, C],
+            [X, 0, C],
+            [C, 0, X],
+          ][k];
+          h.col =
+            "#" +
+            [r1, g1, b1]
+              .map((v) =>
+                Math.round((v + m) * 255)
+                  .toString(16)
+                  .padStart(2, "0"),
+              )
+              .join("");
+          saveH();
+          return h.col;
+        } catch (e) {
+          return null;
+        }
+      }
+
       function filmPage(h) {
         if (!h) return;
         step = -1;
@@ -2185,6 +2337,15 @@
             bindWhen(h);
             bindReview(h);
             loadAbout(h);
+            posterColor(h).then((col) => {
+              if (
+                cur === "film" &&
+                document.getElementById("about") &&
+                document.getElementById("about").dataset.id ===
+                  String(h.id || "")
+              )
+                setTint(col);
+            });
             document.getElementById("shr").onclick = () => shareSheet(h);
             const again = (re) => {
               title = h.t;
@@ -2230,8 +2391,13 @@
       function library() {
         step = -1;
         chrome("lib");
-        const list = hist.map((h, i) => ({ h, i }));
+        const bucket = (h) => Math.max(1, Math.floor(h.s));
+        const list = hist
+          .map((h, i) => ({ h, i }))
+          .filter((x) => !libStar || bucket(x.h) === libStar);
         if (libSort === "nota") list.sort((a, b) => b.h.s - a.h.s || a.i - b.i);
+        else if (libSort === "menor")
+          list.sort((a, b) => a.h.s - b.h.s || a.i - b.i);
         else
           list.sort(
             (a, b) => (b.h.d || "").localeCompare(a.h.d || "") || a.i - b.i,
@@ -2244,11 +2410,12 @@
           .join("");
         show(
           `<h1>Meus filmes</h1>
-    <p class="count">${hist.length === 1 ? "1 filme" : hist.length + " filmes"}</p>
+    <p class="count">${list.length === 1 ? "1 filme" : list.length + " filmes"}${libStar ? " com nota " + libStar : ""}</p>
     ${
       hist.length
-        ? `<div class="seg"><button data-s="recent" class="${libSort === "recent" ? "on" : ""}">Recentes</button><button data-s="nota" class="${libSort === "nota" ? "on" : ""}">Maior nota</button></div>
-    <div class="grid">${grid}</div>`
+        ? `<div class="seg"><button data-s="recent" class="${libSort === "recent" ? "on" : ""}">Recentes</button><button data-s="nota" class="${libSort === "nota" ? "on" : ""}">Maior nota</button><button data-s="menor" class="${libSort === "menor" ? "on" : ""}">Menor nota</button></div>
+    <div class="chipsf">${[0, 5, 4, 3, 2, 1].map((n) => `<button data-n="${n}" class="${libStar === n ? "on" : ""}">${n ? "★ " + n : "Todas"}</button>`).join("")}</div>
+    ${list.length ? `<div class="grid">${grid}</div>` : '<p class="empty">Nenhum filme com essa nota.</p>'}`
         : '<p class="empty">Nada por aqui ainda.<br>Avalie um filme e ele aparece nesta tela.</p>'
     }
     <div class="bk"><h3>Backup</h3><div><button id="exp">Exportar</button><button id="imp">Importar</button></div><p id="bkmsg"></p>
@@ -2261,6 +2428,15 @@
               (b) =>
                 (b.onclick = () => {
                   libSort = b.dataset.s;
+                  sfx.soft();
+                  library();
+                }),
+            );
+            stage.querySelectorAll(".chipsf button").forEach(
+              (b) =>
+                (b.onclick = () => {
+                  libStar = +b.dataset.n;
+                  sfx.soft();
                   library();
                 }),
             );
@@ -2333,6 +2509,8 @@
         if (Number.isInteger(x.n) && x.n > 1) e.n = x.n;
         if (typeof x.d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x.d))
           e.d = x.d;
+        if (typeof x.col === "string" && /^#[0-9a-f]{6}$/.test(x.col))
+          e.col = x.col;
         if (typeof x.note === "string" && x.note.trim())
           e.note = x.note.trim().slice(0, 2000);
         return e;
