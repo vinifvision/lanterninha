@@ -2966,6 +2966,15 @@
         if (!h.ts) h.ts = Date.now() - i * 1000;
       });
 
+      const tkey = (f) =>
+        f ? (f.id ? "m" + f.id : "t:" + f.t.toLowerCase()) : "";
+      const t4HTML = (top4, empty) =>
+        top4
+          .map(
+            (f, i) =>
+              `<button data-i="${i}" class="${f ? "has" : ""}" aria-label="Favorito ${i + 1}">${f ? (f.img ? `<img src="${IMG}w185${f.img}" alt="${esc(f.t)}" onerror="phFallback(this)">` : `<span>${esc(f.t)}</span>`) : empty}</button>`,
+          )
+          .join("");
       const UUID =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const pname = (p) =>
@@ -3525,13 +3534,15 @@
       }
       function editProfile() {
         const pr = cloud.profile || cleanProfile({});
-        let avatar = pr.avatar;
+        let avatar = pr.avatar,
+          top4 = pr.top4.slice();
         const d =
           overlay(`<div class="ovh"><button id="ex">Cancelar</button><b>Editar perfil</b><button class="ok" id="eok">Salvar</button></div>
     <div class="avedit"><span id="eav">${avatarHTML(pr, cloud.user && cloud.user.email)}</span><div><button id="eph">Trocar foto</button>${pr.avatar ? '<button id="erm" style="color:var(--muted)">Remover</button>' : ""}</div>
     <input type="file" id="ef" accept="image/*" hidden></div>
     <label class="lbl" for="edn">Nome</label><input type="text" id="edn" maxlength="40" placeholder="Como teus amigos te veem" value="${esc(pr.display_name)}">
     <label class="lbl" for="ebio" style="margin-top:8px">Bio</label><textarea id="ebio" maxlength="160" placeholder="Uma linha sobre ti e teus filmes">${esc(pr.bio)}</textarea>
+    <span class="lbl" style="margin-top:20px">Top 4 · toque pra escolher ou trocar</span><div class="t4" id="et4" style="margin-bottom:8px"></div>
     <p class="fmsg" id="em2"></p>`);
         const say = (t, bad) => {
           const m = d.querySelector("#em2");
@@ -3548,6 +3559,19 @@
             cloud.user && cloud.user.email,
           );
         };
+        const paintTop = () => {
+          const box = d.querySelector("#et4");
+          box.innerHTML = t4HTML(top4, "+");
+          box.querySelectorAll("button").forEach(
+            (b) =>
+              (b.onclick = () =>
+                pickTop(+b.dataset.i, top4, (f) => {
+                  top4[+b.dataset.i] = f;
+                  paintTop();
+                })),
+          );
+        };
+        paintTop();
         d.querySelector("#ex").onclick = () => d.remove();
         d.querySelector("#eph").onclick = () => d.querySelector("#ef").click();
         const rm = d.querySelector("#erm");
@@ -3575,6 +3599,7 @@
             display_name: d.querySelector("#edn").value.trim() || null,
             bio: d.querySelector("#ebio").value.trim() || null,
             avatar: avatar || null,
+            top4,
           });
           if (err) {
             ok.disabled = false;
@@ -3584,48 +3609,38 @@
           if (cur === "prof") profilePage();
         };
       }
-      function pickTop(slot) {
-        const pr = cloud.profile;
-        if (!pr) return;
-        const used = pr.top4.map((f, i) =>
-          f && i !== slot
-            ? f.id
-              ? "m" + f.id
-              : "t:" + f.t.toLowerCase()
-            : null,
-        );
+      function pickTop(slot, top4, done) {
+        const used = top4.map((f, i) => (f && i !== slot ? tkey(f) : null));
         const list = hist
           .filter((h) => !used.includes(fkey(h)))
           .slice()
           .sort((a, b) => b.s - a.s);
         const d =
-          overlay(`<div class="ovh"><button id="px">Cancelar</button><b>Favorito ${slot + 1}</b>${pr.top4[slot] ? '<button id="prm" style="color:#ff5a52">Remover</button>' : '<span style="width:60px"></span>'}</div>
+          overlay(`<div class="ovh"><button id="px">Voltar</button><b>Favorito ${slot + 1}</b>${top4[slot] ? '<button id="prm" style="color:#ff5a52">Remover</button>' : '<span style="width:60px"></span>'}</div>
     ${
       list.length
         ? `<div class="grid">${list.map((h, i) => `<button class="fc" data-i="${i}"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span><b>★ ${fmt(h.s)}</b></button>`).join("")}</div>`
         : '<p class="empty">Teus favoritos saem dos filmes que tu já avaliou.<br>Avalia alguns e volta aqui.</p>'
-    }<p class="fmsg" id="pm"></p>`);
-        const set = async (f) => {
-          const top4 = pr.top4.slice();
-          top4[slot] = f;
-          const err = await cloud.saveProfile({ top4 });
-          if (err) {
-            const m = d.querySelector("#pm");
-            m.className = "fmsg bad";
-            m.textContent = err;
-            return;
-          }
-          d.remove();
-          if (cur === "prof") profilePage();
-        };
+    }`);
+        d.style.zIndex = 8;
         d.querySelector("#px").onclick = () => d.remove();
         const rm = d.querySelector("#prm");
-        if (rm) rm.onclick = () => set(null);
+        if (rm)
+          rm.onclick = () => {
+            d.remove();
+            done(null);
+          };
         d.querySelectorAll(".fc").forEach(
           (b) =>
             (b.onclick = () => {
               const h = list[+b.dataset.i];
-              set({ id: h.id || null, t: h.t, img: h.img || "", y: h.y || "" });
+              d.remove();
+              done({
+                id: h.id || null,
+                t: h.t,
+                img: h.img || "",
+                y: h.y || "",
+              });
             }),
         );
       }
@@ -3743,7 +3758,7 @@
         step = -1;
         chrome("friend");
         const t4 = p.top4.some(Boolean)
-          ? `<div class="sech"><h3>Top 4</h3></div><div class="t4">${p.top4.map((f) => `<button class="${f ? "has" : ""}" disabled>${f ? (f.img ? `<img src="${IMG}w185${f.img}" alt="${esc(f.t)}" onerror="phFallback(this)">` : `<span>${esc(f.t)}</span>`) : ""}</button>`).join("")}</div>`
+          ? `<div class="sech"><h3>Top 4</h3></div><div class="t4" id="ft4">${t4HTML(p.top4, "")}</div>`
           : "";
         show(
           `<div class="pf" style="margin-top:10px">${avatarHTML(p)}<div><b>${esc(pname(p))}</b>${p.display_name && p.username ? `<em>@${esc(p.username)}</em>` : ""}</div></div>
@@ -3793,6 +3808,14 @@
               .forEach(
                 (b) => (b.onclick = () => friendFilm(p, films[+b.dataset.i])),
               );
+            document.querySelectorAll("#ft4 button").forEach(
+              (b) =>
+                (b.onclick = () => {
+                  const f = p.top4[+b.dataset.i],
+                    h = f && films.find((x) => fkey(x) === tkey(f));
+                  if (h) friendFilm(p, h);
+                }),
+            );
           },
         );
       }
@@ -3837,12 +3860,7 @@
           const title =
             pr.display_name ||
             (pr.username ? "@" + pr.username : "Minha conta");
-          const t4 = pr.top4
-            .map(
-              (f, i) =>
-                `<button data-i="${i}" class="${f ? "has" : ""}" aria-label="Favorito ${i + 1}">${f ? (f.img ? `<img src="${IMG}w185${f.img}" alt="${esc(f.t)}" onerror="phFallback(this)">` : `<span>${esc(f.t)}</span>`) : "+"}</button>`,
-            )
-            .join("");
+          const t4 = t4HTML(pr.top4, "+");
           show(
             `<h1>Perfil</h1><p class="count">&nbsp;</p>
       <div class="pf">${avatarHTML(pr, u.email)}<div><b>${esc(title)}</b>${pr.display_name && pr.username ? `<em>@${esc(pr.username)}</em>` : ""}<small>${esc(u.email || "")}</small></div></div>
@@ -3864,9 +3882,15 @@
               if (cloud.social) bindFriends();
               if (ext) {
                 document.getElementById("ped").onclick = editProfile;
-                document
-                  .querySelectorAll("#t4 button")
-                  .forEach((b) => (b.onclick = () => pickTop(+b.dataset.i)));
+                document.querySelectorAll("#t4 button").forEach(
+                  (b) =>
+                    (b.onclick = () => {
+                      const f = pr.top4[+b.dataset.i];
+                      if (!f) return editProfile();
+                      const h = hist.find((x) => fkey(x) === tkey(f));
+                      if (h) filmPage(h);
+                    }),
+                );
               }
               const out = document.getElementById("sout");
               let armed = false;
