@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { useArmed, useAsync } from '../components/hooks';
 import { Poster } from '../components/Poster';
-import { TopFour } from '../components/TopFour';
+import { Favorites } from '../components/TopFour';
 import { cloud, useCloud } from '../lib/cloud';
 import { fkey } from '../lib/films';
 import { fmt, nFriends, pname } from '../lib/format';
@@ -53,8 +53,7 @@ export function FriendPage({ id }: { id: string }) {
       {p.bio && <p className="bio">{p.bio}</p>}
       {p.top4.some(Boolean) && (
         <>
-          <div className="sech"><h3>Top 4</h3></div>
-          <TopFour id="ft4" top4={p.top4} empty="" onPick={(i) => {
+          <Favorites id="ft4" top4={p.top4} empty="" onPick={(i) => {
             const f = p.top4[i], h = f && films?.find((x) => fkey(x) === fkey(f));
             if (h) openReview(h);
           }} />

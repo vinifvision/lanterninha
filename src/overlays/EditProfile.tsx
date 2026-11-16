@@ -71,7 +71,7 @@ export function EditProfile() {
         <input type="text" id="edn" maxLength={40} placeholder="Como teus amigos te veem" value={name} onChange={(e) => setName(e.target.value)} />
         <label className="lbl" htmlFor="ebio" style={{ marginTop: 8 }}>Bio</label>
         <textarea id="ebio" maxLength={160} placeholder="Uma linha sobre ti e teus filmes" value={bio} onChange={(e) => setBio(e.target.value)} />
-        <span className="lbl" style={{ marginTop: 20 }}>Top 4 · toque pra escolher ou trocar</span>
+        <span className="lbl" style={{ marginTop: 20 }}>Favoritos · toque para escolher ou trocar</span>
         <div style={{ marginBottom: 8 }}><TopFour id="et4" top4={top4} empty="+" onPick={setSlot} /></div>
         <p className={`fmsg${msg.bad ? ' bad' : ''}`} id="em2">{msg.t}</p>
       </Overlay>

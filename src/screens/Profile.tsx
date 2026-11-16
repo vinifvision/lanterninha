@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { FriendRow } from '../components/FriendRow';
 import { useAsync } from '../components/hooks';
-import { TopFour } from '../components/TopFour';
+import { Favorites } from '../components/TopFour';
 import { cleanProfile, cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, nFriends } from '../lib/format';
@@ -101,9 +101,8 @@ function Account() {
       {pr.bio && <p className="bio">{pr.bio}</p>}
       {account.extended && (
         <>
-          <button className="plain" id="ped" style={{ margin: '-6px 0 28px' }} onClick={() => nav.open({ k: 'editProfile' })}>Editar perfil</button>
-          <div className="sech"><h3>Top 4</h3></div>
-          <TopFour id="t4" top4={pr.top4} empty="+" onPick={openTop} />
+          <Favorites id="t4" top4={pr.top4} empty="+" onPick={openTop} />
+          <button className="plain" id="ped" style={{ margin: '0 0 30px' }} onClick={() => nav.open({ k: 'editProfile' })}>Editar perfil</button>
         </>
       )}
       {account.social && <><FriendsBlock onError={setErr} /><Board /></>}

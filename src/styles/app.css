@@ -519,3 +519,13 @@ html.native{touch-action:pan-x pan-y}
 .setnote{color:var(--muted);font-size:13px;line-height:1.45;margin:0 4px 30px}
 .ov .sw{width:100%;border:none;color:var(--text);font:inherit;font-size:16px}
 .ov .bk{margin-top:30px}
+
+/* ---------- Favoritos em destaque no perfil */
+.favs{position:relative;overflow:hidden;border-radius:24px;padding:18px 16px 16px;margin:4px 0 16px;background:var(--card);border:1px solid rgba(255,255,255,.07)}
+.favs .glow{position:absolute;inset:-30%;background-size:cover;background-position:center;filter:blur(42px) saturate(1.7);opacity:.5;pointer-events:none}
+.favs::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,12,.1),rgba(10,10,12,.55));pointer-events:none}
+.favs h3,.favs .t4{position:relative;z-index:1}
+.favs h3{margin:0 2px 14px;font-size:19px;font-weight:700;letter-spacing:-.3px}
+.favs .t4{margin:0;gap:9px}
+.favs .t4 button.has{box-shadow:0 10px 24px rgba(0,0,0,.5);border-radius:11px}
+.favs .t4 button:not(.has){border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.5);background:rgba(0,0,0,.18)}
