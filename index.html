@@ -3002,21 +3002,19 @@
           /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p.avatar)
             ? p.avatar
             : "";
-        o.top4 = (Array.isArray(p.top4) ? p.top4 : [])
-          .slice(0, 4)
-          .map((x) =>
-            x && typeof x.t === "string" && x.t.trim()
-              ? {
-                  id: Number.isInteger(x.id) ? x.id : null,
-                  t: x.t.trim().slice(0, 120),
-                  img:
-                    typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
-                      ? x.img
-                      : "",
-                  y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
-                }
-              : null,
-          );
+        o.top4 = (Array.isArray(p.top4) ? p.top4 : []).slice(0, 4).map((x) =>
+          x && typeof x.t === "string" && x.t.trim()
+            ? {
+                id: Number.isInteger(x.id) ? x.id : null,
+                t: x.t.trim().slice(0, 120),
+                img:
+                  typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
+                    ? x.img
+                    : "",
+                y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
+              }
+            : null,
+        );
         while (o.top4.length < 4) o.top4.push(null);
         return o;
       }
@@ -3830,8 +3828,23 @@
     <div class="stars">${starsHTML(h.s, true)}</div><div class="num">${fmt(h.s)}</div><div class="label">${LABELS[h.s]}</div>
     ${h.d ? `<p class="count" style="margin:14px 0 0;font-size:14px">Visto em ${fd(h.d)}</p>` : ""}
     ${h.note ? `<div class="rev">${esc(h.note)}</div>` : ""}
-    <div class="mine"><span>Tua nota</span>${mine ? `<b>★ ${fmt(mine.s)}</b>` : '<span style="color:var(--muted)">ainda não avaliou</span>'}</div></div>`);
+    <div class="mine"><span>Tua nota</span>${mine ? `<b>★ ${fmt(mine.s)}</b>` : '<span style="color:var(--muted)">ainda não avaliou</span>'}</div>
+    <button class="cta" id="vgo" style="margin-top:12px">${mine ? "Abrir minha página do filme" : "Avaliar também"}</button></div>`);
         d.querySelector("#vx").onclick = () => d.remove();
+        d.querySelector("#vgo").onclick = () => {
+          d.remove();
+          if (mine) return filmPage(mine);
+          title = h.t;
+          movie = h.id
+            ? { id: h.id, title: h.t, original: h.o, year: h.y, poster: h.img }
+            : null;
+          classic = !!(h.y && +h.y <= new Date().getFullYear() - 35);
+          rewatch = null;
+          QS = buildQS();
+          step = 0;
+          ans = [];
+          question();
+        };
       }
       async function loadCrowd(h) {
         const box = document.getElementById("crowd");
