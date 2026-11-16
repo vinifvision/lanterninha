@@ -2,7 +2,7 @@
 
 # Lanterninha
 
-Perguntas rápidas pra decidir que nota dar a um filme no Letterboxd.
+Antigamente o lanterninha te levava até o seu lugar no escuro do cinema. Hoje o app, com perguntas rápidas, te leva até a sua nota para os filmes!
 
 Em vez de dar nota pra roteiro, direção e afins, você responde como foi a sua experiência com o filme. No final sai uma sugestão de ½ a 5 estrelas, que dá pra ajustar.
 
@@ -21,6 +21,6 @@ Em vez de dar nota pra roteiro, direção e afins, você responde como foi a sua
 
 ## Feito com
 
-HTML, CSS e JavaScript puro, sem dependências.
+HTML, CSS e JavaScript puro.
 
 Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.
