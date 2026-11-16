@@ -1640,9 +1640,6 @@
             tone(up ? 740 : 520, 0.08, 0.05, 0, "triangle");
             buzz(6);
           },
-          soft() {
-            noise(0.03, 0.08, 1500);
-          },
           projector(dur) {
             for (let t = 0; t < dur; t += 1 / 17)
               noise(0.022, 0.035 + 0.05 * (t / dur), 950, t);
@@ -2180,7 +2177,6 @@
               d.querySelectorAll(".seg button").forEach((x) =>
                 x.classList.toggle("on", x === b),
               );
-              sfx.soft();
               render();
             }),
         );
@@ -2428,7 +2424,6 @@
               (b) =>
                 (b.onclick = () => {
                   libSort = b.dataset.s;
-                  sfx.soft();
                   library();
                 }),
             );
@@ -2436,7 +2431,6 @@
               (b) =>
                 (b.onclick = () => {
                   libStar = +b.dataset.n;
-                  sfx.soft();
                   library();
                 }),
             );
@@ -2749,7 +2743,6 @@
         (t) =>
           (t.onclick = () => {
             if (t.dataset.v === view) return;
-            sfx.soft();
             t.dataset.v === "lib" ? library() : home();
           }),
       );
