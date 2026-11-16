@@ -15,7 +15,7 @@ export default {
     const url =
       "https://api.themoviedb.org/3/movie/" +
       id +
-      "?language=pt-BR&append_to_response=credits,watch/providers&api_key=" +
+      "?language=pt-BR&append_to_response=credits,watch/providers,videos&include_video_language=pt-BR,pt,en&api_key=" +
       encodeURIComponent(key);
     const r = await fetch(url);
     if (!r.ok)
@@ -30,6 +30,18 @@ export default {
       .map((p) => p.name)
       .slice(0, 2)
       .join(", ");
+
+    // Elenco principal e trailer (prefere o trailer em português)
+    const cast = ((m.credits && m.credits.cast) || [])
+      .slice(0, 5)
+      .map((p) => p.name);
+    const vids = ((m.videos && m.videos.results) || []).filter(
+      (v) => v.site === "YouTube" && v.type === "Trailer",
+    );
+    const pick =
+      vids.find((v) => v.iso_639_1 === "pt") ||
+      vids.find((v) => v.official) ||
+      vids[0];
 
     // Onde assistir no Brasil (o TMDB recebe esses dados da JustWatch)
     const br =
@@ -49,6 +61,8 @@ export default {
         genres: (m.genres || []).map((g) => g.name).slice(0, 3),
         director,
         backdrop: m.backdrop_path || "",
+        cast,
+        trailer: pick ? pick.key : "",
         providers: {
           stream: list(br.flatrate),
           rent: list(br.rent),
