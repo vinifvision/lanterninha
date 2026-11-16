@@ -1759,7 +1759,7 @@
         height: 46px;
         font-size: 19px;
       }
-      .fr > div:nth-child(2) {
+      .fr > div:not(.av) {
         flex: 1;
         min-width: 0;
       }
@@ -1854,6 +1854,228 @@
       }
       .mine b {
         color: var(--gold);
+      }
+      .two {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .two button {
+        flex: 1;
+        padding: 14px;
+        border-radius: 16px;
+        border: none;
+        background: var(--card);
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 500;
+        transition: transform 0.15s;
+      }
+      .two button:active {
+        transform: scale(0.97);
+        background: var(--card2);
+      }
+      .fc b.tag {
+        color: var(--muted);
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .state {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 26px 0 4px;
+        padding: 10px 16px;
+        border-radius: 30px;
+        background: var(--gold-soft);
+        color: var(--gold);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .byline {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 10px 0 0;
+      }
+      .tab {
+        position: relative;
+      }
+      .tab .dot {
+        position: absolute;
+        top: 8px;
+        left: calc(50% + 8px);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #f0575b;
+      }
+      .rcd {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 16px;
+        background: var(--card);
+        margin-bottom: 10px;
+        animation: in 0.35s both;
+      }
+      .rcd img,
+      .rcd .noimg {
+        width: 56px;
+        height: 84px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: var(--card2);
+        flex: none;
+      }
+      .rcd > div {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .rcd b {
+        font-size: 16px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .rcd small {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+      }
+      .rcd p {
+        margin: 6px 0 0;
+        font-size: 14px;
+        line-height: 1.35;
+        color: #d5d5da;
+        overflow-wrap: anywhere;
+      }
+      .rcd .row2 {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 10px;
+      }
+      .rcd .mini {
+        padding: 8px 13px;
+        border-radius: 30px;
+        border: none;
+        background: var(--gold);
+        color: #1d1403;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .rcd .mini.no {
+        background: var(--card2);
+        color: var(--muted);
+      }
+      .fr.sel {
+        background: var(--gold-soft);
+        border-radius: 14px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-color: transparent;
+      }
+      .fr .ck {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #4a4a50;
+        flex: none;
+      }
+      .fr.sel .ck {
+        border-color: var(--gold);
+        background: var(--gold);
+      }
+      .game {
+        margin: 0 0 28px;
+        padding: 18px;
+        border-radius: 18px;
+        background: linear-gradient(
+          135deg,
+          rgba(240, 87, 91, 0.16),
+          rgba(227, 180, 104, 0.16)
+        );
+        border: 1px solid rgba(227, 180, 104, 0.25);
+      }
+      .game b {
+        display: block;
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .game small {
+        display: block;
+        color: #d5d5da;
+        font-size: 14px;
+        margin: 4px 0 14px;
+        line-height: 1.35;
+      }
+      .game .cta {
+        padding: 13px;
+        font-size: 15px;
+      }
+      .gs {
+        text-align: center;
+        padding-top: 6px;
+      }
+      .gs .poster {
+        width: 150px;
+        height: 225px;
+      }
+      .gs h2 {
+        font-size: 23px;
+        margin: 0 0 4px;
+        letter-spacing: -0.4px;
+      }
+      .gs .q2 {
+        color: var(--muted);
+        font-size: 15px;
+        margin: 18px 0 14px;
+      }
+      .gs .stars {
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .gs .num {
+        font-size: 52px;
+      }
+      .gs .res {
+        margin: 18px 0 6px;
+        font-size: 17px;
+        font-weight: 600;
+        min-height: 24px;
+      }
+      .gs .res.g3 {
+        color: #4cd08a;
+      }
+      .gs .res.g2 {
+        color: var(--gold);
+      }
+      .gs .res.g1 {
+        color: #f0a65b;
+      }
+      .gs .res.g0 {
+        color: #ff7a73;
+      }
+      .gs .pts {
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 18px;
+      }
+      .board .fr .rt {
+        font-size: 16px;
+      }
+      .board .fr i.pos {
+        width: 20px;
+        text-align: center;
+        font-weight: 700;
+        color: var(--text);
       }
     </style>
   </head>
@@ -2210,6 +2432,7 @@
         view = "home",
         libSort = "recent",
         libStar = 0,
+        libTab = "rated",
         cur = "home";
       const tabs = document.getElementById("tabs");
       const pad = (n) => String(n).padStart(2, "0");
@@ -2286,13 +2509,13 @@
         rewatch = null;
         replaced = null;
         chrome("home");
-        const rec = hist
-          .slice(0, 4)
-          .map(
-            (h, i) =>
-              `<button class="rc" data-i="${i}"><span>${h.img ? `<img src="${IMG}w92${h.img}" alt="" onerror="this.remove()">` : ""}<em>${esc(h.t)}</em></span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
-          )
-          .join("");
+        const recL = rated().slice(0, 4),
+          rec = recL
+            .map(
+              (h, i) =>
+                `<button class="rc" data-i="${i}"><span>${h.img ? `<img src="${IMG}w92${h.img}" alt="" onerror="this.remove()">` : ""}<em>${esc(h.t)}</em></span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
+            )
+            .join("");
         show(
           `<div class="brand"><img src="logo.svg" alt="" width="40" height="40">Lanterninha</div>
     <h1>Que nota<br>dar pro filme?</h1>
@@ -2300,7 +2523,8 @@
     <input type="text" id="t" placeholder="Nome do filme" maxlength="80" value="${esc(title)}" autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="sr" id="sr"></div>
     <button class="sw${classic ? " on" : ""}" id="sw" role="switch" aria-checked="${classic}">Clássico ou filme antigo<i></i></button>
-    <button class="cta" id="go">Começar</button>
+    <button class="cta" id="go">Avaliar</button>
+    <div class="two"><button id="bseen">Já vi</button><button id="bwant">Quero ver</button></div>
     ${rec ? `<div class="recent"><h3>Recentes</h3>${rec}</div>` : ""}
     <p class="credit">Dados e imagens de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a></p>`,
           () => {
@@ -2313,14 +2537,44 @@
             };
             stage
               .querySelectorAll(".rc")
-              .forEach((b) => (b.onclick = () => filmPage(hist[+b.dataset.i])));
+              .forEach((b) => (b.onclick = () => filmPage(recL[+b.dataset.i])));
             document.getElementById("go").onclick = () => {
               title = document.getElementById("t").value.trim();
-              rewatch = title ? hist.find(sameFilm) || null : null;
+              rewatch = title
+                ? hist.find((h) => !h.st && sameFilm(h)) || null
+                : null;
               QS = buildQS();
               step = 0;
               question();
             };
+            const mark = (st) => {
+              const t = document.getElementById("t").value.trim();
+              if (!t) {
+                document.getElementById("t").focus();
+                return;
+              }
+              const e = setStatus(
+                movie && movie.title === t
+                  ? {
+                      id: movie.id,
+                      t,
+                      y: movie.year,
+                      o: movie.original,
+                      img: movie.poster,
+                    }
+                  : { t },
+                st,
+              );
+              if (st === "seen" && e.st === "seen" && !e.d) {
+                e.d = today();
+                saveH();
+              }
+              title = "";
+              movie = null;
+              filmPage(e);
+            };
+            document.getElementById("bseen").onclick = () => mark("seen");
+            document.getElementById("bwant").onclick = () => mark("want");
           },
         );
       }
@@ -2857,10 +3111,61 @@
         }
       }
 
+      // ---------- Estados do filme: quero ver → já vi → avaliado
+      const rated = () => hist.filter((h) => !h.st);
+      const STATE = { want: "Quero ver", seen: "Já vi" };
+      function setStatus(info, st, by) {
+        // cria ou atualiza um filme sem nota; nunca rebaixa um filme já avaliado
+        const k = info.id ? "m" + info.id : "t:" + info.t.toLowerCase(),
+          cur0 = hist.find((h) => fkey(h) === k);
+        if (cur0 && !cur0.st) return cur0;
+        const e = { t: info.t, st, c: false, ts: Date.now() };
+        if (info.id) {
+          e.id = info.id;
+          if (info.y) e.y = info.y;
+          if (info.o) e.o = info.o;
+          if (info.img) e.img = info.img;
+        }
+        if (st === "seen" && cur0 && cur0.d) e.d = cur0.d;
+        if (st === "want") {
+          const b = by || (cur0 && cur0.by);
+          if (b) e.by = b;
+        }
+        hist = hist.filter((h) => h !== cur0);
+        hist.unshift(e);
+        saveH();
+        return e;
+      }
+      function startQuiz(info, re, cl) {
+        title = info.t;
+        movie = info.id
+          ? {
+              id: info.id,
+              title: info.t,
+              original: info.o,
+              year: info.y,
+              poster: info.img,
+            }
+          : null;
+        classic =
+          cl !== undefined
+            ? cl
+            : re
+              ? !!re.c
+              : !!(info.y && +info.y <= new Date().getFullYear() - 35);
+        rewatch = re || null;
+        QS = buildQS();
+        step = 0;
+        ans = [];
+        question();
+      }
+
       function filmPage(h) {
         if (!h) return;
         step = -1;
         chrome("film");
+        const st = h.st || "",
+          info = { id: h.id, t: h.t, y: h.y, o: h.o, img: h.img };
         const sub = [h.o && h.o !== h.t ? h.o : "", h.y || ""]
           .filter(Boolean)
           .join(" · ");
@@ -2868,22 +3173,30 @@
           h.c ? "Clássico" : "",
           h.n > 1 ? `↻ ${h.n}ª vez${h.p ? " · antes ★ " + fmt(h.p) : ""}` : "",
         ].filter(Boolean);
+        const canRec = cloud.user && cloud.friends.list.length && st !== "want";
+        const SH =
+          '<svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
         show(
           `<div class="hero${h.img ? "" : " noimg"}" id="hero">${h.img ? `<div class="hbg blur" style="background-image:url(${IMG}w342${h.img})"></div>` : ""}</div>
     <div class="fhead">${h.img ? `<img class="fposter" src="${IMG}w342${h.img}" alt="" onerror="this.remove()">` : ""}<div><h2>${esc(h.t)}</h2>${sub ? `<p>${esc(sub)}</p>` : ""}</div></div>
-    <div class="rate"><b>${fmt(h.s)}</b><div><div class="stars">${starsHTML(h.s, true)}</div><span>${LABELS[h.s]}</span></div></div>
+    ${
+      st
+        ? `<div class="state">${STATE[st]}</div>${h.by ? `<p class="byline">Indicado por ${esc(h.by)}</p>` : ""}
+      <button class="cta" id="arate" style="margin-top:22px">Avaliar agora</button>
+      ${st === "want" ? '<div class="two"><button id="aseen">Marcar como já vi</button></div>' : whenHTML(h)}`
+        : `<div class="rate"><b>${fmt(h.s)}</b><div><div class="stars">${starsHTML(h.s, true)}</div><span>${LABELS[h.s]}</span></div></div>
     ${chips.length ? `<div class="chips">${chips.map((c) => `<span>${c}</span>`).join("")}</div>` : ""}
     ${whenHTML(h)}
     <h3 class="sec">Minha review</h3>
-    <textarea class="rev" id="rev" rows="1" maxlength="2000" placeholder="Escreva o que achou…">${esc(h.note || "")}</textarea>
+    <textarea class="rev" id="rev" rows="1" maxlength="2000" placeholder="Escreva o que achou…">${esc(h.note || "")}</textarea>`
+    }
     <div id="crowd" data-k="${esc(fkey(h))}"></div>
     <div class="about" id="about" data-id="${h.id || ""}"></div>
-    <button class="share" id="shr"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Compartilhar</button>
-    <div class="acts"><button class="main" id="are">Reassisti</button><button id="aco">Corrigir nota</button><button class="del" id="adel">Apagar</button></div>`,
+    ${st ? "" : `<button class="share" id="shr">${SH}Compartilhar</button>`}
+    ${canRec ? `<button class="plain" id="arec" style="margin:${st ? "30px" : "12px"} 0 0">Indicar pra um amigo</button>` : ""}
+    <div class="acts">${st ? "" : '<button class="main" id="are">Reassisti</button><button id="aco">Corrigir nota</button>'}<button class="del" id="adel">${st ? "Tirar da lista" : "Apagar"}</button></div>`,
           () => {
             window.scrollTo(0, 0);
-            bindWhen(h);
-            bindReview(h);
             loadAbout(h);
             loadCrowd(h);
             posterColor(h).then((col) => {
@@ -2895,36 +3208,33 @@
               )
                 setTint(col);
             });
-            document.getElementById("shr").onclick = () => shareSheet(h);
-            const again = (re) => {
-              title = h.t;
-              movie = h.id
-                ? {
-                    id: h.id,
-                    title: h.t,
-                    original: h.o,
-                    year: h.y,
-                    poster: h.img,
-                  }
-                : null;
-              classic = !!h.c;
-              rewatch = re ? h : null;
-              QS = buildQS();
-              step = 0;
-              ans = [];
-              question();
+            const on = (id, fn) => {
+              const el = document.getElementById(id);
+              if (el) el.onclick = fn;
             };
-            document.getElementById("are").onclick = () => again(true);
-            document.getElementById("aco").onclick = () => again(false);
-            const del = document.getElementById("adel");
+            if (document.getElementById("dt")) bindWhen(h);
+            bindReview(h);
+            on("shr", () => shareSheet(h));
+            on("arec", () => recommend(info));
+            on("arate", () => startQuiz(info));
+            on("aseen", () => {
+              const e = setStatus(info, "seen");
+              e.d = today();
+              saveH();
+              filmPage(e);
+            });
+            on("are", () => startQuiz(info, h));
+            on("aco", () => startQuiz(info, null, !!h.c));
+            const del = document.getElementById("adel"),
+              lbl = del.textContent;
             let armed = false;
             del.onclick = () => {
               if (!armed) {
                 armed = true;
-                del.textContent = "Apagar mesmo?";
+                del.textContent = st ? "Tirar mesmo?" : "Apagar mesmo?";
                 setTimeout(() => {
                   armed = false;
-                  if (del.isConnected) del.textContent = "Apagar";
+                  if (del.isConnected) del.textContent = lbl;
                 }, 3000);
                 return;
               }
@@ -3002,19 +3312,21 @@
           /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p.avatar)
             ? p.avatar
             : "";
-        o.top4 = (Array.isArray(p.top4) ? p.top4 : []).slice(0, 4).map((x) =>
-          x && typeof x.t === "string" && x.t.trim()
-            ? {
-                id: Number.isInteger(x.id) ? x.id : null,
-                t: x.t.trim().slice(0, 120),
-                img:
-                  typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
-                    ? x.img
-                    : "",
-                y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
-              }
-            : null,
-        );
+        o.top4 = (Array.isArray(p.top4) ? p.top4 : [])
+          .slice(0, 4)
+          .map((x) =>
+            x && typeof x.t === "string" && x.t.trim()
+              ? {
+                  id: Number.isInteger(x.id) ? x.id : null,
+                  t: x.t.trim().slice(0, 120),
+                  img:
+                    typeof x.img === "string" && /^\/[\w.-]+$/.test(x.img)
+                      ? x.img
+                      : "",
+                  y: typeof x.y === "string" && /^\d{4}$/.test(x.y) ? x.y : "",
+                }
+              : null,
+          );
         while (o.top4.length < 4) o.top4.push(null);
         return o;
       }
@@ -3028,6 +3340,7 @@
           extended = false,
           social = false,
           friends = { list: [], incoming: [], outgoing: [] },
+          recs = [],
           state = "off",
           timer = null,
           busy = false,
@@ -3193,7 +3506,9 @@
           user = u;
           profile = null;
           friends = { list: [], incoming: [], outgoing: [] };
+          recs = [];
           social = false;
+          paintDot();
           if (!u) {
             set("off");
             if (cur === "prof") profilePage();
@@ -3262,6 +3577,29 @@
             });
             f.list.sort((a, b) => pname(a).localeCompare(pname(b)));
             friends = f;
+            try {
+              const rr = await sb
+                .from("recs")
+                .select("id,from_id,film,note")
+                .eq("to_id", user.id);
+              recs = (rr.data || [])
+                .map((r) => ({
+                  id: r.id,
+                  p: f.list.find((x) => x.id === r.from_id),
+                  film: cleanFilm(Object.assign({}, r.film, { st: "want" })),
+                  note:
+                    typeof r.note === "string"
+                      ? r.note.trim().slice(0, 200)
+                      : "",
+                }))
+                .filter((r) => r.p && r.film && Number.isInteger(r.id))
+                .filter(
+                  (r) => !hist.some((h) => fkey(h) === fkey(r.film) && !h.st),
+                );
+            } catch (e) {
+              recs = [];
+            }
+            paintDot();
           } catch (e) {
             social = false;
           }
@@ -3330,7 +3668,100 @@
           get friends() {
             return friends;
           },
+          get recs() {
+            return recs;
+          },
           loadFriends,
+          async sendRec(ids, film, note) {
+            ids = ids.filter((i) => UUID.test(i));
+            if (!ids.length) return "Escolhe pelo menos um amigo.";
+            const f = { t: film.t };
+            if (film.id) {
+              f.id = film.id;
+              if (film.y) f.y = film.y;
+              if (film.o) f.o = film.o;
+              if (film.img) f.img = film.img;
+            }
+            const key = film.id ? "m" + film.id : "t:" + film.t.toLowerCase();
+            let ok = 0;
+            for (const to of ids) {
+              const { error } = await sb
+                .from("recs")
+                .insert({
+                  to_id: to,
+                  film_key: key,
+                  film: f,
+                  note: note || null,
+                });
+              if (
+                !error ||
+                /duplicate|unique/i.test(error.message || "") ||
+                error.code === "23505"
+              )
+                ok++;
+            }
+            return ok ? "" : "Não consegui enviar agora.";
+          },
+          async dropRec(id) {
+            recs = recs.filter((r) => r.id !== id);
+            paintDot();
+            try {
+              await sb.from("recs").delete().eq("id", id);
+            } catch (e) {}
+          },
+          async guessedKeys(target) {
+            if (!UUID.test(target)) return null;
+            try {
+              const { data, error } = await sb
+                .from("guesses")
+                .select("film_key")
+                .eq("guesser", user.id)
+                .eq("target", target);
+              if (error) return null;
+              return new Set(data.map((r) => r.film_key));
+            } catch (e) {
+              return null;
+            }
+          },
+          async sendGuess(target, key, guess) {
+            if (!UUID.test(target)) return false;
+            try {
+              const { error } = await sb
+                .from("guesses")
+                .insert({ target, film_key: key, guess });
+              return !error;
+            } catch (e) {
+              return false;
+            }
+          },
+          async board() {
+            try {
+              const { data, error } = await sb
+                .from("guesses")
+                .select("guesser,pts");
+              if (error) return null;
+              const ppl = [
+                  Object.assign({ id: user.id }, profile || {}),
+                ].concat(friends.list),
+                tot = {};
+              data.forEach((r) => {
+                const t = (tot[r.guesser] = tot[r.guesser] || { pts: 0, n: 0 });
+                t.pts += +r.pts || 0;
+                t.n++;
+              });
+              return ppl
+                .map((p) => ({
+                  p,
+                  me: p.id === user.id,
+                  pts: (tot[p.id] || {}).pts || 0,
+                  n: (tot[p.id] || {}).n || 0,
+                }))
+                .filter((x) => x.n)
+                .sort((a, b) => b.pts - a.pts || a.n - b.n);
+            } catch (e) {
+              return null;
+            }
+          },
           async findUser(name) {
             name = name.trim().toLowerCase().replace(/^@/, "");
             if (!/^[a-z0-9_.]{3,20}$/.test(name)) return null;
@@ -3387,7 +3818,7 @@
                 if (error) return null;
                 data.forEach((r) => {
                   const c = cleanFilm(r.data);
-                  if (c) out.push(c);
+                  if (c && !c.st) out.push(c);
                 });
                 if (data.length < 1000) break;
               }
@@ -3410,7 +3841,7 @@
                   p: friends.list.find((f) => f.id === r.user_id),
                   f: cleanFilm(r.data),
                 }))
-                .filter((x) => x.p && x.f);
+                .filter((x) => x.p && x.f && !x.f.st);
             } catch (e) {
               return [];
             }
@@ -3472,6 +3903,17 @@
         };
       })();
 
+      function paintDot() {
+        const t = tabs.querySelector(".tab[data-v=lib]");
+        if (!t) return;
+        const has = typeof cloud !== "undefined" && cloud.recs.length;
+        let d = t.querySelector(".dot");
+        if (has && !d) {
+          d = document.createElement("i");
+          d.className = "dot";
+          t.appendChild(d);
+        } else if (!has && d) d.remove();
+      }
       function paintSync() {
         const el = document.getElementById("sync");
         if (!el) return;
@@ -3609,9 +4051,8 @@
       }
       function pickTop(slot, top4, done) {
         const used = top4.map((f, i) => (f && i !== slot ? tkey(f) : null));
-        const list = hist
+        const list = rated()
           .filter((h) => !used.includes(fkey(h)))
-          .slice()
           .sort((a, b) => b.s - a.s);
         const d =
           overlay(`<div class="ovh"><button id="px">Voltar</button><b>Favorito ${slot + 1}</b>${top4[slot] ? '<button id="prm" style="color:#ff5a52">Remover</button>' : '<span style="width:60px"></span>'}</div>
@@ -3799,13 +4240,16 @@
             const avg = films.length
               ? films.reduce((a, h) => a + h.s, 0) / films.length
               : 0;
-            box.innerHTML = `<div class="stat"><div><b>${films.length}</b><span>${films.length === 1 ? "filme" : "filmes"}</span></div><div><b>${films.length ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
+            box.innerHTML = `${films.length ? `<div class="game"><b>Palpite</b><small id="gmsg">Tenta adivinhar a nota que ${esc(pname(p))} deu pra cada filme.</small><button class="cta" id="gplay">Jogar</button></div>` : ""}
+      <div class="stat"><div><b>${films.length}</b><span>${films.length === 1 ? "filme" : "filmes"}</span></div><div><b>${films.length ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
       ${films.length ? `<div class="grid">${films.map((h, i) => `<button class="fc" data-i="${i}"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span><b>★ ${fmt(h.s)}</b></button>`).join("")}</div>` : '<p class="empty">Ainda não avaliou nenhum filme.</p>'}`;
             box
               .querySelectorAll(".fc")
               .forEach(
                 (b) => (b.onclick = () => friendFilm(p, films[+b.dataset.i])),
               );
+            const gp = document.getElementById("gplay");
+            if (gp) gp.onclick = () => playGuess(p, films);
             document.querySelectorAll("#ft4 button").forEach(
               (b) =>
                 (b.onclick = () => {
@@ -3828,24 +4272,193 @@
     <div class="stars">${starsHTML(h.s, true)}</div><div class="num">${fmt(h.s)}</div><div class="label">${LABELS[h.s]}</div>
     ${h.d ? `<p class="count" style="margin:14px 0 0;font-size:14px">Visto em ${fd(h.d)}</p>` : ""}
     ${h.note ? `<div class="rev">${esc(h.note)}</div>` : ""}
-    <div class="mine"><span>Tua nota</span>${mine ? `<b>★ ${fmt(mine.s)}</b>` : '<span style="color:var(--muted)">ainda não avaliou</span>'}</div>
-    <button class="cta" id="vgo" style="margin-top:12px">${mine ? "Abrir minha página do filme" : "Avaliar também"}</button></div>`);
+    <div class="mine"><span>Tua nota</span>${mine && !mine.st ? `<b>★ ${fmt(mine.s)}</b>` : `<span style="color:var(--muted)">${mine ? STATE[mine.st].toLowerCase() + ", sem nota" : "ainda não avaliou"}</span>`}</div>
+    <button class="cta" id="vgo" style="margin-top:12px">${mine && !mine.st ? "Abrir minha página do filme" : "Avaliar também"}</button>
+    ${mine && !mine.st ? "" : `<div class="two"><button id="vseen">${mine && mine.st === "seen" ? "✓ Já vi" : "Já vi"}</button><button id="vwant">${mine && mine.st === "want" ? "✓ Quero ver" : "Quero ver"}</button></div>`}</div>`);
+        const info = { id: h.id, t: h.t, y: h.y, o: h.o, img: h.img };
         d.querySelector("#vx").onclick = () => d.remove();
         d.querySelector("#vgo").onclick = () => {
           d.remove();
-          if (mine) return filmPage(mine);
-          title = h.t;
-          movie = h.id
-            ? { id: h.id, title: h.t, original: h.o, year: h.y, poster: h.img }
-            : null;
-          classic = !!(h.y && +h.y <= new Date().getFullYear() - 35);
-          rewatch = null;
-          QS = buildQS();
-          step = 0;
-          ans = [];
-          question();
+          if (mine && !mine.st) return filmPage(mine);
+          startQuiz(info);
+        };
+        const mk = (id, st) => {
+          const b = d.querySelector(id);
+          if (b)
+            b.onclick = () => {
+              const e = setStatus(info, st, st === "want" ? pname(p) : "");
+              if (st === "seen" && !e.d) {
+                e.d = today();
+                saveH();
+              }
+              d.remove();
+              friendFilm(p, h);
+            };
+        };
+        mk("#vseen", "seen");
+        mk("#vwant", "want");
+      }
+      function recommend(info) {
+        const fl = cloud.friends.list,
+          pick = new Set();
+        const d =
+          overlay(`<div class="ovh"><button id="rx">Cancelar</button><b>Indicar</b><button class="ok" id="rok">Enviar</button></div>
+    <p class="count" style="margin-bottom:14px">${esc(info.t)}</p>
+    <div class="frs" style="margin-bottom:18px">${fl.map((p) => frRow(p, '<span class="ck"></span>', "button", `data-id="${p.id}" type="button"`)).join("")}</div>
+    <input type="text" id="rnote" maxlength="200" placeholder="Um recado (opcional)"><p class="fmsg" id="rm"></p>`);
+        const say = (t, bad) => {
+          const m = d.querySelector("#rm");
+          m.className = "fmsg" + (bad ? " bad" : "");
+          m.textContent = t;
+        };
+        d.querySelector("#rx").onclick = () => d.remove();
+        d.querySelectorAll("[data-id]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const id = b.dataset.id;
+              pick.has(id) ? pick.delete(id) : pick.add(id);
+              b.classList.toggle("sel", pick.has(id));
+            }),
+        );
+        if (fl.length === 1) {
+          pick.add(fl[0].id);
+          d.querySelector("[data-id]").classList.add("sel");
+        }
+        d.querySelector("#rok").onclick = async () => {
+          const ok = d.querySelector("#rok");
+          ok.disabled = true;
+          say("Enviando…");
+          const err = await cloud.sendRec(
+            [...pick],
+            info,
+            d.querySelector("#rnote").value.trim(),
+          );
+          if (err) {
+            ok.disabled = false;
+            return say(err, true);
+          }
+          say("Indicação enviada.");
+          setTimeout(() => d.remove(), 900);
         };
       }
+      // ---------- Palpite: adivinhar a nota que o amigo deu
+      const ptsFor = (g, a) => {
+        const df = Math.abs(g - a);
+        return df === 0 ? 3 : df <= 0.5 ? 2 : df <= 1 ? 1 : 0;
+      };
+      async function playGuess(p, films) {
+        const done = await cloud.guessedKeys(p.id);
+        if (!done) {
+          const fm = document.getElementById("fm");
+          if (fm) {
+            fm.className = "fmsg bad";
+            fm.textContent = "O palpite ainda não está ligado no banco.";
+          }
+          return;
+        }
+        const pool = films
+          .filter((h) => !done.has(fkey(h)))
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 5);
+        if (!pool.length) {
+          const g = document.getElementById("gmsg");
+          if (g) g.textContent = "Tu já deu palpite em todos os filmes dele.";
+          return;
+        }
+        let i = 0,
+          total = 0,
+          val = 3,
+          locked = false;
+        const d = overlay("");
+        const round = () => {
+          const h = pool[i];
+          val = 3;
+          locked = false;
+          d.firstChild.innerHTML = `<div class="ovh"><button id="gx">Sair</button><b>Palpite ${i + 1} de ${pool.length}</b><span style="width:40px"></span></div>
+      <div class="gs">${h.img ? `<img class="poster" src="${IMG}w342${h.img}" alt="" onerror="this.remove()">` : ""}<h2>${esc(h.t)}</h2>
+      <p class="q2">Que nota ${esc(pname(p))} deu?</p>
+      <div class="stars" id="gst">${starsHTML(val, false)}</div><div class="num" id="gnum">${fmt(val)}</div>
+      <div class="adj" style="margin:14px 0 18px"><button id="gm" aria-label="Menos">−</button><small>toque nas estrelas<br>ou use − e +</small><button id="gp" aria-label="Mais">+</button></div>
+      <div class="res" id="gres"></div><div class="pts" id="gpts"></div>
+      <button class="cta" id="gok">Confirmar palpite</button></div>`;
+          const paint = () => {
+            d.querySelector("#gst").innerHTML = starsHTML(val, false);
+            d.querySelector("#gnum").textContent = fmt(val);
+          };
+          d.querySelector("#gx").onclick = () => {
+            d.remove();
+            if (cur === "friend") friendPage(p);
+          };
+          d.querySelector("#gm").onclick = () => {
+            if (!locked) {
+              val = clamp(val - 0.5);
+              paint();
+            }
+          };
+          d.querySelector("#gp").onclick = () => {
+            if (!locked) {
+              val = clamp(val + 0.5);
+              paint();
+            }
+          };
+          d.querySelector("#gst").onclick = (e) => {
+            if (locked) return;
+            const r = d.querySelector("#gst").getBoundingClientRect();
+            val = clamp(Math.ceil(((e.clientX - r.left) / r.width) * 10) / 2);
+            paint();
+          };
+          const ok = d.querySelector("#gok");
+          ok.onclick = async () => {
+            if (locked) {
+              i++;
+              if (i < pool.length) return round();
+              d.firstChild.innerHTML = `<div class="ovh"><span></span><b>Fim da rodada</b><span></span></div><div class="gs"><div class="num" style="margin-top:60px">${total}</div><p class="q2">${total === 1 ? "ponto" : "pontos"} em ${pool.length} ${pool.length === 1 ? "palpite" : "palpites"}</p><p class="pts">Nota exata vale 3, meia estrela de diferença vale 2, uma estrela vale 1.</p><button class="cta" id="gend">Fechar</button></div>`;
+              d.querySelector("#gend").onclick = () => {
+                d.remove();
+                if (cur === "friend") friendPage(p);
+              };
+              return;
+            }
+            locked = true;
+            ok.disabled = true;
+            const saved = await cloud.sendGuess(p.id, fkey(h), val);
+            ok.disabled = false;
+            const pt = ptsFor(val, h.s);
+            if (saved) total += pt;
+            const res = d.querySelector("#gres");
+            res.className = "res g" + pt;
+            res.textContent =
+              (pt === 3
+                ? "Na mosca!"
+                : pt === 2
+                  ? "Quase!"
+                  : pt === 1
+                    ? "Passou perto."
+                    : "Errou feio.") +
+              " A nota foi ★ " +
+              fmt(h.s);
+            d.querySelector("#gnum").textContent = fmt(h.s);
+            d.querySelector("#gpts").textContent =
+              "Teu palpite: ★ " +
+              fmt(val) +
+              " · " +
+              (saved
+                ? "+" + pt + (pt === 1 ? " ponto" : " pontos")
+                : "não consegui salvar esse palpite");
+            d.querySelector("#gst").innerHTML = starsHTML(h.s, true, 0, 90);
+            ok.textContent = i + 1 < pool.length ? "Próximo" : "Ver resultado";
+          };
+        };
+        round();
+      }
+      async function loadBoard() {
+        const box = document.getElementById("board");
+        if (!box) return;
+        const rows = await cloud.board();
+        if (!rows || !rows.length || !box.isConnected) return;
+        box.innerHTML = `<div class="sech"><h3>Placar do palpite</h3></div><div class="frs board">${rows.map((r, k) => `<div class="fr"><i class="pos">${k + 1}</i>${avatarHTML(r.p)}<div><b>${esc(r.me ? "Tu" : pname(r.p))}</b><small>${r.n} ${r.n === 1 ? "palpite" : "palpites"}</small></div><span class="rt">${r.pts} pts</span></div>`).join("")}</div>`;
+      }
+
       async function loadCrowd(h) {
         const box = document.getElementById("crowd");
         if (!box || !cloud.user) return;
@@ -3868,8 +4481,8 @@
         if (u) {
           const pr = cloud.profile || cleanProfile({}),
             ext = cloud.extended,
-            seen = hist.length,
-            avg = seen ? hist.reduce((a, h) => a + h.s, 0) / seen : 0;
+            seen = rated().length,
+            avg = seen ? rated().reduce((a, h) => a + h.s, 0) / seen : 0;
           const title =
             pr.display_name ||
             (pr.username ? "@" + pr.username : "Minha conta");
@@ -3884,7 +4497,7 @@
       <div class="sech"><h3>Top 4</h3></div><div class="t4" id="t4">${t4}</div>`
           : ""
       }
-      ${cloud.social ? friendsHTML() : ""}
+      ${cloud.social ? friendsHTML() + '<div id="board"></div>' : ""}
       <div class="stat"><div><b>${seen}</b><span>${seen === 1 ? "filme" : "filmes"}</span></div><div><b>${seen ? fmt(Math.round(avg * 10) / 10) : "–"}</b><span>nota média</span></div></div>
       <p class="sync" id="sync"><i></i><span></span></p>
       <div class="sm"><button class="plain" id="snow">Sincronizar</button><button class="plain out" id="sout">Sair da conta</button></div>
@@ -3892,7 +4505,10 @@
             () => {
               paintSync();
               document.getElementById("snow").onclick = () => cloud.syncNow();
-              if (cloud.social) bindFriends();
+              if (cloud.social) {
+                bindFriends();
+                loadBoard();
+              }
               if (ext) {
                 document.getElementById("ped").onclick = editProfile;
                 document.querySelectorAll("#t4 button").forEach(
@@ -3922,6 +4538,8 @@
                 }
                 out.disabled = true;
                 authMode = "in";
+                libTab = "rated";
+                libStar = 0;
                 const err = await cloud.signOut();
                 if (err) {
                   out.disabled = false;
@@ -4006,33 +4624,69 @@
       function library() {
         step = -1;
         chrome("lib");
+        const tab = libTab,
+          all = hist.map((h, i) => ({ h, i })),
+          cnt = {
+            rated: all.filter((x) => !x.h.st).length,
+            seen: all.filter((x) => x.h.st === "seen").length,
+            want: all.filter((x) => x.h.st === "want").length,
+          };
         const bucket = (h) => Math.max(1, Math.floor(h.s));
-        const list = hist
-          .map((h, i) => ({ h, i }))
-          .filter((x) => !libStar || bucket(x.h) === libStar);
-        if (libSort === "nota") list.sort((a, b) => b.h.s - a.h.s || a.i - b.i);
-        else if (libSort === "menor")
-          list.sort((a, b) => a.h.s - b.h.s || a.i - b.i);
-        else
-          list.sort(
-            (a, b) => (b.h.d || "").localeCompare(a.h.d || "") || a.i - b.i,
-          );
+        let list = all.filter((x) => (x.h.st || "rated") === tab);
+        if (tab === "rated") {
+          list = list.filter((x) => !libStar || bucket(x.h) === libStar);
+          if (libSort === "nota")
+            list.sort((a, b) => b.h.s - a.h.s || a.i - b.i);
+          else if (libSort === "menor")
+            list.sort((a, b) => a.h.s - b.h.s || a.i - b.i);
+          else
+            list.sort(
+              (a, b) => (b.h.d || "").localeCompare(a.h.d || "") || a.i - b.i,
+            );
+        } else list.sort((a, b) => (b.h.ts || 0) - (a.h.ts || 0));
+        const under = (h) =>
+          h.st
+            ? `<b class="tag">${h.st === "want" && h.by ? "de " + esc(h.by) : STATE[h.st]}</b>`
+            : `<b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b>`;
         const grid = list
           .map(
             ({ h, i }, k) =>
-              `<button class="fc" data-i="${i}" style="animation-delay:${Math.min(k, 12) * 25}ms"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span><b>${h.n > 1 ? "↻ " : ""}★ ${fmt(h.s)}</b></button>`,
+              `<button class="fc" data-i="${i}" style="animation-delay:${Math.min(k, 12) * 25}ms"><span class="ph">${h.img ? `<img src="${IMG}w185${h.img}" alt="${esc(h.t)}" loading="lazy" onerror="phFallback(this)">` : `<span>${esc(h.t)}</span>`}</span>${under(h)}</button>`,
           )
           .join("");
+        const recs = tab === "want" ? cloud.recs : [];
+        const recHTML = recs.length
+          ? `<div class="sech"><h3>Indicações pra ti</h3></div>${recs.map((r, i) => `<div class="rcd">${r.film.img ? `<img src="${IMG}w185${r.film.img}" alt="" onerror="this.className='noimg';this.removeAttribute('src')">` : '<div class="noimg"></div>'}<div><b>${esc(r.film.t)}</b><small>de ${esc(pname(r.p))}${r.film.y ? " · " + r.film.y : ""}</small>${r.note ? `<p>“${esc(r.note)}”</p>` : ""}<div class="row2"><button class="mini" data-ra="${i}">Quero ver</button><button class="mini no" data-rd="${i}">Dispensar</button></div></div></div>`).join("")}<div style="height:18px"></div>`
+          : "";
+        const emptyMsg = {
+          rated: libStar
+            ? "Nenhum filme com essa nota."
+            : "Nada por aqui ainda.<br>Avalie um filme e ele aparece nesta tela.",
+          seen: "Aqui ficam os filmes que tu viu mas não deu nota.",
+          want: "Aqui fica tua fila: o que tu guardou e o que teus amigos indicaram.",
+        }[tab];
         show(
           `<h1>Meus filmes</h1>
-    <p class="count">${list.length === 1 ? "1 filme" : list.length + " filmes"}${libStar ? " com nota " + libStar : ""}</p>
+    <p class="count">${list.length === 1 ? "1 filme" : list.length + " filmes"}${tab === "rated" && libStar ? " com nota " + libStar : ""}</p>
+    <div class="seg"><button data-t="rated" class="${tab === "rated" ? "on" : ""}">Avaliados</button><button data-t="seen" class="${tab === "seen" ? "on" : ""}">Já vi${cnt.seen ? " · " + cnt.seen : ""}</button><button data-t="want" class="${tab === "want" ? "on" : ""}">Quero ver${cnt.want + cloud.recs.length ? " · " + (cnt.want + cloud.recs.length) : ""}</button></div>
     ${
-      hist.length
-        ? `<div class="seg"><button data-s="recent" class="${libSort === "recent" ? "on" : ""}">Recentes</button><button data-s="nota" class="${libSort === "nota" ? "on" : ""}">Maior nota</button><button data-s="menor" class="${libSort === "menor" ? "on" : ""}">Menor nota</button></div>
-    <div class="chipsf">${[0, 5, 4, 3, 2, 1].map((n) => `<button data-n="${n}" class="${libStar === n ? "on" : ""}">${n ? "★ " + n : "Todas"}</button>`).join("")}</div>
-    ${list.length ? `<div class="grid">${grid}</div>` : '<p class="empty">Nenhum filme com essa nota.</p>'}`
-        : '<p class="empty">Nada por aqui ainda.<br>Avalie um filme e ele aparece nesta tela.</p>'
+      tab === "rated" && cnt.rated
+        ? `<div class="chipsf">${[
+            ["recent", "Recentes"],
+            ["nota", "Maior nota"],
+            ["menor", "Menor nota"],
+          ]
+            .map(
+              ([k, l]) =>
+                `<button data-s="${k}" class="${libSort === k ? "on" : ""}">${l}</button>`,
+            )
+            .join(
+              "",
+            )}<span style="width:1px;background:var(--card2);flex:none;margin:6px 2px"></span>${[0, 5, 4, 3, 2, 1].map((n) => `<button data-n="${n}" class="${libStar === n ? "on" : ""}">${n ? "★ " + n : "Todas"}</button>`).join("")}</div>`
+        : ""
     }
+    ${recHTML}
+    ${list.length ? `<div class="grid">${grid}</div>` : recs.length ? "" : `<p class="empty">${emptyMsg}</p>`}
     <div class="bk"><h3>Backup</h3><div><button id="exp">Exportar</button><button id="imp">Importar</button></div><p id="bkmsg"></p>
     <input type="file" id="impf" accept=".json,application/json" hidden></div>`,
           () => {
@@ -4042,14 +4696,33 @@
             stage.querySelectorAll(".seg button").forEach(
               (b) =>
                 (b.onclick = () => {
-                  libSort = b.dataset.s;
+                  libTab = b.dataset.t;
                   library();
                 }),
             );
             stage.querySelectorAll(".chipsf button").forEach(
               (b) =>
                 (b.onclick = () => {
-                  libStar = +b.dataset.n;
+                  if (b.dataset.s) libSort = b.dataset.s;
+                  else libStar = +b.dataset.n;
+                  library();
+                }),
+            );
+            stage.querySelectorAll("[data-ra]").forEach(
+              (b) =>
+                (b.onclick = async () => {
+                  const r = recs[+b.dataset.ra];
+                  b.disabled = true;
+                  setStatus(r.film, "want", pname(r.p));
+                  await cloud.dropRec(r.id);
+                  library();
+                }),
+            );
+            stage.querySelectorAll("[data-rd]").forEach(
+              (b) =>
+                (b.onclick = async () => {
+                  b.disabled = true;
+                  await cloud.dropRec(recs[+b.dataset.rd].id);
                   library();
                 }),
             );
@@ -4110,9 +4783,14 @@
       }
       function cleanFilm(x) {
         if (!x || typeof x.t !== "string" || !x.t.trim()) return null;
+        const st = x.st === "want" || x.st === "seen" ? x.st : "";
         const s = Math.round(+x.s * 2) / 2;
-        if (!(s >= 0.5 && s <= 5)) return null;
-        const e = { t: x.t.trim().slice(0, 120), s, c: !!x.c };
+        if (!st && !(s >= 0.5 && s <= 5)) return null;
+        const e = st
+          ? { t: x.t.trim().slice(0, 120), st, c: !!x.c }
+          : { t: x.t.trim().slice(0, 120), s, c: !!x.c };
+        if (st && typeof x.by === "string" && x.by.trim())
+          e.by = x.by.trim().slice(0, 44);
         if (Number.isInteger(x.id)) e.id = x.id;
         if (typeof x.y === "string" && /^\d{4}$/.test(x.y)) e.y = x.y;
         if (typeof x.o === "string") e.o = x.o.slice(0, 160);
