@@ -599,3 +599,13 @@ html.native{touch-action:pan-x pan-y}
 .scenes button.on{outline:3px solid var(--gold);outline-offset:-3px}
 .scenes img{width:100%;height:100%;object-fit:cover;display:block}
 @media (min-width:900px){.scenes{display:grid;grid-template-columns:1fr 1fr}}
+
+/* ---------- Notas em destaque na página do filme */
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px;margin:2px 0 16px}
+.sc{background:var(--card);border-radius:14px;padding:11px 6px 10px;text-align:center;color:var(--text);text-decoration:none;min-width:0;animation:fade .4s both}
+.sc b{display:block;font-size:20px;font-weight:700;letter-spacing:-.3px}
+.sc span{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc small{display:block;font-size:10px;color:var(--muted);margin-top:1px}
+.sc.lt{background:linear-gradient(180deg,rgba(227,180,104,.16),rgba(227,180,104,.05));box-shadow:inset 0 0 0 1px rgba(227,180,104,.25)}
+.sc.lt b{color:var(--gold)}
+a.sc:active{transform:scale(.96)}

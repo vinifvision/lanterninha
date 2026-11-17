@@ -18,6 +18,7 @@ async def main():
             u=route.request.url
             if '/api/img' in u or 'image.tmdb.org' in u: return await route.fulfill(path=os.path.join(HERE,'pb.jpg' if 'blue' in u else 'p5.jpg'),content_type='image/jpeg')
             if '/api/search' in u: return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
+            if '/api/ratings' in u: return await route.fulfill(json={'imdbId':'tt0327597','tmdb':7.8,'imdb':7.7,'rt':90,'mc':80})
             if '/api/images' in u: return await route.fulfill(json={'backdrops':['/blueback1.jpg','/blueback2.jpg']})
             if '/api/discover' in u: return await route.fulfill(json={'results':[]})
             if '/api/movie' in u: return await route.fulfill(json={'overview':'Sinopse do filme.','runtime':100,'genres':['Animação'],'director':'Henry Selick','backdrop':'/blueback.jpg','cast':['Dakota Fanning'],'trailer':'abc123XYZ_-','providers':{'stream':[{'name':'Netflix','logo':''}],'rent':[],'buy':[]}})
@@ -108,6 +109,7 @@ async def main():
         check('aceitar indicação vai pra fila','Filme 1:want:by bia' in await L() or any('want:by' in x for x in await L()),str(await L()))
         # nota da galera + reviews
         await pg.click('.seg button[data-t=watched]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')
+        await pg.wait_for_selector('.scores .lt'); txt=await pg.inner_text('#scores'); check('notas em destaque','Lanterninha' in txt and 'IMDb' in txt and 'Tomatômetro' in txt and 'Metacritic' in txt, txt.replace(chr(10),' '))
         check('nota da galera só com estrelas',await pg.locator('#crowd .fr .stars').count()==1 and 'Review da Bia' not in await pg.inner_text('#crowd'))
         await pg.click('#crowd .fr'); await pg.wait_for_selector('.rvc.hl'); check('tela de reviews com a review do amigo','Review da Bia' in await pg.inner_text('.rvc.hl') and await pg.locator('#vfilm').count()==0)
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-reviews.png')); await pg.click('#vx'); await pg.click('#back')

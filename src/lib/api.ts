@@ -92,6 +92,26 @@ export function movieBackdrops(id: number): Promise<string[]> {
   return p;
 }
 
+export interface Ratings { imdbId: string; tmdb: number | null; imdb: number | null; rt: number | null; mc: number | null }
+const ratingsCache = new Map<number, Promise<Ratings>>();
+
+/** Notas do filme em outras plataformas (IMDb, Rotten Tomatoes, Metacritic e TMDB). */
+export function movieRatings(id: number): Promise<Ratings> {
+  let p = ratingsCache.get(id);
+  if (!p) {
+    const n = (v: unknown, max: number) => (typeof v === 'number' && v >= 0 && v <= max ? v : null);
+    p = fetch(`${API_BASE}api/ratings?id=${id}`)
+      .then((r) => { if (!r.ok) throw new Error('notas indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
+      .then((d) => ({
+        imdbId: typeof d.imdbId === 'string' && /^tt\d{5,10}$/.test(d.imdbId) ? d.imdbId : '',
+        tmdb: n(d.tmdb, 10), imdb: n(d.imdb, 10), rt: n(d.rt, 100), mc: n(d.mc, 100),
+      }));
+    ratingsCache.set(id, p);
+    p.catch(() => ratingsCache.delete(id));
+  }
+  return p;
+}
+
 export const loadImage = (src: string, crossOrigin = false) =>
   new Promise<HTMLImageElement | null>((resolve) => {
     const img = new Image();

@@ -35,6 +35,7 @@ window.supabase={createClient(){
     return b; };
   return { from:q,
     rpc:async(n,arg)=>{ const d=db(), me=d.session&&d.session.user.id;
+      if(n==='film_average'){ const rs=d.films.filter(f=>f.key===arg.film_key&&typeof f.data.s==='number'&&!f.data.st); return {data:[{avg:rs.length?Math.round(rs.reduce((a,f)=>a+f.data.s,0)/rs.length*10)/10:null,n:rs.length}],error:null}; }
       if(n==='username_available') return {data:!Object.values(d.users).some(u=>u.username===arg.name),error:null};
       if(n==='find_user'){ const u=Object.values(d.users).find(u=>u.username===arg.name&&u.id!==me); return {data:u?[{id:u.id,username:u.username,display_name:(u.prof||{}).display_name||null,avatar:(u.prof||{}).avatar||null}]:[],error:null}; }
       if(n==='accept_friend'){ const r=d.friendships.find(f=>f.requester===arg.other&&f.addressee===me&&f.status==='pending'); if(r){ r.status='accepted'; save(d); } return {data:null,error:null}; }

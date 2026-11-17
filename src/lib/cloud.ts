@@ -360,6 +360,17 @@ export const cloud = {
         .slice(0, limit);
     } catch { return []; }
   },
+  /** Média das notas de todos no Lanterninha para um filme (sem mostrar a nota de ninguém). */
+  async filmAverage(key: string): Promise<{ avg: number; n: number } | null> {
+    if (!sb) return null;
+    try {
+      const { data, error } = await sb.rpc('film_average', { film_key: key });
+      if (error) return null;
+      const row = (Array.isArray(data) ? data[0] : data) as { avg?: unknown; n?: unknown } | null;
+      const n = Number(row?.n) || 0, avg = Number(row?.avg);
+      return n > 0 && avg >= 0.5 && avg <= 5 ? { avg, n } : null;
+    } catch { return null; }
+  },
   /** O que cada amigo achou de um filme. */
   async filmRatings(key: string): Promise<FriendRating[]> {
     if (!sb || !user || !friends.list.length) return [];
