@@ -3797,3 +3797,18 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .tgst.accepted{color:#7fd48b}
 .tgst.tagged{color:var(--gold)}
 .tgst.declined{color:#e08a7a}
+
+/* Aviso de versão nova do app */
+.updwrap{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);animation:updfade .3s both}
+.updwrap.out{animation:updfade .3s reverse both}
+@keyframes updfade{from{opacity:0}}
+.upd{width:100%;max-width:440px;margin:0 10px calc(10px + env(safe-area-inset-bottom));padding:26px 22px 14px;border-radius:26px;background:#17171b;text-align:center;box-shadow:0 -10px 40px rgba(0,0,0,.5);animation:updup .45s cubic-bezier(.2,.9,.25,1) both}
+.updwrap.out .upd{animation:updup .3s reverse both}
+@keyframes updup{from{transform:translateY(110%)}}
+.updicon{width:68px;height:68px;border-radius:17px;box-shadow:0 8px 24px rgba(227,180,104,.25);animation:updglow 2.4s ease-in-out infinite}
+@keyframes updglow{50%{box-shadow:0 8px 32px rgba(227,180,104,.5)}}
+.updv{display:block;margin-top:12px;color:var(--gold);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.upd b{display:block;margin-top:4px;font-size:20px}
+.upd p{margin:8px 6px 18px;color:var(--muted);font-size:14px;line-height:1.4}
+.updgo{display:block;padding:14px;border-radius:14px;background:var(--gold);color:#1b1408;font-weight:700;text-decoration:none}
+.updno{width:100%;margin-top:6px;padding:12px;border:none;background:none;color:var(--muted);font:inherit;font-size:14px}

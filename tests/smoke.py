@@ -192,6 +192,11 @@ async def main():
         await tab('prof'); await pg.wait_for_selector('#ped'); await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-perfil.png'))
         check('perfil não mostra o e-mail','a@x.com' not in await pg.inner_text('#stage'))
         await pg.click('#cfg'); await pg.wait_for_selector('#cfmail'); check('e-mail fica nas configurações',await pg.inner_text('#cfmail')=='a@x.com'); await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-config.png'),full_page=True); await pg.click('#cfx')
+        # aviso de versão nova (simula um APK antigo)
+        await pg.add_init_script("window.__LANTERNINHA_TEST_BUILD__=1"); await pg.reload(); await pg.wait_for_selector('#updgo',timeout=5000)
+        check('aviso de versão nova','Tem um Lanterninha novo' in await pg.inner_text('.upd') and (await pg.get_attribute('#updgo','href')).endswith('/lanterninha.apk'))
+        await pg.wait_for_timeout(600); await pg.screenshot(path=os.path.join(HERE,'out-update.png')); await pg.click('#updno'); await pg.wait_for_timeout(500)
+        await pg.reload(); await pg.wait_for_timeout(2000); check('"agora não" guarda o aviso por um tempo',await pg.locator('.upd').count()==0)
         # computador
         await pg.set_viewport_size({'width':1280,'height':800}); await tab('lib'); await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-desktop.png'))
         check('sem erros no navegador',not errs,str(errs[:5]))
