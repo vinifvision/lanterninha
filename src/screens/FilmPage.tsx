@@ -186,12 +186,19 @@ function Scores({ filmKey, id, mine }: { filmKey: string; id?: number; mine?: nu
       <img src="/logo.svg" alt="Lanterninha" /><b>{one(avg.avg)}</b><small>({avg.n})</small>
     </span>);
   if (ext?.imdb != null) {
-    const body = <><i className="lbl">IMDb</i><b>{one(ext.imdb)}</b></>;
+    const body = <><img className="brand-imdb" src="/brands/imdb.png" alt="IMDb" /><b>{one(ext.imdb)}</b></>;
     items.push(ext.imdbId
       ? <a className="sc" key="imdb" href={`https://www.imdb.com/title/${ext.imdbId}/`} target="_blank" rel="noopener noreferrer">{body}</a>
       : <span className="sc" key="imdb">{body}</span>);
   }
-  if (ext?.rt != null) items.push(<span className="sc" key="rt"><i className="lbl">Rotten Tomatoes</i><b>{ext.rt}%</b></span>);
+  // Rotten Tomatoes: tomate para 60% ou mais (fresco), mancha verde abaixo disso (podre), como no site deles
+  if (ext?.rt != null) {
+    const fresh = ext.rt >= 60;
+    items.push(
+      <span className="sc" key="rt" title={`Rotten Tomatoes: ${fresh ? 'fresco' : 'podre'}`}>
+        <img className="brand-rt" src={fresh ? '/brands/rt-fresh.png' : '/brands/rt-rotten.png'} alt={fresh ? 'Rotten Tomatoes, fresco' : 'Rotten Tomatoes, podre'} /><b>{ext.rt}%</b>
+      </span>);
+  }
   if (ext && ext.imdb == null && ext.rt == null && ext.tmdb != null) items.push(<span className="sc" key="tmdb"><i className="lbl">TMDB</i><b>{one(ext.tmdb)}</b></span>);
   if (!items.length) return null;
   return <div className="scores" id="scores">{items}</div>;

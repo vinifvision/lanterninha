@@ -609,3 +609,5 @@ html.native{touch-action:pan-x pan-y}
 .sc.lt img{width:20px;height:20px;border-radius:5px}
 .sc.lt b{color:var(--gold)}
 a.sc:active{opacity:.6}
+.sc .brand-imdb{height:20px;width:auto;border-radius:4px}
+.sc .brand-rt{height:21px;width:auto}
