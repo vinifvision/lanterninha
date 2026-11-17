@@ -12,6 +12,9 @@ import type { Film, FilmInfo, FriendRating, SearchResult } from '../lib/types';
 import { nav } from '../nav';
 import { ChestIcon } from '../components/icons';
 import { chest, useChest } from '../lib/cloud';
+import { fd } from '../lib/format';
+import { sfx } from '../lib/sfx';
+import type { CineTag } from '../lib/types';
 
 const toFilm = (m: SearchResult): FilmInfo => ({ id: m.id, t: m.title, y: m.year, o: m.original, img: m.poster });
 
@@ -57,6 +60,8 @@ export function Home() {
         <b>Não sei o que ver hoje</b>
         <small>Gire a película e deixe o Lanterninha escolher</small>
       </button>
+
+      {account.tags.map((t) => <TagCard key={t.id} tag={t} />)}
 
       <ChestEntry />
 
@@ -160,5 +165,32 @@ function ChestEntry() {
       <span><b>Baú da infância</b><small>{n ? `Você lembrou de ${n} ${n === 1 ? 'filme' : 'filmes'}` : 'Relembre os filmes de quando você era criança'}</small></span>
       <i>›</i>
     </button>
+  );
+}
+
+/** "Bia disse que vocês viram X juntos": confirmar põe o ingresso na sua gaveta também. */
+function TagCard({ tag }: { tag: CineTag }) {
+  const [out, setOut] = useState<'' | 'ok' | 'no'>('');
+  const answer = (ok: boolean) => {
+    setOut(ok ? 'ok' : 'no');
+    if (ok) sfx.rip(); else sfx.tap();
+    setTimeout(() => {
+      void cloud.answerTag(tag, ok).then((f) => { if (f) nav.open({ k: 'ticket', key: fkey(f) }); });
+    }, ok ? 520 : 300);
+  };
+  const where = [tag.cine, fd(tag.seen)].filter(Boolean).join(' · ');
+  return (
+    <div className={`tagcard${out ? ' out ' + out : ''}`} data-tag={tag.id}>
+      <span className="tgposter"><Poster img={tag.film.img} title={tag.film.t} /></span>
+      <div className="tgbody">
+        <span className="tgwho"><Avatar p={tag.p} /><small>Ingresso compartilhado</small></span>
+        <p><b>{pname(tag.p)}</b> disse que vocês viram <b>{tag.film.t}</b> juntos.</p>
+        {where && <small className="tgwhere">{where}</small>}
+        <div className="tgbtns">
+          <button type="button" className="tgno" onClick={() => answer(false)} disabled={!!out}>Não fui</button>
+          <button type="button" className="tgok" onClick={() => answer(true)} disabled={!!out}>Sim, eu fui</button>
+        </div>
+      </div>
+    </div>
   );
 }

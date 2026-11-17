@@ -34,4 +34,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Localização aproximada: só para "Cinemas perto de mim" no ingresso -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- O Capacitor pede as duas juntas; sem esta, celulares com Android 11 ou mais antigo negam a localização -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 </manifest>

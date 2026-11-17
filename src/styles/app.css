@@ -3773,3 +3773,27 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .nearlist button{display:block;width:100%;padding:11px 14px;border:none;border-radius:12px;background:var(--card);color:var(--text);font:inherit;text-align:left}
 .nearlist b{display:block;font-size:14.5px;font-weight:600}
 .nearlist small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+
+/* Amigo confirma: aviso de ingresso no Início */
+.tagcard{position:relative;display:flex;gap:14px;margin:0 0 14px;padding:14px;border-radius:18px;background:linear-gradient(135deg,rgba(227,180,104,.16),rgba(227,180,104,.05));border:1px solid rgba(227,180,104,.28);transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .4s;animation:tgin .5s cubic-bezier(.2,.8,.2,1) both}
+.tagcard::before,.tagcard::after{content:"";position:absolute;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--bg)}
+.tagcard::before{left:-8px}.tagcard::after{right:-8px}
+@keyframes tgin{from{opacity:0;transform:translateY(10px) scale(.97)}}
+.tagcard.out.ok{transform:translateX(40%) rotate(4deg);opacity:0}
+.tagcard.out.no{transform:scale(.94);opacity:0}
+.tgposter{flex:none;width:62px;aspect-ratio:2/3;border-radius:8px;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.tgposter img{width:100%;height:100%;object-fit:cover}
+.tgbody{flex:1;min-width:0}
+.tgwho{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.tgwho .av{width:20px;height:20px;font-size:10px}
+.tgbody p{margin:6px 0 2px;font-size:14.5px;line-height:1.35}
+.tgwhere{display:block;font-size:12.5px;color:var(--muted)}
+.tgbtns{display:flex;gap:8px;margin-top:10px}
+.tgbtns button{flex:1;padding:9px 10px;border:none;border-radius:11px;font:inherit;font-size:13.5px;font-weight:600}
+.tgno{background:var(--card);color:var(--text)}
+.tgok{background:var(--gold);color:#1b1408}
+.lblhint{font-style:normal;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0}
+.tgst{display:block;font-size:10.5px;color:var(--muted)}
+.tgst.accepted{color:#7fd48b}
+.tgst.tagged{color:var(--gold)}
+.tgst.declined{color:#e08a7a}

@@ -25,6 +25,10 @@ window.supabase={createClient(){
         if(st.op==='select') return {data:d.recs.filter(r=>r.from_id===me||r.to_id===me).filter(match),error:null};
         if(st.op==='insert'){ const r=Object.assign({id:d.recs.length+1,from_id:me},st.row); if(!isFriend(d,me,r.to_id)) return {error:{message:'rls'}}; if(d.recs.some(x=>x.from_id===me&&x.to_id===r.to_id&&x.film_key===r.film_key)) return {error:{message:'duplicate key',code:'23505'}}; d.recs.push(r); save(d); return {error:null}; }
         if(st.op==='delete'){ d.recs=d.recs.filter(r=>!((r.from_id===me||r.to_id===me)&&match(r))); save(d); return {error:null}; } }
+      if(table==='cine_tags'){ d.tags=d.tags||[];
+        if(st.op==='select') return {data:d.tags.filter(r=>r.from_id===me||r.to_id===me).filter(match),error:null};
+        if(st.op==='insert'){ const r=Object.assign({id:d.tags.length+1,from_id:me,status:'pending'},st.row); if(!isFriend(d,me,r.to_id)) return {error:{message:'rls'}}; if(d.tags.some(x=>x.from_id===me&&x.to_id===r.to_id&&x.film_key===r.film_key)) return {error:{message:'duplicate key',code:'23505'}}; d.tags.push(r); save(d); return {error:null}; }
+        if(st.op==='delete'){ d.tags=d.tags.filter(r=>!((r.from_id===me||r.to_id===me)&&match(r))); save(d); return {error:null}; } }
       if(table==='guesses'){ d.guesses=d.guesses||[];
         if(st.op==='select') return {data:d.guesses.filter(r=>r.guesser===me||r.target===me||isFriend(d,me,r.guesser)).filter(match),error:null};
         if(st.op==='insert'){ const r=Object.assign({guesser:me},st.row); if(!isFriend(d,me,r.target)) return {error:{message:'rls'}}; if(d.guesses.some(x=>x.guesser===me&&x.target===r.target&&x.film_key===r.film_key)) return {error:{message:'duplicate'}};
@@ -40,6 +44,7 @@ window.supabase={createClient(){
       if(n==='username_available') return {data:!Object.values(d.users).some(u=>u.username===arg.name),error:null};
       if(n==='find_user'){ const u=Object.values(d.users).find(u=>u.username===arg.name&&u.id!==me); return {data:u?[{id:u.id,username:u.username,display_name:(u.prof||{}).display_name||null,avatar:(u.prof||{}).avatar||null}]:[],error:null}; }
       if(n==='accept_friend'){ const r=d.friendships.find(f=>f.requester===arg.other&&f.addressee===me&&f.status==='pending'); if(r){ r.status='accepted'; save(d); } return {data:null,error:null}; }
+      if(n==='answer_cine_tag'){ const r=(d.tags||[]).find(t=>t.id===arg.tag_id&&t.to_id===me&&t.status==='pending'); if(r){ r.status=arg.ok?'accepted':'declined'; save(d); } return {data:null,error:null}; }
       if(n==='friend_count') return {data:d.friendships.filter(f=>f.status==='accepted'&&(f.requester===arg.who||f.addressee===arg.who)).length,error:null};
       return {error:{message:'no rpc'}}; },
     auth:{ onAuthStateChange(f){cb=f; setTimeout(fire,0); return {data:{subscription:{unsubscribe(){}}}}},
