@@ -175,22 +175,24 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   );
 }
 
-/** Notas em destaque: a média do Lanterninha e as das outras plataformas. Só aparece o que existir. */
+/** Notas numa linha só: a média do Lanterninha, IMDb e Rotten Tomatoes. Só aparece o que existir. */
 function Scores({ filmKey, id, mine }: { filmKey: string; id?: number; mine?: number }) {
   const avg = useAsync(() => cloud.filmAverage(filmKey), [filmKey, mine]);
   const ext = useAsync(() => (id ? movieRatings(id).catch(() => null) : Promise.resolve(null)), [id]);
   const one = (n: number) => fmt(Math.round(n * 10) / 10);
   const items: JSX.Element[] = [];
-  if (avg) items.push(<div className="sc lt" key="lt"><b>★ {one(avg.avg)}</b><span>Lanterninha</span><small>{avg.n} {avg.n === 1 ? 'avaliação' : 'avaliações'}</small></div>);
+  if (avg) items.push(
+    <span className="sc lt" key="lt" title={`Média de ${avg.n} ${avg.n === 1 ? 'avaliação' : 'avaliações'} no Lanterninha`}>
+      <img src="/logo.svg" alt="Lanterninha" /><b>{one(avg.avg)}</b><small>({avg.n})</small>
+    </span>);
   if (ext?.imdb != null) {
-    const body = <><b>{one(ext.imdb)}</b><span>IMDb</span></>;
+    const body = <><i className="lbl">IMDb</i><b>{one(ext.imdb)}</b></>;
     items.push(ext.imdbId
       ? <a className="sc" key="imdb" href={`https://www.imdb.com/title/${ext.imdbId}/`} target="_blank" rel="noopener noreferrer">{body}</a>
-      : <div className="sc" key="imdb">{body}</div>);
+      : <span className="sc" key="imdb">{body}</span>);
   }
-  if (ext?.rt != null) items.push(<div className="sc" key="rt"><b>{ext.rt}%</b><span>Tomatômetro</span></div>);
-  if (ext?.mc != null) items.push(<div className="sc" key="mc"><b>{ext.mc}</b><span>Metacritic</span></div>);
-  if (ext && ext.imdb == null && ext.tmdb != null) items.push(<div className="sc" key="tmdb"><b>{one(ext.tmdb)}</b><span>TMDB</span></div>);
+  if (ext?.rt != null) items.push(<span className="sc" key="rt"><i className="lbl">Rotten Tomatoes</i><b>{ext.rt}%</b></span>);
+  if (ext && ext.imdb == null && ext.rt == null && ext.tmdb != null) items.push(<span className="sc" key="tmdb"><i className="lbl">TMDB</i><b>{one(ext.tmdb)}</b></span>);
   if (!items.length) return null;
   return <div className="scores" id="scores">{items}</div>;
 }
