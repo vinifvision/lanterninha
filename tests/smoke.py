@@ -171,7 +171,7 @@ async def main():
         await pg.click('#crowd .fr'); await pg.wait_for_selector('.rvc.hl'); check('tela de reviews com a review do amigo','Review da Bia' in await pg.inner_text('.rvc.hl') and await pg.locator('#vfilm').count()==0)
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-reviews.png')); await pg.click('#vx'); await pg.click('#back')
         # perfil do amigo + palpite
-        await tab('prof'); await pg.click('.frs button.fr'); await pg.wait_for_selector('#gplay'); check('perfil do amigo lista filmes',await pg.locator('#ffilms .fc').count()==6)
+        await tab('prof'); await pg.click('.frs button.fr'); await pg.wait_for_selector('#gplay'); check('perfil do amigo lista filmes',await pg.locator('#ffilms .fc').count()==7 and await pg.inner_text('#ffn')=='7' and await pg.locator('#ffilms .fc b.nos').count()==1, str(await pg.locator('#ffilms .fc').count())+' '+await pg.inner_text('#ffn'))
         check('contagem de amigos',await pg.inner_text('#fcount')=='1 amigo',await pg.inner_text('#fcount'))
         await pg.click('#gplay'); await pg.wait_for_selector('#gok'); await pg.click('#gp'); check('palpite ajusta',await pg.inner_text('#gnum')=='3,5')
         for i in range(5):

@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { SUPABASE_KEY, SUPABASE_URL } from './config';
 import { cleanFilm, fhash, films, fkey, isRated } from './films';
 import { pname, POSTER_PATH, UUID } from './format';
-import type { CineTag, Film, FilmInfo, FriendRating, Friends, Profile, RatedFilm, Rec, TagStatus, TopItem } from './types';
+import type { CineTag, Film, FilmInfo, FriendRating, Friends, Profile, Rec, TagStatus, TopItem } from './types';
 
 export type SyncState = 'off' | 'busy' | 'ok' | 'err';
 export interface CloudUser { id: string; email: string }
@@ -412,14 +412,15 @@ export const cloud = {
   },
 
   /** Os filmes avaliados de um amigo, do mais recente para o mais antigo. */
-  async friendFilms(id: string): Promise<RatedFilm[] | null> {
+  /** Filmes que o amigo já viu (com e sem nota), do mais recente para o mais antigo. */
+  async friendWatched(id: string): Promise<Film[] | null> {
     if (!sb || !UUID.test(id)) return null;
     try {
-      const out: RatedFilm[] = [];
+      const out: Film[] = [];
       for (let from = 0; ; from += 1000) {
         const { data, error } = await sb.from('films').select('key,data').eq('user_id', id).range(from, from + 999);
         if (error) return null;
-        (data || []).forEach((r) => { const c = cleanFilm(r.data); if (isRated(c)) out.push(c); });
+        (data || []).forEach((r) => { const c = cleanFilm(r.data); if (c && c.st !== 'want') out.push(c); });
         if (!data || data.length < 1000) break;
       }
       return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));

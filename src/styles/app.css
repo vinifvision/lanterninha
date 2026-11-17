@@ -3817,3 +3817,6 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .upd p{margin:8px 6px 18px;color:var(--muted);font-size:14px;line-height:1.4}
 .updgo{display:block;padding:14px;border-radius:14px;background:var(--gold);color:#1b1408;font-weight:700;text-decoration:none}
 .updno{width:100%;margin-top:6px;padding:12px;border:none;background:none;color:var(--muted);font:inherit;font-size:14px}
+
+/* Filme visto sem nota no perfil do amigo */
+.fc b.nos{color:var(--muted);font-weight:500}

@@ -6,16 +6,18 @@ import { useArmed, useAsync } from '../components/hooks';
 import { Poster } from '../components/Poster';
 import { Favorites } from '../components/TopFour';
 import { cloud, useCloud } from '../lib/cloud';
-import { fkey } from '../lib/films';
+import { fkey, isRated } from '../lib/films';
 import { fmt, nFriends, pname } from '../lib/format';
-import type { RatedFilm } from '../lib/types';
+import type { Film, RatedFilm } from '../lib/types';
 import { nav } from '../nav';
 
 export function FriendPage({ id }: { id: string }) {
   const { friends } = useCloud();
   const p = friends.list.find((x) => x.id === id);
   const count = useAsync(() => cloud.friendCount(id), [id]);
-  const films = useAsync<RatedFilm[] | null>(() => cloud.friendFilms(id), [id]);
+  // Tudo que o amigo viu (com e sem nota). O palpite e a média usam só os avaliados.
+  const watched = useAsync<Film[] | null>(() => cloud.friendWatched(id), [id]);
+  const films: RatedFilm[] | null | undefined = watched && watched.filter(isRated);
   const [armed, press] = useArmed(4000);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -74,16 +76,16 @@ export function FriendPage({ id }: { id: string }) {
               </div>
             )}
             <div className="stat">
-              <div><b>{films.length}</b><span>{films.length === 1 ? 'filme' : 'filmes'}</span></div>
+              <div><b id="ffn">{watched!.length}</b><span>{watched!.length === 1 ? 'filme visto' : 'filmes vistos'}</span></div>
               <div><b>{films.length ? fmt(Math.round(avg * 10) / 10) : '–'}</b><span>nota média</span></div>
             </div>
-            {films.length > 0
-              ? <div className="grid">{films.map((h) => (
-                  <button className="fc" key={fkey(h)} onClick={() => openReview(h)}>
-                    <span className="ph"><Poster img={h.img} title={h.t} /></span><b>★ {fmt(h.s)}</b>
+            {watched!.length > 0
+              ? <div className="grid">{watched!.map((h) => (
+                  <button className="fc" key={fkey(h)} onClick={() => (isRated(h) ? openReview(h) : nav.openFilm(h))}>
+                    <span className="ph"><Poster img={h.img} title={h.t} /></span>{isRated(h) ? <b>★ {fmt(h.s)}</b> : <b className="nos">Visto</b>}
                   </button>
                 ))}</div>
-              : <p className="empty">Ainda não avaliou nenhum filme.</p>}
+              : <p className="empty">Ainda não viu nenhum filme.</p>}
           </>
         )}
       </div>
