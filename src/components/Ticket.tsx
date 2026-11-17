@@ -11,7 +11,7 @@ export function Ticket({ film, torn, onClick }: { film: Film; torn?: boolean; on
   const body = (
     <>
       <div className="tmain">
-        <span className="tk1">Lanterninha · Entrada</span>
+        <span className="tk1">Lanterninha<em> · Entrada</em></span>
         <b className="tktitle">{film.t}</b>
         <div className="tkrow">
           <div><small>Sessão</small><span>{fd(film.d) || '—'}</span></div>

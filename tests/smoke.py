@@ -9,8 +9,8 @@ def check(name,cond,extra=''):
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])
-        ctx=await b.new_context(viewport={'width':390,'height':844},locale='pt-BR')
-        await ctx.add_init_script(open(os.path.join(HERE,'mock.js')).read()+"\nwindow.__LANTERNINHA_TEST_CLIENT__=window.supabase.createClient();")
+        ctx=await b.new_context(viewport={'width':390,'height':844},locale='pt-BR',geolocation={'latitude':-8.06,'longitude':-34.88},permissions=['geolocation'])
+        await ctx.add_init_script(open(os.path.join(HERE,'mock.js')).read()+"\nwindow.__LANTERNINHA_TEST_CLIENT__=window.supabase.createClient();\nObject.defineProperty(navigator,'geolocation',{value:{getCurrentPosition:(ok)=>setTimeout(()=>ok({coords:{latitude:-8.06,longitude:-34.88}}),50)}});")
         pg=await ctx.new_page(); pg.set_default_timeout(8000); errs=[]
         pg.on('pageerror',lambda e:errs.append(str(e)))
         pg.on('console',lambda m:errs.append('console: '+m.text) if m.type=='error' and '404' not in m.text else None)
@@ -20,6 +20,7 @@ async def main():
             if '/api/search' in u:
                 if 'digitado' in u: return await route.fulfill(json={'results':[{'id':78,'title':'Filme digitado','original':'Filme digitado','year':'2010','poster':'/blue78.jpg'}]})
                 return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
+            if '/api/cinemas' in u: return await route.fulfill(json={'cinemas':[{'name':'Cinemark RioMar Recife','place':'Pina, Recife','km':2.4},{'name':'Cinema São Luiz','place':'Boa Vista, Recife','km':3.1}]})
             if '/api/childhood' in u: return await route.fulfill(json={'results':[{'id':700+i,'title':'Infância %d'%i,'original':'Infância %d'%i,'year':'2004','poster':'/bluek%d.jpg'%i} for i in range(24)]})
             if '/api/credits' in u: return await route.fulfill(json={'key':[{'name':'Henry Selick','photo':'/blueh.jpg','role':'Direção e roteiro'},{'name':'Pete Kozachik','photo':'','role':'Direção de fotografia'},{'name':'Bruno Coulais','photo':'/bluem.jpg','role':'Trilha sonora'}],'cast':[{'name':'Dakota Fanning','character':'Coraline Jones','photo':'/bluec.jpg'},{'name':'Teri Hatcher','character':'Mãe','photo':''}],'depts':[{'name':'Direção','people':[{'job':'Direção','name':'Henry Selick'}]},{'name':'Fotografia','people':[{'job':'Direção de fotografia','name':'Pete Kozachik'}]}]})
             if '/api/ratings' in u: return await route.fulfill(json={'imdbId':'tt0327597','tmdb':7.8,'imdb':7.7,'rt':90,'mc':80})
@@ -62,6 +63,8 @@ async def main():
         check('7 perguntas + onde viu até o resultado',n==8,str(n)); check('nota máxima 5',await pg.inner_text('#num')=='5',await pg.inner_text('#num'))
         check('salvou',await L()==['Coraline:5'],str(await L()))
         await pg.wait_for_selector('#tkres .ticket.torn',timeout=6000); check('ingresso do cinema aparece e é rasgado','CORALINE' in (await pg.inner_text('#tkres .tktitle')).upper())
+        await pg.click('#tknear'); await pg.wait_for_selector('#tknearlist'); await pg.click('#tknearlist button >> nth=0'); await pg.wait_for_timeout(150)
+        check('cinemas perto de mim','RioMar' in await pg.inner_text('#tkres .ticket'))
         await pg.fill('#tkcine','Cinema São Luiz'); await pg.wait_for_timeout(150); check('cinema no ingresso','São Luiz' in await pg.inner_text('#tkres .ticket'))
         await pg.wait_for_timeout(400); await pg.screenshot(path=os.path.join(HERE,'out-ingresso.png'))
         await pg.click('#minus'); check('ajuste de meia estrela',await pg.inner_text('#num')=='4,5' and await L()==['Coraline:4.5'])
@@ -86,6 +89,10 @@ async def main():
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-creditos.png')); await pg.click('#roll'); await pg.wait_for_timeout(2500)
         check('rolar créditos desce a tela',await pg.evaluate("document.getElementById('scroller').scrollTop")>200)
         await pg.screenshot(path=os.path.join(HERE,'out-creditos2.png')); await pg.click('#back'); await pg.wait_for_selector('.mybox')
+        check('caixa minha nota com no máximo 3 botões',await pg.locator('.mybox .rowb button').count()<=3)
+        await pg.click('#medit'); await pg.wait_for_selector('#feco'); await pg.click('.seg.four button[data-w=cine]'); await pg.fill('#tkcine','Cine Teste'); await pg.click('#feok'); await pg.wait_for_timeout(200)
+        check('editar adiciona ingresso sem refazer a nota','Cine Teste' in await pg.inner_text('#tkb') and await pg.locator('.mybox .rate b').inner_text()!='')
+        await pg.wait_for_timeout(300); await pg.screenshot(path=os.path.join(HERE,'out-minhanota.png'))
         check('fundo tingido',await pg.evaluate("document.body.classList.contains('tinted')"))
         await pg.screenshot(path=os.path.join(HERE,'out-film.png'),full_page=True)
         await pg.click('#back'); await pg.wait_for_selector('#t'); check('saiu da página: tinta removida',not await pg.evaluate("document.body.classList.contains('tinted')"))

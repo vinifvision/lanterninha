@@ -3711,3 +3711,65 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .deckbtns button:active{transform:scale(.9)}
 .deckbtns button small{font-size:9.5px;font-weight:600;margin-top:1px;color:var(--muted)}
 .deckbtns .no{color:#ff6b62}.deckbtns .idk{width:62px;height:62px;color:#9ec5ff;font-size:20px}.deckbtns .idk small{font-size:8.5px;line-height:1.05;text-align:center}.deckbtns .seen{color:var(--gold)}
+
+/* ---------- Caixa "Minha nota": título com Editar, ingresso em linha e no máximo 3 botões */
+.myhead{display:flex;align-items:center;justify-content:space-between}
+.myhead h3{margin:0}
+.myhead button{border:none;background:rgba(255,255,255,.08);color:var(--text);font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px}
+.mybox .myhead+.rate{margin-top:12px}
+.tkmini{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:10px 14px;border:none;border-radius:13px;font:inherit;text-align:left;color:#f3e3bd;
+  background:linear-gradient(90deg,rgba(227,180,104,.16),rgba(227,180,104,.05));box-shadow:inset 0 0 0 1px rgba(227,180,104,.28)}
+.tkmini span{font-size:10px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold)}
+.tkmini b{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tkmini i{font-style:normal;color:var(--muted);font-size:18px}
+.rowb button{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ---------- Editar filme */
+.feh{margin:4px 0 18px;font-size:22px}
+.fesec{margin-bottom:22px}
+.fesec .when{margin:0}
+.seg.four button{font-size:13px;padding-left:4px;padding-right:4px}
+.felist{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.felist button{display:block;width:100%;padding:13px 16px;border:none;border-radius:14px;background:var(--card);color:var(--text);font:inherit;text-align:left}
+.felist b{display:block;font-size:15px;font-weight:600}
+.felist small{display:block;margin-top:2px;font-size:12.5px;color:var(--muted)}
+.felist .del b{color:#ff6b62}
+
+/* ---------- Ingresso com a cara do app: papel escuro, letras creme e detalhes dourados */
+.ticket{color:#f3e3bd;filter:drop-shadow(0 10px 22px rgba(0,0,0,.5))}
+.tmain,.tstub{background-color:#211c16;
+  background-image:radial-gradient(120% 140% at 0% 0%,rgba(227,180,104,.16),transparent 55%),repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 2px,transparent 2px 4px)}
+.tstub{border-left:2px dashed rgba(227,180,104,.45)}
+.tk1{color:var(--gold)}
+.tmain small{color:rgba(243,227,189,.5)}
+.tkno{color:rgba(243,227,189,.45)}
+.tstub b{color:var(--gold)}
+.tstub small{color:rgba(243,227,189,.55)}
+/* Na gaveta: canhotos menores, levemente tortos, como uma pilha de ingressos guardados */
+.tkrowh{gap:10px;padding-top:8px}
+.tkrowh .ticket{width:232px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.tkrowh .ticket:nth-child(odd){transform:rotate(-1.5deg)}
+.tkrowh .ticket:nth-child(even){transform:rotate(1.2deg)}
+.tkrowh .ticket:active{transform:scale(.97)}
+.tkrowh .tmain{padding:12px 12px 11px 14px}
+.tkrowh .tktitle{font-size:15px;margin:4px 0 8px}
+.tkrowh .tmain span{font-size:12px}
+.tkrowh .tkwith{display:none}
+.tkrowh .tstub{width:66px}
+.tkrowh .tstub b{font-size:14px}
+.ticket{background:none;-webkit-appearance:none;appearance:none}
+.tkrowh .tk1{font-size:8.5px;letter-spacing:1px}
+.tkrowh .tkrow{flex-direction:column;gap:3px}
+.tkrowh .tkrow small{display:none}
+.tkrowh .tkrow span{font-size:12px}
+.tkrowh .tkrow>div+div span{color:rgba(243,227,189,.7)}
+.tk1 em{font-style:normal}.tkrowh .tk1 em{display:none}
+
+/* Cinemas perto de mim */
+.near{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:-4px 0 14px;padding:11px;border:1px dashed rgba(227,180,104,.45);border-radius:13px;background:none;color:var(--gold);font:inherit;font-size:14px;font-weight:600}
+.near svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2}
+.near:disabled{opacity:.6}
+.nearmsg{margin:-4px 0 14px;font-size:13px;color:var(--muted)}
+.nearlist{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;margin:-4px 0 14px;padding:2px}
+.nearlist button{display:block;width:100%;padding:11px 14px;border:none;border-radius:12px;background:var(--card);color:var(--text);font:inherit;text-align:left}
+.nearlist b{display:block;font-size:14.5px;font-weight:600}
+.nearlist small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}

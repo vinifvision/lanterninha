@@ -11,7 +11,7 @@ import { movieDetails, movieRatings, posterUrl } from "../lib/api";
 import { cloud, useCloud } from "../lib/cloud";
 import { posterColor, setTint } from "../lib/color";
 import { films, fkey, isRated, toInfo, useFilms } from "../lib/films";
-import { duration, fmt, LABELS, pname } from "../lib/format";
+import { duration, fd, fmt, LABELS, pname } from "../lib/format";
 import { looksClassic } from "../lib/quiz";
 import type { FilmInfo, MovieDetails } from "../lib/types";
 import { nav } from "../nav";
@@ -87,10 +87,16 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
       (rated.n || 0) > 1
         ? `↻ ${rated.n}ª vez${rated.p ? " · antes ★ " + fmt(rated.p) : ""}`
         : "",
+      rated.d ? "Visto em " + fd(rated.d) : "",
     ].filter(Boolean);
     mine = (
       <>
-        <h3>Minha nota</h3>
+        <div className="myhead">
+          <h3>Minha nota</h3>
+          <button id="medit" onClick={() => nav.open({ k: "filmEdit", key })}>
+            Editar
+          </button>
+        </div>
         <div className="rate">
           <b>{fmt(rated.s)}</b>
           <div>
@@ -105,7 +111,13 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
             ))}
           </div>
         )}
-        <WhenRow film={rated} />
+        {rated.w === "cine" && (
+          <button className="tkmini" id="tkb" onClick={() => nav.open({ k: "ticket", key })}>
+            <span>Ingresso</span>
+            <b>{rated.tk?.cine || "Visto no cinema"}</b>
+            <i>›</i>
+          </button>
+        )}
         <div className="rowb">
           <button
             id="rved"
@@ -122,11 +134,6 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
             Compartilhar
           </button>
           {canRec && recButton("Indicar")}
-          {rated.w === "cine" && (
-            <button id="tkb" onClick={() => nav.open({ k: "ticket", key })}>
-              Ingresso
-            </button>
-          )}
         </div>
       </>
     );
@@ -339,35 +346,10 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         </div>
       )}
 
-      {film && (
+      {film && !rated && (
         <div className="acts">
-          {rated && (
-            <button
-              className="main"
-              id="are"
-              onClick={() =>
-                nav.startQuiz(info, { rewatch: rated, classic: rated.c })
-              }
-            >
-              Reassisti
-            </button>
-          )}
-          {rated && (
-            <button
-              id="aco"
-              onClick={() => nav.startQuiz(info, { classic: rated.c })}
-            >
-              Corrigir nota
-            </button>
-          )}
           <button className="del" id="adel" onClick={remove}>
-            {armed
-              ? rated
-                ? "Apagar mesmo?"
-                : "Tirar mesmo?"
-              : rated
-                ? "Apagar"
-                : "Tirar da lista"}
+            {armed ? "Tirar mesmo?" : "Tirar da lista"}
           </button>
         </div>
       )}

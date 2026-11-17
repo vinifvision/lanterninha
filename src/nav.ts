@@ -21,6 +21,7 @@ export type Overlay =
   | { k: 'settings' }
   | { k: 'ticket'; key: string }
   | { k: 'chestDeck' }
+  | { k: 'filmEdit'; key: string }
   | { k: 'tonight'; start?: 'queue' | 'taste' }
   | { k: 'recommend'; info: FilmInfo }
   | { k: 'guess'; friend: Profile; films: RatedFilm[] };

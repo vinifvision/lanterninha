@@ -17,6 +17,7 @@ import { Tonight } from './overlays/Tonight';
 import { Credits } from './screens/Credits';
 import { Chest } from './screens/Chest';
 import { ChestDeck } from './overlays/ChestDeck';
+import { FilmEdit } from './overlays/FilmEdit';
 import { FilmPage } from './screens/FilmPage';
 import { FriendPage } from './screens/FriendPage';
 import { Home } from './screens/Home';
@@ -58,6 +59,7 @@ function overlayView(o: OverlayState, i: number) {
     case 'settings': return <Settings key={i} />;
     case 'ticket': return <TicketSheet key={i} filmKey={o.key} />;
     case 'chestDeck': return <ChestDeck key={i} />;
+    case 'filmEdit': return <FilmEdit key={i} filmKey={o.key} />;
     case 'tonight': return <Tonight key={i} start={o.start} />;
     case 'recommend': return <Recommend key={i} info={o.info} />;
     case 'guess': return <GuessGame key={i} friend={o.friend} films={o.films} />;

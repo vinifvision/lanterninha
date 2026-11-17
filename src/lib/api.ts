@@ -127,6 +127,22 @@ export function childhoodFilms(from: number, to: number): Promise<SearchResult[]
   return p;
 }
 
+export interface Cinema { name: string; place: string; km: number }
+let cinemaCache: { at: string; list: Promise<Cinema[]> } | null = null;
+
+/** Cinemas reais perto da pessoa (OpenStreetMap). A posição vai arredondada e não fica guardada. */
+export function nearbyCinemas(lat: number, lon: number): Promise<Cinema[]> {
+  const at = lat.toFixed(2) + ',' + lon.toFixed(2);
+  if (cinemaCache?.at === at) return cinemaCache.list;
+  const str = (v: unknown) => (typeof v === 'string' ? v.trim().slice(0, 60) : '');
+  const list = fetch(`${API_BASE}api/cinemas?lat=${lat.toFixed(2)}&lon=${lon.toFixed(2)}`)
+    .then((r) => { if (!r.ok) throw new Error('cinemas indisponíveis'); return r.json() as Promise<{ cinemas?: Record<string, unknown>[] }>; })
+    .then((d) => (d.cinemas || []).map((c) => ({ name: str(c.name), place: str(c.place), km: Number(c.km) || 0 })).filter((c) => c.name));
+  cinemaCache = { at, list };
+  list.catch(() => { cinemaCache = null; });
+  return list;
+}
+
 export interface Credits {
   key: { name: string; photo: string; role: string }[];
   cast: { name: string; character: string; photo: string }[];
