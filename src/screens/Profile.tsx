@@ -18,7 +18,7 @@ export function Profile() {
     return (
       <div className="screen">
         <h1>Perfil</h1><p className="count">Conectando…</p>
-        <p className="empty">Se isso não mudar, confere tua internet.</p>
+        <p className="empty">Se isso não mudar, confira sua internet.</p>
       </div>
     );
   }
@@ -33,7 +33,7 @@ function AuthForm() {
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ t: string; bad?: boolean } | null>(null);
-  const hint = all.length && up ? 'Os filmes deste aparelho vão junto pra tua conta.' : '';
+  const hint = all.length && up ? 'Os filmes deste aparelho vão junto para a sua conta.' : '';
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,14 +45,14 @@ function AuthForm() {
     setBusy(true); setMsg({ t: up ? 'Criando…' : 'Entrando…' });
     const r = up ? await cloud.signUp(name, mail, pw) : await cloud.signIn(mail, pw);
     setBusy(false);
-    if (r === 'CONFIRM') { setUp(false); setMsg({ t: 'Conta criada. Te mandei um e-mail: confirma por lá e depois entra aqui.' }); }
+    if (r === 'CONFIRM') { setUp(false); setMsg({ t: 'Conta criada. Enviamos um e-mail: confirme por lá e depois entre aqui.' }); }
     else if (r) bad(r);
   };
 
   return (
     <div className="screen">
       <h1>Perfil</h1>
-      <p className="count">Entre pra guardar teus filmes na conta e ver em qualquer aparelho.</p>
+      <p className="count">Entre para guardar seus filmes na conta e ver em qualquer aparelho.</p>
       <div className="seg">
         <button data-m="in" className={up ? '' : 'on'} onClick={() => { setUp(false); setMsg(null); }}>Entrar</button>
         <button data-m="up" className={up ? 'on' : ''} onClick={() => { setUp(true); setMsg(null); }}>Criar conta</button>
@@ -144,7 +144,7 @@ function FriendsBlock({ onError }: { onError: (t: string) => void }) {
       )}
       <div className="sech"><h3>Amigos{friends.list.length ? ' · ' + friends.list.length : ''}</h3><button id="fadd" onClick={() => nav.open({ k: 'addFriend' })}>Adicionar</button></div>
       <div className="frs">
-        {empty && <p className="tip" style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>Ninguém por aqui ainda. Adiciona um amigo pelo @ dele.</p>}
+        {empty && <p className="tip" style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>Ninguém por aqui ainda. Adicione um amigo pelo @ dele.</p>}
         {friends.list.map((p) => <FriendRow key={p.id} p={p} right={<i>›</i>} onClick={() => nav.push({ k: 'friend', id: p.id! })} />)}
         {friends.outgoing.map((p) => <FriendRow key={p.id} p={p} right={<i>Pedido enviado</i>} />)}
       </div>
@@ -160,7 +160,7 @@ function Board() {
       <div className="sech"><h3>Placar do palpite</h3></div>
       <div className="frs board">
         {rows.map((r, k) => (
-          <FriendRow key={r.p.id || k} p={r.p} left={<i className="pos">{k + 1}</i>} name={r.me ? 'Tu' : undefined}
+          <FriendRow key={r.p.id || k} p={r.p} left={<i className="pos">{k + 1}</i>} name={r.me ? 'Você' : undefined}
             small={`${r.n} ${r.n === 1 ? 'palpite' : 'palpites'}`} right={<span className="rt">{r.pts} pts</span>} />
         ))}
       </div>

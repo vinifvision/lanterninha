@@ -8,10 +8,8 @@ export const posterUrl = (path: string, size: 'w92' | 'w185' | 'w342' | 'w780' =
 export const proxiedPoster = (path: string, size: 'w342' | 'w500' = 'w500') =>
   `${API_BASE}api/img?size=${size}&path=${encodeURIComponent(path)}`;
 
-export async function searchMovies(q: string, signal?: AbortSignal): Promise<SearchResult[]> {
-  const r = await fetch(`${API_BASE}api/search?q=${encodeURIComponent(q)}`, { signal });
-  if (!r.ok) throw new Error('busca indisponível');
-  const data = (await r.json()) as { results?: unknown[] };
+/** Confere e limpa uma lista de filmes vinda das funções do servidor. */
+function cleanResults(data: { results?: unknown[] }): SearchResult[] {
   return (data.results || [])
     .map((x) => x as Record<string, unknown>)
     .filter((m) => m && Number.isInteger(m.id) && typeof m.title === 'string')
@@ -22,6 +20,29 @@ export async function searchMovies(q: string, signal?: AbortSignal): Promise<Sea
       year: typeof m.year === 'string' && /^\d{4}$/.test(m.year) ? m.year : '',
       poster: typeof m.poster === 'string' && POSTER_PATH.test(m.poster) ? m.poster : '',
     }));
+}
+
+export async function searchMovies(q: string, signal?: AbortSignal): Promise<SearchResult[]> {
+  const r = await fetch(`${API_BASE}api/search?q=${encodeURIComponent(q)}`, { signal });
+  if (!r.ok) throw new Error('busca indisponível');
+  return cleanResults(await r.json());
+}
+
+export type DiscoverList = 'now' | 'trending' | 'classics' | 'similar';
+const discoverCache = new Map<string, Promise<SearchResult[]>>();
+
+/** Listas da tela Início (em cartaz, em alta, clássicos, parecidos com um filme). Guardadas enquanto o app está aberto. */
+export function discover(list: DiscoverList, id?: number): Promise<SearchResult[]> {
+  const key = list + (id ? ':' + id : '');
+  let p = discoverCache.get(key);
+  if (!p) {
+    p = fetch(`${API_BASE}api/discover?list=${list}${id ? '&id=' + id : ''}`)
+      .then((r) => { if (!r.ok) throw new Error('lista indisponível'); return r.json(); })
+      .then(cleanResults);
+    discoverCache.set(key, p);
+    p.catch(() => discoverCache.delete(key));
+  }
+  return p;
 }
 
 const detailsCache = new Map<number, Promise<MovieDetails>>();

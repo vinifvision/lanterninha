@@ -67,7 +67,7 @@ export function GuessGame({ friend, films: pool }: { friend: Profile; films: Rat
         </div>
         <div className={`res${answer ? ' g' + answer.pts : ''}`} id="gres">{answer ? `${VERDICT[answer.pts]} A nota foi ★ ${fmt(h.s)}` : ''}</div>
         <div className="pts" id="gpts">
-          {answer ? `Teu palpite: ★ ${fmt(val)} · ${answer.saved ? `+${answer.pts}${answer.pts === 1 ? ' ponto' : ' pontos'}` : 'não consegui salvar esse palpite'}` : ''}
+          {answer ? `Seu palpite: ★ ${fmt(val)} · ${answer.saved ? `+${answer.pts}${answer.pts === 1 ? ' ponto' : ' pontos'}` : 'não consegui salvar esse palpite'}` : ''}
         </div>
         <button className="cta" id="gok" disabled={busy} onClick={() => void confirm()}>{!locked ? 'Confirmar palpite' : i + 1 < pool.length ? 'Próximo' : 'Ver resultado'}</button>
       </div>

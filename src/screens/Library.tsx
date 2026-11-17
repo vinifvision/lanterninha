@@ -18,8 +18,8 @@ export const resetLibraryView = () => { view.tab = 'rated'; view.sort = 'recent'
 const SORTS: [Sort, string][] = [['recent', 'Diário'], ['nota', 'Maior nota'], ['menor', 'Menor nota']];
 const EMPTY: Record<LibTab, string> = {
   rated: 'Nada por aqui ainda. Avalie um filme e ele aparece nesta tela.',
-  seen: 'Aqui ficam os filmes que tu viu mas não deu nota.',
-  want: 'Aqui fica tua fila: o que tu guardou e o que teus amigos indicaram.',
+  seen: 'Aqui ficam os filmes que você viu mas não deu nota.',
+  want: 'Aqui fica sua fila: o que você guardou e o que seus amigos indicaram.',
 };
 
 export function Library() {
@@ -87,7 +87,7 @@ export function Library() {
 
       {recs.length > 0 && (
         <>
-          <div className="sech"><h3>Indicações pra ti</h3></div>
+          <div className="sech"><h3>Indicações para você</h3></div>
           {recs.map((r) => (
             <div className="rcd" key={r.id}>
               {r.film.img ? <Poster img={r.film.img} title="" fallback={false} /> : <div className="noimg" />}

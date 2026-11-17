@@ -6,7 +6,7 @@ import { films, fkey, isRated, useFilms } from '../lib/films';
 import { fmt, LABELS } from '../lib/format';
 import { nav } from '../nav';
 
-const HINTS = ['O que mais me marcou', 'Uma cena que ficou', 'Pra quem eu recomendaria', 'O que não funcionou'];
+const HINTS = ['O que mais me marcou', 'Uma cena que ficou', 'Para quem eu recomendaria', 'O que não funcionou'];
 
 export function ReviewEditor({ filmKey }: { filmKey: string }) {
   const found = useFilms().find((h) => fkey(h) === filmKey);
@@ -48,7 +48,7 @@ export function ReviewEditor({ filmKey }: { filmKey: string }) {
       <h2>{film.t}</h2>
       <p className="count" style={{ margin: 0, fontSize: 14 }}>★ {fmt(film.s)} · {LABELS[film.s]}</p>
       <div className="hints">{HINTS.map((h) => <button type="button" key={h} onClick={() => addHint(h)}>{h}</button>)}</div>
-      <textarea ref={area} id="rt" maxLength={5000} placeholder="Escreve do teu jeito. Pode ser uma linha ou um textão." value={text} onChange={(e) => setText(e.target.value)} />
+      <textarea ref={area} id="rt" maxLength={5000} placeholder="Escreva do seu jeito. Pode ser uma linha ou um textão." value={text} onChange={(e) => setText(e.target.value)} />
       <div className="cnt" id="rn">{text.length > 4000 ? `${text.length} / 5000` : ''}</div>
     </Overlay>
   );

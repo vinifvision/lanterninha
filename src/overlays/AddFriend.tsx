@@ -33,7 +33,7 @@ export function AddFriend() {
   };
   const status = (p: Profile) => {
     if (sent) return <i>{sent}</i>;
-    if (friends.list.some((x) => x.id === p.id)) return <i>Já é teu amigo</i>;
+    if (friends.list.some((x) => x.id === p.id)) return <i>Já é seu amigo</i>;
     if (friends.outgoing.some((x) => x.id === p.id)) return <i>Pedido enviado</i>;
     return <button className="mini" id="arq" disabled={busy} onClick={() => void request(p)}>{friends.incoming.some((x) => x.id === p.id) ? 'Aceitar' : 'Pedir amizade'}</button>;
   };
@@ -42,7 +42,7 @@ export function AddFriend() {
     <Overlay>
       <OverlayHeader left={<button id="ax" onClick={() => nav.close()}>Fechar</button>} title="Adicionar amigo" />
       <form id="afm" onSubmit={search}>
-        <input ref={input} type="text" id="aq" placeholder="@ do teu amigo" maxLength={21} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={q} onChange={(e) => setQ(e.target.value)} />
+        <input ref={input} type="text" id="aq" placeholder="@ do seu amigo" maxLength={21} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="cta" type="submit">Procurar</button>
       </form>
       <div id="ar" style={{ marginTop: 22 }}>{found && <FriendRow p={found} right={status(found)} />}</div>

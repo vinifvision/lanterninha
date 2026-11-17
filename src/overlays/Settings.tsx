@@ -64,6 +64,17 @@ export function Settings() {
           <p className={`fmsg${err ? ' bad' : ''}`} id="cfm">{err || (armed ? 'Seus filmes continuam salvos na conta.' : '')}</p>
         </>
       )}
+
+      <div className="about-app">
+        <img src="/logo.svg" alt="" width={44} height={44} />
+        <b>Lanterninha</b>
+        <span>Criado por Vinícius Fernandes</span>
+        <small>
+          Dados e imagens de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>.
+          Onde assistir: JustWatch. Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.
+        </small>
+        <small>© {new Date().getFullYear()} Vinícius Fernandes. Todos os direitos reservados.</small>
+      </div>
     </Overlay>
   );
 }

@@ -529,3 +529,48 @@ html.native{touch-action:pan-x pan-y}
 .favs .t4{margin:0;gap:9px}
 .favs .t4 button.has{box-shadow:0 10px 24px rgba(0,0,0,.5);border-radius:11px}
 .favs .t4 button:not(.has){border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.5);background:rgba(0,0,0,.18)}
+
+/* ---------- Início: fileiras que rolam para o lado */
+.hsec{margin-bottom:30px}
+.hsec .sech{margin-bottom:12px}
+.sech button{background:none;border:none;color:var(--gold);font:inherit;font-size:14px;font-weight:600;padding:6px 0}
+.hrow{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;margin:0 -22px;padding:2px 22px 6px;scroll-snap-type:x mandatory;scroll-padding:0 22px;scrollbar-width:none;overscroll-behavior-x:contain}
+.hrow::-webkit-scrollbar{display:none}
+.hrow>*{scroll-snap-align:start;flex:none}
+.hp{width:118px;padding:0;border:none;background:none;color:var(--text);font:inherit;text-align:left;transition:transform .15s}
+.hp:active{transform:scale(.96)}
+.hp .ph{position:relative;display:block;width:118px;height:177px;border-radius:12px;overflow:hidden;background:var(--card)}
+.hp .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.hp .ph>span{display:flex;align-items:center;justify-content:center;height:100%;padding:10px;text-align:center;font-size:13px;color:var(--muted)}
+.hp small{display:block;margin-top:6px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp .mk{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(10,10,12,.78);color:var(--gold);font-style:normal;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.act{width:236px;display:grid;grid-template-columns:78px 1fr;grid-template-rows:auto auto 1fr;gap:6px 12px;padding:12px;border:none;border-radius:18px;background:var(--card);color:var(--text);font:inherit;text-align:left;transition:transform .15s}
+.act:active{transform:scale(.97)}
+.actp{grid-row:1/4;width:78px;height:117px;border-radius:9px;overflow:hidden;background:#222}
+.actp img{width:100%;height:100%;object-fit:cover;display:block}
+.actp>span{display:block;padding:6px;font-size:11px;color:var(--muted)}
+.actw{display:grid;grid-template-columns:auto 1fr;gap:0 8px;align-items:center;min-width:0}
+.actw .av{width:28px;height:28px;font-size:12px;grid-row:1/3}
+.actw b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actw small{font-size:12px;color:var(--muted)}
+.act .stars{justify-content:flex-start;gap:2px}
+.act .star{width:16px;height:16px}
+.act .star svg{width:16px;height:16px}
+.act q{font-size:13px;line-height:1.35;color:#c7c7cc;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;quotes:"“" "”"}
+.sk{background:var(--card);animation:skp 1.2s ease-in-out infinite alternate}
+.act.sk{height:141px}
+.hp.sk .ph{animation:skp 1.2s ease-in-out infinite alternate}
+@keyframes skp{from{opacity:.55}to{opacity:1}}
+.hnote{color:var(--muted);font-size:14px;margin:0}
+@media (min-width:900px){
+  .hrow{margin:0;padding:2px 0 6px;flex-wrap:wrap;overflow:visible}
+}
+.act .stars{margin:0}
+
+/* Sobre o app, no fim das configurações */
+.about-app{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;margin-top:48px;padding-top:30px;border-top:1px solid rgba(255,255,255,.07)}
+.about-app img{border-radius:11px;margin-bottom:4px}
+.about-app b{font-size:17px}
+.about-app span{color:#c7c7cc;font-size:14px}
+.about-app small{color:var(--muted);font-size:12px;line-height:1.5;max-width:320px}
+.about-app a{color:var(--muted)}

@@ -20,7 +20,7 @@ export function FriendPage({ id }: { id: string }) {
   const [err, setErr] = useState('');
   const [gameMsg, setGameMsg] = useState('');
 
-  if (!p) return <div className="screen"><p className="empty">Essa pessoa não está mais na tua lista de amigos.</p></div>;
+  if (!p) return <div className="screen"><p className="empty">Essa pessoa não está mais na sua lista de amigos.</p></div>;
 
   const openReview = (f: RatedFilm) => nav.open({ k: 'reviews', info: f, focusId: id, known: { p, f } });
   const unfriend = async () => {
@@ -35,7 +35,7 @@ export function FriendPage({ id }: { id: string }) {
     const done = await cloud.guessedKeys(id);
     if (!done) return setErr('O palpite ainda não está ligado no banco.');
     const pool = films.filter((h) => !done.has(fkey(h))).sort(() => Math.random() - 0.5).slice(0, 5);
-    if (!pool.length) return setGameMsg('Tu já deu palpite em todos os filmes dele.');
+    if (!pool.length) return setGameMsg('Você já deu palpite em todos os filmes dessa pessoa.');
     nav.open({ k: 'guess', friend: p, films: pool });
   };
   const avg = films?.length ? films.reduce((a, h) => a + h.s, 0) / films.length : 0;
@@ -67,7 +67,7 @@ export function FriendPage({ id }: { id: string }) {
             {films.length > 0 && (
               <div className="game">
                 <b>Palpite</b>
-                <small id="gmsg">{gameMsg || `Tenta adivinhar a nota que ${pname(p)} deu pra cada filme.`}</small>
+                <small id="gmsg">{gameMsg || `Tente adivinhar a nota que ${pname(p)} deu para cada filme.`}</small>
                 <button className="cta" id="gplay" onClick={() => void play()}>Jogar</button>
               </div>
             )}

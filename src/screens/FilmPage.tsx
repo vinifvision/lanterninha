@@ -76,7 +76,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         <div className="state">Já vi</div>
         <WhenRow film={film} />
         <button className="cta" id="arate" onClick={startQuiz}>Avaliar agora</button>
-        {canRec && <div className="rowb">{recButton('Indicar pra um amigo')}</div>}
+        {canRec && <div className="rowb">{recButton('Indicar para um amigo')}</div>}
       </>
     );
   } else if (film?.st === 'want') {
@@ -92,7 +92,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   } else {
     mine = (
       <>
-        <h3>Ainda não está nos teus filmes</h3>
+        <h3>Ainda não está nos seus filmes</h3>
         <div className="three">
           <button className="go" id="arate" onClick={startQuiz}>Avaliar</button>
           <button id="aseen" onClick={markSeen}>Já vi</button>

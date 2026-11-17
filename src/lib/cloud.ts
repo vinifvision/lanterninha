@@ -212,12 +212,12 @@ async function onAuth(sessionUser: { id: string; email?: string } | null) {
 function niceError(e: { message?: string } | null): string {
   const m = (e?.message || '').toLowerCase();
   if (m.includes('invalid login')) return 'E-mail ou senha errados.';
-  if (m.includes('already registered') || m.includes('already been registered')) return 'Esse e-mail já tem conta. Tenta entrar.';
+  if (m.includes('already registered') || m.includes('already been registered')) return 'Esse e-mail já tem conta. Tente entrar.';
   if (m.includes('password')) return 'A senha precisa ter pelo menos 6 caracteres.';
-  if (m.includes('not confirmed')) return 'Confirma teu e-mail pelo link que te mandei e tenta de novo.';
-  if (m.includes('rate') || m.includes('seconds')) return 'Muitas tentativas. Espera um pouco e tenta de novo.';
+  if (m.includes('not confirmed')) return 'Confirme seu e-mail pelo link que enviamos e tente de novo.';
+  if (m.includes('rate') || m.includes('seconds')) return 'Muitas tentativas. Espere um pouco e tente de novo.';
   if (m.includes('valid email') || m.includes('invalid format') || m.includes('is invalid')) return 'Esse e-mail não parece válido.';
-  return 'Não deu certo agora. Tenta de novo.';
+  return 'Não deu certo agora. Tente de novo.';
 }
 
 function init() {
@@ -271,7 +271,7 @@ export const cloud = {
   async signOut(): Promise<string> {
     if (!sb) return '';
     clearTimeout(timer);
-    if (!(await push())) return 'Não consegui salvar as últimas mudanças. Confere a internet e tenta de novo.';
+    if (!(await push())) return 'Não consegui salvar as últimas mudanças. Confira a internet e tente de novo.';
     await sb.auth.signOut();
     synced = {}; owner = null; keep();
     films.replaceAll([]);
@@ -281,7 +281,7 @@ export const cloud = {
   async saveProfile(patch: Partial<Pick<Profile, 'top4'>> & { display_name?: string | null; bio?: string | null; avatar?: string | null }): Promise<string> {
     if (!sb || !user) return 'Entre na conta primeiro.';
     const { error } = await sb.from('profiles').update(patch).eq('id', user.id);
-    if (error) return 'Não consegui salvar agora. Tenta de novo.';
+    if (error) return 'Não consegui salvar agora. Tente de novo.';
     profile = cleanProfile({ ...profile, ...patch });
     emit();
     return '';
@@ -338,6 +338,21 @@ export const cloud = {
       }
       return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     } catch { return null; }
+  },
+  /** As avaliações mais recentes dos amigos, da mais nova para a mais antiga. */
+  async friendsActivity(limit = 30): Promise<FriendRating[]> {
+    if (!sb || !user || !friends.list.length) return [];
+    try {
+      const ids = friends.list.map((f) => f.id!).filter((id) => UUID.test(id));
+      const { data, error } = await sb.from('films').select('user_id,data').in('user_id', ids)
+        .order('updated_at', { ascending: false }).limit(limit * 3);
+      if (error) return [];
+      return (data || [])
+        .map((r) => ({ p: friends.list.find((f) => f.id === r.user_id), f: cleanFilm(r.data) }))
+        .filter((x): x is FriendRating => !!x.p && isRated(x.f))
+        .sort((a, b) => (b.f.ts || 0) - (a.f.ts || 0))
+        .slice(0, limit);
+    } catch { return []; }
   },
   /** O que cada amigo achou de um filme. */
   async filmRatings(key: string): Promise<FriendRating[]> {

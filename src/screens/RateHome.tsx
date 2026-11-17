@@ -68,7 +68,7 @@ export function RateHome() {
       <p className="sub">Perguntas rápidas sobre o que você sentiu.</p>
       <input
         ref={input} type="text" id="t" className={need ? 'need' : ''} maxLength={80} value={title}
-        placeholder={need ? 'Digita o nome do filme primeiro' : 'Nome do filme'}
+        placeholder={need ? 'Digite o nome do filme primeiro' : 'Nome do filme'}
         autoComplete="off" autoCorrect="off" spellCheck={false}
         onChange={(e) => { setTitle(e.target.value); setMovie(null); }}
       />

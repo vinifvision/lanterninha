@@ -68,9 +68,9 @@ export function EditProfile() {
           <input ref={file} type="file" id="ef" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; void pickPhoto(f); }} />
         </div>
         <label className="lbl" htmlFor="edn">Nome</label>
-        <input type="text" id="edn" maxLength={40} placeholder="Como teus amigos te veem" value={name} onChange={(e) => setName(e.target.value)} />
+        <input type="text" id="edn" maxLength={40} placeholder="Como seus amigos vão te ver" value={name} onChange={(e) => setName(e.target.value)} />
         <label className="lbl" htmlFor="ebio" style={{ marginTop: 8 }}>Bio</label>
-        <textarea id="ebio" maxLength={160} placeholder="Uma linha sobre ti e teus filmes" value={bio} onChange={(e) => setBio(e.target.value)} />
+        <textarea id="ebio" maxLength={160} placeholder="Uma linha sobre você e seus filmes" value={bio} onChange={(e) => setBio(e.target.value)} />
         <span className="lbl" style={{ marginTop: 20 }}>Favoritos · toque para escolher ou trocar</span>
         <div style={{ marginBottom: 8 }}><TopFour id="et4" top4={top4} empty="+" onPick={setSlot} /></div>
         <p className={`fmsg${msg.bad ? ' bad' : ''}`} id="em2">{msg.t}</p>
@@ -97,7 +97,7 @@ function PickTop({ slot, top4, onDone, onClose }: { slot: number; top4: (TopItem
                 <span className="ph"><Poster img={h.img} title={h.t} /></span><b>★ {fmt(h.s)}</b>
               </button>
             ))}</div>
-          : <p className="empty">Teus favoritos saem dos filmes que tu já avaliou.<br />Avalia alguns e volta aqui.</p>}
+          : <p className="empty">Seus favoritos saem dos filmes que você já avaliou.<br />Avalie alguns e volte aqui.</p>}
       </div>
     </div>
   );

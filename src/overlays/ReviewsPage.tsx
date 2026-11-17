@@ -51,8 +51,8 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
         <div className="rvc me">
           {rated ? (
             <>
-              <div className="who"><Avatar p={account.profile} fallback="Tu" /><div><b>Tu</b><small>{when(rated) || LABELS[rated.s]}</small></div><Stars value={rated.s} /></div>
-              {rated.note ? <p className="txt">{rated.note}</p> : <p className="none">Tu ainda não escreveu review.</p>}
+              <div className="who"><Avatar p={account.profile} fallback="V" /><div><b>Você</b><small>{when(rated) || LABELS[rated.s]}</small></div><Stars value={rated.s} /></div>
+              {rated.note ? <p className="txt">{rated.note}</p> : <p className="none">Você ainda não escreveu uma review.</p>}
               <div className="rowb">
                 <button id="rved" onClick={() => nav.open({ k: 'editor', key })}>{rated.note ? 'Editar review' : 'Escrever review'}</button>
                 <button id="rvsh" onClick={() => nav.open({ k: 'share', key })}>Compartilhar</button>
@@ -60,7 +60,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
             </>
           ) : (
             <>
-              <div className="who"><Avatar p={account.profile} fallback="Tu" /><div><b>Tu</b><small>{mine?.st ? STATE[mine.st] + ', sem nota' : 'ainda não avaliou'}</small></div></div>
+              <div className="who"><Avatar p={account.profile} fallback="V" /><div><b>Você</b><small>{mine?.st ? STATE[mine.st] + ', sem nota' : 'ainda não avaliou'}</small></div></div>
               <div className="three">
                 <button className="go" id="rvgo" style={{ background: 'var(--gold)' }} onClick={() => nav.startQuiz(info, { classic: looksClassic(info.y) })}>Avaliar</button>
                 <button id="rvseen" onClick={() => { films.setStatus(info, 'seen'); }}>{mine?.st === 'seen' ? '✓ Já vi' : 'Já vi'}</button>

@@ -5,7 +5,7 @@ import type { Film } from './types';
 
 /** Baixa (ou compartilha, no celular) um arquivo com todos os filmes. Devolve a mensagem para mostrar. */
 export async function exportBackup(): Promise<string> {
-  if (!films.all.length) return 'Ainda não há filmes pra exportar.';
+  if (!films.all.length) return 'Ainda não há filmes para exportar.';
   const name = `lanterninha-backup-${today()}.json`;
   const json = JSON.stringify({ app: 'lanterninha', versao: 1, exportadoEm: new Date().toISOString(), filmes: films.all }, null, 1);
   try {

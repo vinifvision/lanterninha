@@ -81,7 +81,7 @@ export function Quiz({ info, classic, rewatch, answers: initial }: Props) {
     return (
       <div key="cmp" className="screen">
         <div className="q">Qual te marcou mais?</div>
-        <p className="sub">Se tivesse que escolher um pra ficar na memória.</p>
+        <p className="sub">Se tivesse que escolher um para guardar na memória.</p>
         <div className="opts">
           <button className={`opt${picked === 0 ? ' on' : ''}`} onClick={() => compare(0)}>{info.t || 'Este filme'}</button>
           <button className={`opt${picked === 2 ? ' on' : ''}`} onClick={() => compare(2)}>{rival.t}</button>
