@@ -18,6 +18,8 @@ async def main():
             u=route.request.url
             if '/api/img' in u or 'image.tmdb.org' in u: return await route.fulfill(path=os.path.join(HERE,'pb.jpg' if 'blue' in u else 'p5.jpg'),content_type='image/jpeg')
             if '/api/search' in u: return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
+            if '/api/images' in u: return await route.fulfill(json={'backdrops':['/blueback1.jpg','/blueback2.jpg']})
+            if '/api/discover' in u: return await route.fulfill(json={'results':[]})
             if '/api/movie' in u: return await route.fulfill(json={'overview':'Sinopse do filme.','runtime':100,'genres':['Animação'],'director':'Henry Selick','backdrop':'/blueback.jpg','cast':['Dakota Fanning'],'trailer':'abc123XYZ_-','providers':{'stream':[{'name':'Netflix','logo':''}],'rent':[],'buy':[]}})
             if 'app.test' not in u: return await route.fulfill(status=404,body='')
             path=u.split('app.test')[1].split('?')[0]; path='/index.html' if path=='/' else path
@@ -119,7 +121,10 @@ async def main():
         await pg.click('#back'); await pg.wait_for_selector('#board .fr'); check('placar aparece',pts+' pts' in await pg.inner_text('#board'),await pg.inner_text('#board'))
         # editar perfil
         await pg.click('#ped'); await pg.fill('#edn','Vinícius'); await pg.fill('#ebio','Minha bio'); await pg.click('#et4 button >> nth=0'); await pg.wait_for_selector('#px'); await pg.click('.ov .fc >> nth=0'); await pg.wait_for_timeout(200)
+        await pg.click('#ebn'); await pg.wait_for_selector('#bq'); await pg.click('.ov >> nth=1 >> .fc >> nth=0'); await pg.wait_for_selector('.scenes button'); await pg.click('.scenes button >> nth=1'); await pg.wait_for_timeout(200)
+        check('banner escolhido',await pg.locator('#ebn.has').count()==1)
         check('favorito escolhido',await pg.locator('#et4 button.has').count()==1); await pg.click('#eok'); await pg.wait_for_timeout(700)
+        check('banner aparece no perfil',await pg.locator('.pbanner').count()==1 and 'blueback2' in (await pg.get_attribute('.pbanner','style')))
         check('perfil salvo','Vinícius' in await pg.inner_text('.pf') and 'Minha bio' in await pg.inner_text('.bio') and await pg.locator('#t4 button.has').count()==1)
         await pg.click('#t4 button.has'); await pg.wait_for_selector('.fhead'); check('top 4 abre o filme',True); await pg.click('#back')
         # sincronização entre aparelhos

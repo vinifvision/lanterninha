@@ -61,6 +61,8 @@ export interface Profile {
   display_name: string;
   bio: string;
   avatar: string;
+  /** Imagem de fundo do perfil: caminho de uma cena de filme no TMDB */
+  banner: string;
   top4: (TopItem | null)[];
 }
 

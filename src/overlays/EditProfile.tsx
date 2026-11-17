@@ -4,12 +4,13 @@ import { Avatar } from '../components/Avatar';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
 import { TopFour } from '../components/TopFour';
-import { loadImage } from '../lib/api';
+import { loadImage, posterUrl } from '../lib/api';
 import { cleanProfile, cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt } from '../lib/format';
 import type { Profile, TopItem } from '../lib/types';
 import { nav } from '../nav';
+import { PickBanner } from './PickBanner';
 
 /** Corta a foto no centro e reduz para 256px, até caber no limite do banco. */
 async function photoToAvatar(file: File): Promise<string> {
@@ -35,6 +36,8 @@ export function EditProfile() {
   const [name, setName] = useState(pr.display_name);
   const [bio, setBio] = useState(pr.bio);
   const [top4, setTop4] = useState(pr.top4.slice());
+  const [banner, setBanner] = useState(pr.banner);
+  const [picking, setPicking] = useState(false);
   const [slot, setSlot] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ t: string; bad?: boolean }>({ t: '' });
@@ -49,7 +52,7 @@ export function EditProfile() {
   };
   const save = async () => {
     setBusy(true); setMsg({ t: 'Salvando…' });
-    const err = await cloud.saveProfile({ display_name: name.trim() || null, bio: bio.trim() || null, avatar: avatar || null, top4 });
+    const err = await cloud.saveProfile({ display_name: name.trim() || null, bio: bio.trim() || null, avatar: avatar || null, top4, ...(account.banners ? { banner: banner || null } : {}) });
     if (err) { setBusy(false); return setMsg({ t: err, bad: true }); }
     nav.close();
   };
@@ -59,6 +62,11 @@ export function EditProfile() {
     <>
       <Overlay>
         <OverlayHeader left={<button id="ex" onClick={() => nav.close()}>Cancelar</button>} title="Editar perfil" right={<button className="ok" id="eok" disabled={busy} onClick={() => void save()}>Salvar</button>} />
+        {account.banners && (
+          <button className={`bnedit${banner ? ' has' : ''}`} id="ebn" onClick={() => setPicking(true)} style={banner ? { backgroundImage: `url(${posterUrl(banner, 'w780')})` } : undefined}>
+            <span>{banner ? 'Trocar banner' : 'Escolher banner'}</span>
+          </button>
+        )}
         <div className="avedit">
           <span id="eav"><Avatar p={{ avatar, display_name: name, username: pr.username }} fallback={account.user?.email} /></span>
           <div>
@@ -75,6 +83,7 @@ export function EditProfile() {
         <div style={{ marginBottom: 8 }}><TopFour id="et4" top4={top4} empty="+" onPick={setSlot} /></div>
         <p className={`fmsg${msg.bad ? ' bad' : ''}`} id="em2">{msg.t}</p>
       </Overlay>
+      {picking && <PickBanner current={banner} onDone={(p) => { setBanner(p); setPicking(false); }} onClose={() => setPicking(false)} />}
       {slot !== null && <PickTop slot={slot} top4={top4} onDone={(f) => setTop(slot, f)} onClose={() => setSlot(null)} />}
     </>
   );

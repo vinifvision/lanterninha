@@ -15,6 +15,8 @@ export interface CloudState {
   profile: Profile | null;
   /** O banco já tem os campos de perfil (nome, bio, foto, top 4) */
   extended: boolean;
+  /** O banco já tem a coluna do banner (script supabase-banner.sql) */
+  banners: boolean;
   /** O banco já tem as tabelas de amizade */
   social: boolean;
   friends: Friends;
@@ -33,6 +35,7 @@ export function cleanProfile(p: unknown): Profile | null {
     display_name: typeof r.display_name === 'string' ? r.display_name.trim().slice(0, 40) : '',
     bio: typeof r.bio === 'string' ? r.bio.trim().slice(0, 160) : '',
     avatar: typeof r.avatar === 'string' && r.avatar.length <= 80000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(r.avatar) ? r.avatar : '',
+    banner: typeof r.banner === 'string' && POSTER_PATH.test(r.banner) ? r.banner : '',
     top4: (Array.isArray(r.top4) ? r.top4 : []).slice(0, 4).map((x): TopItem | null => {
       const t = x as Record<string, unknown> | null;
       if (!t || typeof t.t !== 'string' || !t.t.trim()) return null;
@@ -53,7 +56,7 @@ export function cleanProfile(p: unknown): Profile | null {
 let sb: SupabaseClient | null = null;
 let user: CloudUser | null = null;
 let profile: Profile | null = null;
-let extended = false, social = false;
+let extended = false, social = false, banners = false;
 let friends: Friends = emptyFriends();
 let recs: Rec[] = [];
 let sync: SyncState = 'off';
@@ -67,10 +70,10 @@ let synced: Record<string, string> = lsGet('lantSynced', {});
 let owner: string | null = lsGet<string | null>('lantOwner', null);
 const keep = () => { lsSet('lantSynced', synced); lsSet('lantOwner', owner); };
 
-let snapshot: CloudState = { ready: false, user, profile, extended, social, friends, recs, sync };
+let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, sync };
 const listeners = new Set<() => void>();
 function emit() {
-  snapshot = { ready: !!sb, user, profile, extended, social, friends, recs, sync };
+  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, sync };
   listeners.forEach((l) => l());
 }
 const setSync = (s: SyncState) => { sync = s; emit(); };
@@ -163,7 +166,7 @@ async function loadFriends(): Promise<void> {
     const ids = [...new Set(rows.map(other))].filter((i) => UUID.test(i));
     const map = new Map<string, Profile>();
     if (ids.length) {
-      const pr = await sb.from('profiles').select('id,username,display_name,bio,avatar,top4').in('id', ids);
+      const pr = await sb.from('profiles').select('id,username,display_name,bio,avatar,top4' + (banners ? ',banner' : '')).in('id', ids);
       (pr.data || []).forEach((x) => { const c = cleanProfile(x); if (c?.id) map.set(c.id, c); });
     }
     const f = emptyFriends();
@@ -200,7 +203,10 @@ async function onAuth(sessionUser: { id: string; email?: string } | null) {
   if (!u || !sb) { sync = 'off'; emit(); return; }
   emit();
   try {
-    let r = await sb.from('profiles').select('username,display_name,bio,avatar,top4').eq('id', u.id).maybeSingle();
+    // Tenta do banco mais novo para o mais antigo, para o app funcionar mesmo sem os scripts mais recentes
+    let r = await sb.from('profiles').select('username,display_name,bio,avatar,top4,banner').eq('id', u.id).maybeSingle();
+    banners = !r.error;
+    if (r.error) r = await sb.from('profiles').select('username,display_name,bio,avatar,top4').eq('id', u.id).maybeSingle();
     if (r.error) { r = await sb.from('profiles').select('username').eq('id', u.id).maybeSingle(); extended = false; } else extended = true;
     profile = cleanProfile(r.data);
   } catch { /* segue sem perfil */ }
@@ -278,7 +284,7 @@ export const cloud = {
     return '';
   },
 
-  async saveProfile(patch: Partial<Pick<Profile, 'top4'>> & { display_name?: string | null; bio?: string | null; avatar?: string | null }): Promise<string> {
+  async saveProfile(patch: Partial<Pick<Profile, 'top4'>> & { display_name?: string | null; bio?: string | null; avatar?: string | null; banner?: string | null }): Promise<string> {
     if (!sb || !user) return 'Entre na conta primeiro.';
     const { error } = await sb.from('profiles').update(patch).eq('id', user.id);
     if (error) return 'Não consegui salvar agora. Tente de novo.';

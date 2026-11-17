@@ -77,6 +77,21 @@ export function movieDetails(id: number): Promise<MovieDetails> {
   return p;
 }
 
+const backdropCache = new Map<number, Promise<string[]>>();
+
+/** Cenas do filme (imagens largas, sem texto) para escolher como banner do perfil. */
+export function movieBackdrops(id: number): Promise<string[]> {
+  let p = backdropCache.get(id);
+  if (!p) {
+    p = fetch(`${API_BASE}api/images?id=${id}`)
+      .then((r) => { if (!r.ok) throw new Error('imagens indisponíveis'); return r.json() as Promise<{ backdrops?: unknown[] }>; })
+      .then((d) => (d.backdrops || []).filter((x): x is string => typeof x === 'string' && POSTER_PATH.test(x)));
+    backdropCache.set(id, p);
+    p.catch(() => backdropCache.delete(id));
+  }
+  return p;
+}
+
 export const loadImage = (src: string, crossOrigin = false) =>
   new Promise<HTMLImageElement | null>((resolve) => {
     const img = new Image();

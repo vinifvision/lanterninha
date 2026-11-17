@@ -1,6 +1,7 @@
 // Perfil de um amigo: top 4, filmes avaliados e o jogo do palpite.
 import { useState } from 'react';
 import { Avatar } from '../components/Avatar';
+import { Banner } from '../components/Banner';
 import { useArmed, useAsync } from '../components/hooks';
 import { Poster } from '../components/Poster';
 import { Favorites } from '../components/TopFour';
@@ -42,7 +43,8 @@ export function FriendPage({ id }: { id: string }) {
 
   return (
     <div className="screen">
-      <div className="pf" style={{ marginTop: 10 }}>
+      <Banner path={p.banner} />
+      <div className={`pf${p.banner ? ' onb' : ''}`} style={p.banner ? undefined : { marginTop: 10 }}>
         <Avatar p={p} />
         <div>
           <b>{pname(p)}</b>

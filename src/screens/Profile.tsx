@@ -1,6 +1,7 @@
 // Aba Perfil: entrar ou criar conta; depois, o perfil com top 4, amigos, placar e sincronização.
 import { useState } from 'react';
 import { Avatar } from '../components/Avatar';
+import { Banner } from '../components/Banner';
 import { FriendRow } from '../components/FriendRow';
 import { useAsync } from '../components/hooks';
 import { Favorites } from '../components/TopFour';
@@ -89,8 +90,8 @@ function Account() {
   };
   return (
     <div className="screen">
-      <h1>Perfil</h1><p className="count">&nbsp;</p>
-      <div className="pf">
+      {pr.banner ? <Banner path={pr.banner} /> : <><h1>Perfil</h1><p className="count">&nbsp;</p></>}
+      <div className={`pf${pr.banner ? ' onb' : ''}`}>
         <Avatar p={pr} fallback={user.email} />
         <div>
           <b>{title}</b>
