@@ -58,8 +58,11 @@ async def main():
         await pg.click('.opt >> nth=0'); await pg.wait_for_timeout(420); await pg.click('#back'); await pg.wait_for_timeout(200)
         check('voltar retorna à pergunta anterior, com a resposta marcada',await pg.locator('.opt.on').count()==1)
         n=await quiz(); await pg.wait_for_timeout(2600)
-        check('7 perguntas até o resultado',n==7,str(n)); check('nota máxima 5',await pg.inner_text('#num')=='5',await pg.inner_text('#num'))
+        check('7 perguntas + onde viu até o resultado',n==8,str(n)); check('nota máxima 5',await pg.inner_text('#num')=='5',await pg.inner_text('#num'))
         check('salvou',await L()==['Coraline:5'],str(await L()))
+        await pg.wait_for_selector('#tkres .ticket.torn',timeout=6000); check('ingresso do cinema aparece e é rasgado','CORALINE' in (await pg.inner_text('#tkres .tktitle')).upper())
+        await pg.fill('#tkcine','Cinema São Luiz'); await pg.wait_for_timeout(150); check('cinema no ingresso','São Luiz' in await pg.inner_text('#tkres .ticket'))
+        await pg.wait_for_timeout(400); await pg.screenshot(path=os.path.join(HERE,'out-ingresso.png'))
         await pg.click('#minus'); check('ajuste de meia estrela',await pg.inner_text('#num')=='4,5' and await L()==['Coraline:4.5'])
         await pg.screenshot(path=os.path.join(HERE,'out-result.png'))
         # review
@@ -71,7 +74,7 @@ async def main():
         await pg.click('.shr .x')
         # voltar do resultado desfaz
         await pg.click('#back'); await pg.wait_for_selector('.opt'); check('voltar do resultado desfaz a nota',await L()==[],str(await L()))
-        await pg.click('.opt >> nth=2'); await pg.wait_for_timeout(2600); await pg.wait_for_selector('#num'); print('   nota refeita:',await pg.inner_text('#num'))
+        await pg.click('.opt >> nth=2'); await pg.wait_for_timeout(450); await pg.click('.opt[data-w=casa]'); await pg.wait_for_timeout(2600); await pg.wait_for_selector('#num'); check('em casa não mostra ingresso',await pg.locator('#tkres').count()==0); print('   nota refeita:',await pg.inner_text('#num'))
         await pg.click('#again'); await pg.wait_for_selector('#t'); check('avaliar outro limpa o campo',await pg.input_value('#t')=='')
         check('recentes na aba Avaliar',await pg.locator('.rc').count()==1)
         # página do filme

@@ -10,6 +10,7 @@ import { fkey, isRated, useFilms } from "../lib/films";
 import { fmt, nFriends } from "../lib/format";
 import type { Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
+import { Ticket } from "../components/Ticket";
 
 const EMPTY_PROFILE = cleanProfile({}) as ProfileData;
 
@@ -202,6 +203,7 @@ function Account() {
           <span>nota média</span>
         </div>
       </div>
+      <TicketDrawer />
       {account.social && (
         <>
           <FriendsBlock onError={setErr} />
@@ -314,5 +316,25 @@ function Board() {
         ))}
       </div>
     </div>
+  );
+}
+
+/** Gaveta de ingressos: os filmes vistos no cinema, como uma coleção de canhotos. */
+function TicketDrawer() {
+  const tickets = useFilms()
+    .filter((h) => h.w === "cine")
+    .sort((a, b) => (b.d || "").localeCompare(a.d || "") || (b.ts || 0) - (a.ts || 0));
+  if (!tickets.length) return null;
+  return (
+    <section className="drawer">
+      <div className="sech">
+        <h3>Ingressos · {tickets.length}</h3>
+      </div>
+      <div className="tkrowh">
+        {tickets.map((h) => (
+          <Ticket key={fkey(h)} film={h} torn onClick={() => nav.open({ k: "ticket", key: fkey(h) })} />
+        ))}
+      </div>
+    </section>
   );
 }

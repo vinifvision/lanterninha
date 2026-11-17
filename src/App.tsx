@@ -12,6 +12,7 @@ import { ReviewEditor } from './overlays/ReviewEditor';
 import { ReviewsPage } from './overlays/ReviewsPage';
 import { Settings } from './overlays/Settings';
 import { ShareSheet } from './overlays/ShareSheet';
+import { TicketSheet } from './overlays/TicketSheet';
 import { Tonight } from './overlays/Tonight';
 import { Credits } from './screens/Credits';
 import { FilmPage } from './screens/FilmPage';
@@ -52,6 +53,7 @@ function overlayView(o: OverlayState, i: number) {
     case 'editProfile': return <EditProfile key={i} />;
     case 'addFriend': return <AddFriend key={i} />;
     case 'settings': return <Settings key={i} />;
+    case 'ticket': return <TicketSheet key={i} filmKey={o.key} />;
     case 'tonight': return <Tonight key={i} start={o.start} />;
     case 'recommend': return <Recommend key={i} info={o.info} />;
     case 'guess': return <GuessGame key={i} friend={o.friend} films={o.films} />;

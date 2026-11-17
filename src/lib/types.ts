@@ -35,6 +35,19 @@ export interface Film {
   note?: string;
   /** Quem indicou (só na fila) */
   by?: string;
+  /** Onde viu: cinema, em casa ou outro lugar */
+  w?: Where;
+  /** Ingresso (só quando viu no cinema) */
+  tk?: Ticket;
+}
+
+export type Where = 'cine' | 'casa' | 'outro';
+
+export interface Ticket {
+  /** Nome do cinema */
+  cine?: string;
+  /** Amigos que foram junto (ids) */
+  with?: string[];
 }
 
 export type RatedFilm = Film & { s: number };

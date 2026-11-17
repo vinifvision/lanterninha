@@ -83,6 +83,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   if (rated) {
     const chips = [
       rated.c ? "Clássico" : "",
+      rated.w === "cine" ? "No cinema" : rated.w === "casa" ? "Em casa" : "",
       (rated.n || 0) > 1
         ? `↻ ${rated.n}ª vez${rated.p ? " · antes ★ " + fmt(rated.p) : ""}`
         : "",
@@ -121,6 +122,11 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
             Compartilhar
           </button>
           {canRec && recButton("Indicar")}
+          {rated.w === "cine" && (
+            <button id="tkb" onClick={() => nav.open({ k: "ticket", key })}>
+              Ingresso
+            </button>
+          )}
         </div>
       </>
     );

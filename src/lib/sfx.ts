@@ -107,6 +107,12 @@ export const sfx = {
     tone(1568, 0.6, 0.02, when + 0.4, 'triangle');
     setTimeout(() => buzz(18), when * 1000);
   },
+  /** Ingresso: o canhoto sendo rasgado no picote (papel). */
+  rip() {
+    for (let k = 0; k < 9; k++) noise(0.03, 0.09 + 0.02 * Math.sin(k), 2600 - k * 170, k * 0.022);
+    noise(0.06, 0.08, 900, 0.21);
+    buzz(10);
+  },
   /** Brilho final para notas altas. */
   fanfare(when: number) { [1046.5, 1318.5, 1568].forEach((f, k) => tone(f, 0.7, 0.035, when + k * 0.07)); },
 };

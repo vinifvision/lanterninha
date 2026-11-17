@@ -3602,3 +3602,50 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .tncard2 .row2{display:flex;gap:10px;margin-top:10px}
 .tncard2 .row2 .cta{flex:1}
 .tncard2 .ghost2{background:rgba(255,255,255,.08);color:var(--text)}
+
+/* ---------- Ingresso de cinema */
+.ticket{position:relative;display:flex;width:100%;max-width:340px;margin:0 auto;padding:0;border:none;text-align:left;font:inherit;color:#2a1d10;
+  filter:drop-shadow(0 14px 26px rgba(0,0,0,.45))}
+.tmain,.tstub{position:relative;background:#f3e3bd;
+  background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.35),transparent 40%),repeating-linear-gradient(0deg,rgba(120,80,30,.035) 0 2px,transparent 2px 4px)}
+/* Picote: meias-luas em cima e embaixo e a linha pontilhada entre o ingresso e o canhoto */
+.tmain{flex:1;min-width:0;padding:16px 16px 14px 18px;border-radius:12px 4px 4px 12px;
+  -webkit-mask:radial-gradient(circle at 100% 0,transparent 9px,#000 9.5px) top/100% 51% no-repeat,radial-gradient(circle at 100% 100%,transparent 9px,#000 9.5px) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle at 100% 0,transparent 9px,#000 9.5px) top/100% 51% no-repeat,radial-gradient(circle at 100% 100%,transparent 9px,#000 9.5px) bottom/100% 51% no-repeat}
+.tstub{flex:none;width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 6px;border-radius:4px 12px 12px 4px;border-left:2px dashed rgba(90,60,25,.35);
+  -webkit-mask:radial-gradient(circle at 0 0,transparent 9px,#000 9.5px) top/100% 51% no-repeat,radial-gradient(circle at 0 100%,transparent 9px,#000 9.5px) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle at 0 0,transparent 9px,#000 9.5px) top/100% 51% no-repeat,radial-gradient(circle at 0 100%,transparent 9px,#000 9.5px) bottom/100% 51% no-repeat;
+  transition:transform .55s cubic-bezier(.3,1.4,.5,1)}
+.tk1{display:block;font-size:9.5px;font-weight:800;letter-spacing:1.3px;white-space:nowrap;text-transform:uppercase;color:#b4472a}
+.tktitle{display:block;margin:6px 0 10px;font-size:21px;font-weight:800;line-height:1.08;letter-spacing:-.4px;text-transform:uppercase;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tkrow{display:flex;gap:16px}
+.tkrow>div{min-width:0}
+.tmain small{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(42,29,16,.55)}
+.tmain span{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tkwith{margin-top:8px}
+.tkno{font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,29,16,.6);writing-mode:vertical-rl;transform:rotate(180deg);position:absolute;left:8px;top:12px;bottom:12px;text-align:center}
+.tstub b{font-size:17px;font-weight:800;color:#b4472a;margin-left:10px}
+.tstub small{font-size:11px;font-weight:600;color:rgba(42,29,16,.6);margin-left:10px}
+/* O canhoto destacado: desce e gira um pouco, como se tivesse sido rasgado na entrada da sala */
+.ticket.torn .tstub{transform:translate(10px,6px) rotate(7deg)}
+.tkwrap{padding:4px 12px 14px}
+.tkwrap.in{animation:tkin .7s cubic-bezier(.2,.9,.3,1.15) both}
+@keyframes tkin{from{opacity:0;transform:translateY(40px) rotate(-4deg) scale(.92)}}
+.tkwrap.rip .tmain{animation:tkshake .35s ease-out}
+@keyframes tkshake{30%{transform:translateX(-4px) rotate(-.6deg)}60%{transform:translateX(2px)}}
+.tkres{width:100%;margin:18px 0 6px}
+.tkhint{margin:0 0 10px;text-align:center;font-size:13px;font-weight:600;color:var(--gold);animation:fade .5s both}
+.tked{width:100%;text-align:left;margin-top:6px}
+.tked input{margin-bottom:12px}
+.tkfr{display:flex;flex-wrap:wrap;gap:8px}
+.tkfr button{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 5px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:none;color:var(--text);font:inherit;font-size:13px;transition:background .2s,border-color .2s}
+.tkfr button .av{width:26px;height:26px;font-size:11px}
+.tkfr button.on{background:rgba(227,180,104,.18);border-color:var(--gold)}
+/* Gaveta de ingressos no perfil */
+.drawer{margin:0 0 30px}
+.tkrowh{display:flex;gap:14px;overflow-x:auto;margin:0 -22px;padding:4px 22px 18px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.tkrowh::-webkit-scrollbar{display:none}
+.tkrowh .ticket{flex:none;width:270px;scroll-snap-align:start;transition:transform .15s}
+.tkrowh .ticket:active{transform:scale(.97)}
+.tkrowh .tktitle{font-size:17px}
+@media (min-width:900px){.tkrowh{margin:0;padding:4px 0 18px}}

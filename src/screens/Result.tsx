@@ -4,6 +4,8 @@ import { ShareIcon } from '../components/icons';
 import { Poster } from '../components/Poster';
 import { Stars } from '../components/Stars';
 import { WhenRow } from '../components/WhenRow';
+import { Ticket } from '../components/Ticket';
+import { TicketEditor } from '../components/TicketEditor';
 import { cloud } from '../lib/cloud';
 import { films, fkey, isRated, useFilms } from '../lib/films';
 import { clamp, fmt, LABELS } from '../lib/format';
@@ -26,6 +28,7 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
   const [shown, setShown] = useState(calm ? base : 0);   // número que conta até a nota
   const [revealed, setRevealed] = useState(calm);
   const [touched, setTouched] = useState(false);          // a pessoa já ajustou a nota
+  const [ticket, setTicket] = useState<'off' | 'in' | 'torn'>('off'); // ingresso: aparece e depois o canhoto é rasgado
 
   // Projetor, sons e contagem: só uma vez, quando a tela abre
   useEffect(() => {
@@ -47,6 +50,12 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
     }
     for (let i = 0; i < Math.ceil(base); i++) sfx.star(i, (T0 + i * GAP) / 1000, base - i < 1);
     if (base >= 4.5) sfx.fanfare((T0 + 5 * GAP) / 1000);
+    // Visto no cinema: depois da nota, entra o ingresso e o canhoto é destacado
+    if (found?.w === 'cine') {
+      const at = T0 + 5 * GAP + (calm ? 100 : 700);
+      timers.push(setTimeout(() => setTicket('in'), at));
+      timers.push(setTimeout(() => { setTicket('torn'); sfx.rip(); }, at + (calm ? 100 : 1100)));
+    }
     return () => { timers.forEach(clearTimeout); proj?.remove(); cloud.setPaused(false); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -98,6 +107,13 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
               : <>Escrever review<span>opcional</span></>}
           </button>
         </div>
+        {film.w === 'cine' && ticket !== 'off' && (
+          <div className="tkres" id="tkres">
+            <p className="tkhint">{ticket === 'torn' ? 'Ingresso guardado na sua gaveta' : '\u00a0'}</p>
+            <div className={`tkwrap in${ticket === 'torn' ? ' rip' : ''}`}><Ticket film={film} torn={ticket === 'torn'} /></div>
+            {ticket === 'torn' && <TicketEditor film={film} />}
+          </div>
+        )}
         <button className="share" id="shr" onClick={() => nav.open({ k: 'share', key: filmKey })}><ShareIcon />Compartilhar</button>
         <button className="cta" id="again" onClick={() => { clearRateDraft(); nav.tab('rate'); }}>Avaliar outro filme</button>
       </div>

@@ -1,7 +1,7 @@
 // Guarda os filmes no aparelho (localStorage) e avisa a interface quando algo muda.
 import { useSyncExternalStore } from 'react';
-import { POSTER_PATH, today } from './format';
-import type { Film, FilmInfo, FilmState, RatedFilm } from './types';
+import { POSTER_PATH, today, UUID } from './format';
+import type { Film, FilmInfo, FilmState, RatedFilm, Ticket } from './types';
 
 const KEY = 'notaFilmeV2';
 
@@ -24,6 +24,16 @@ export function cleanFilm(x: unknown): Film | null {
   if (typeof r.col === 'string' && /^#[0-9a-f]{6}$/.test(r.col)) e.col = r.col;
   if (typeof r.ts === 'number' && r.ts > 0) e.ts = Math.round(r.ts);
   if (typeof r.note === 'string' && r.note.trim()) e.note = r.note.trim().slice(0, 5000);
+  if (r.w === 'cine' || r.w === 'casa' || r.w === 'outro') e.w = r.w;
+  if (e.w === 'cine' && r.tk && typeof r.tk === 'object') {
+    const t = r.tk as Record<string, unknown>, tk: Ticket = {};
+    if (typeof t.cine === 'string' && t.cine.trim()) tk.cine = t.cine.trim().slice(0, 60);
+    if (Array.isArray(t.with)) {
+      const w = t.with.filter((x): x is string => typeof x === 'string' && UUID.test(x)).slice(0, 12);
+      if (w.length) tk.with = w;
+    }
+    if (tk.cine || tk.with) e.tk = tk;
+  }
   return e;
 }
 
