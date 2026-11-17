@@ -3,7 +3,7 @@ import { API_BASE, IMG } from './config';
 import { POSTER_PATH } from './format';
 import type { MovieDetails, SearchResult } from './types';
 
-export const posterUrl = (path: string, size: 'w92' | 'w185' | 'w342' | 'w780' | 'h632' = 'w185') => IMG + size + path;
+export const posterUrl = (path: string, size: 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'h632' = 'w185') => IMG + size + path;
 /** Pôster servido pelo próprio site, para poder ser desenhado na imagem de compartilhar. */
 export const proxiedPoster = (path: string, size: 'w342' | 'w500' = 'w500') =>
   `${API_BASE}api/img?size=${size}&path=${encodeURIComponent(path)}`;

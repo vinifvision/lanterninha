@@ -115,7 +115,9 @@ export function Tonight({ start }: { start?: Mode }) {
         <div
           className="reelstrip"
           style={{ transform: `translateX(${x}px)`, transition: moving ? `transform ${DUR}s cubic-bezier(${EASE.join(',')})` : 'none' }}
-          onTransitionEnd={() => { if (phase !== 'spinning') return; sfx.reelLand(); setPhase('landing'); setTimeout(() => setPhase((ph) => (ph === 'landing' ? 'done' : ph)), calm ? 200 : 900); }}
+          onTransitionEnd={(e) => {
+            // Só vale o fim do giro da própria tira (os pôsteres dentro dela também têm animações)
+            if (e.target !== e.currentTarget || e.propertyName !== 'transform' || phase !== 'spinning') return; sfx.reelLand(); setPhase('landing'); setTimeout(() => setPhase((ph) => (ph === 'landing' ? 'done' : ph)), calm ? 200 : 900); }}
         >
           {reel.map((p, i) => (
             <span className={`rf${i === LAND && landed ? ' win' : ''}`} key={i}><Poster img={p.info.img} title={p.info.t} /></span>
