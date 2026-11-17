@@ -190,6 +190,8 @@ async def main():
         await pg.wait_for_timeout(1200); before=sorted(await L()); await pg.evaluate("localStorage.removeItem('notaFilmeV2');localStorage.removeItem('lantSynced')"); await pg.reload(); await pg.wait_for_timeout(1800)
         check('filmes voltam da conta (sem importar os do amigo)',sorted(await L())==before,str(await L())+' vs '+str(before))
         await tab('prof'); await pg.wait_for_selector('#ped'); await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-perfil.png'))
+        nv=len([x for x in await L() if ':want' not in x]); check('perfil conta todos os vistos',(await pg.inner_text('#pfn b')).strip()==str(nv),await pg.inner_text('#pfn')+' vs '+str(nv))
+        await pg.click('#pfn'); await pg.wait_for_selector('.seg button[data-t=watched].on'); check('número do perfil abre Meus filmes',True); await tab('prof'); await pg.wait_for_selector('#ped')
         check('perfil não mostra o e-mail','a@x.com' not in await pg.inner_text('#stage'))
         await pg.click('#cfg'); await pg.wait_for_selector('#cfmail'); check('e-mail fica nas configurações',await pg.inner_text('#cfmail')=='a@x.com'); await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-config.png'),full_page=True); await pg.click('#cfx')
         # aviso de versão nova (simula um APK antigo)
