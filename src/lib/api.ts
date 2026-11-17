@@ -112,6 +112,21 @@ export function movieRatings(id: number): Promise<Ratings> {
   return p;
 }
 
+const childhoodCache = new Map<string, Promise<SearchResult[]>>();
+/** Filmes de sucesso de um período (para o Baú da infância). */
+export function childhoodFilms(from: number, to: number): Promise<SearchResult[]> {
+  const key = from + '-' + to;
+  let p = childhoodCache.get(key);
+  if (!p) {
+    p = fetch(`${API_BASE}api/childhood?from=${from}&to=${to}`)
+      .then((r) => { if (!r.ok) throw new Error('baú indisponível'); return r.json(); })
+      .then(cleanResults);
+    childhoodCache.set(key, p);
+    p.catch(() => childhoodCache.delete(key));
+  }
+  return p;
+}
+
 export interface Credits {
   key: { name: string; photo: string; role: string }[];
   cast: { name: string; character: string; photo: string }[];

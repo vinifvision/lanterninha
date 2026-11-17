@@ -113,6 +113,14 @@ export const sfx = {
     noise(0.06, 0.08, 900, 0.21);
     buzz(10);
   },
+  /** Baú da infância: um cartão saindo (já vi sobe a nota, não vi desce, não lembro fica no meio). */
+  swipe(kind: 'seen' | 'no' | 'idk') {
+    noise(0.08, 0.06, kind === 'idk' ? 1800 : 1200);
+    if (kind === 'seen') { tone(659.25, 0.18, 0.06, 0.02); tone(987.77, 0.22, 0.05, 0.08); }
+    else if (kind === 'no') tone(330, 0.14, 0.04, 0.02, 'triangle');
+    else tone(523.25, 0.16, 0.035, 0.02, 'triangle');
+    buzz(kind === 'seen' ? 12 : 6);
+  },
   /** Brilho final para notas altas. */
   fanfare(when: number) { [1046.5, 1318.5, 1568].forEach((f, k) => tone(f, 0.7, 0.035, when + k * 0.07)); },
 };

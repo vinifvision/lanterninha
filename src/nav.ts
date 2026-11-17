@@ -8,6 +8,7 @@ export type Screen =
   | { k: 'film'; info: FilmInfo }
   | { k: 'friend'; id: string }
   | { k: 'credits'; info: FilmInfo }
+  | { k: 'chest' }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[] }
   | { k: 'result'; info: FilmInfo; key: string; base: number; classic: boolean; rewatch: RatedFilm | null; replaced: Film | null; answers: number[] };
 
@@ -19,6 +20,7 @@ export type Overlay =
   | { k: 'addFriend' }
   | { k: 'settings' }
   | { k: 'ticket'; key: string }
+  | { k: 'chestDeck' }
   | { k: 'tonight'; start?: 'queue' | 'taste' }
   | { k: 'recommend'; info: FilmInfo }
   | { k: 'guess'; friend: Profile; films: RatedFilm[] };

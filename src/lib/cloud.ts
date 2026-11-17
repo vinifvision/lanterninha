@@ -196,11 +196,12 @@ async function loadFriends(): Promise<void> {
   emit();
 }
 
-async function onAuth(sessionUser: { id: string; email?: string } | null) {
+async function onAuth(sessionUser: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
   const u: CloudUser | null = sessionUser ? { id: sessionUser.id, email: sessionUser.email || '' } : null;
   if ((u?.id || null) === (user?.id || null)) return;
   user = u; profile = null; friends = emptyFriends(); recs = []; social = false;
   if (!u || !sb) { sync = 'off'; emit(); return; }
+  chest.fromAccount(sessionUser?.user_metadata);
   emit();
   try {
     // Tenta do banco mais novo para o mais antigo, para o app funcionar mesmo sem os scripts mais recentes
@@ -345,6 +346,16 @@ export const cloud = {
       return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     } catch { return null; }
   },
+  /** Chaves dos filmes que um amigo marcou pelo Baú da infância. */
+  async friendChestKeys(id: string): Promise<Set<string>> {
+    const out = new Set<string>();
+    if (!sb || !UUID.test(id)) return out;
+    try {
+      const { data, error } = await sb.from('films').select('key,data').eq('user_id', id).eq('data->>b', '1');
+      if (!error) (data || []).forEach((r) => { const c = cleanFilm(r.data); if (c?.b) out.add(r.key as string); });
+    } catch { /* sem dados */ }
+    return out;
+  },
   /** As avaliações mais recentes dos amigos, da mais nova para a mais antiga. */
   async friendsActivity(limit = 30): Promise<FriendRating[]> {
     if (!sb || !user || !friends.list.length) return [];
@@ -449,4 +460,57 @@ export const cloud = {
 /** Hook: estado da conta (usuário, perfil, amigos, indicações, sincronização). */
 export function useCloud(): CloudState {
   return useSyncExternalStore(cloud.subscribe, () => snapshot);
+}
+
+// ---------- Baú da infância: ano de nascimento e o que a pessoa já respondeu ("não vi", "não lembro").
+// Fica no aparelho e, com conta, nos dados privados da conta (não aparece no perfil para ninguém).
+const CHEST = 'lantBau';
+interface ChestData { born?: number; no: number[]; idk: number[]; hint?: 1 }
+let chestData: ChestData = { no: [], idk: [] };
+try { const raw = JSON.parse(localStorage.getItem(CHEST) || 'null'); if (raw) chestData = cleanChest(raw); } catch { /* começa vazio */ }
+const chestListeners = new Set<() => void>();
+let chestTimer: ReturnType<typeof setTimeout> | undefined;
+
+function cleanChest(r: Record<string, unknown>): ChestData {
+  const ids = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is number => Number.isInteger(x)).slice(0, 2000) : []);
+  const now = new Date().getFullYear();
+  const born = Number(r.born);
+  return { born: born >= 1930 && born <= now - 4 ? born : undefined, no: ids(r.no), idk: ids(r.idk), hint: r.hint ? 1 : undefined };
+}
+function chestSave(toAccount = true) {
+  chestData = { ...chestData };
+  try { localStorage.setItem(CHEST, JSON.stringify(chestData)); } catch { /* ok */ }
+  chestListeners.forEach((l) => l());
+  if (!toAccount || !sb || !user) return;
+  clearTimeout(chestTimer);
+  chestTimer = setTimeout(() => { void sb?.auth.updateUser({ data: { bau: chestData } }).catch(() => undefined); }, 1500);
+}
+
+export const chest = {
+  get data() { return chestData; },
+  subscribe(fn: () => void) { chestListeners.add(fn); return () => { chestListeners.delete(fn); }; },
+  setBorn(year: number) { chestData.born = year; chestSave(); },
+  answer(id: number, kind: 'no' | 'idk') {
+    chestData.no = chestData.no.filter((x) => x !== id);
+    chestData.idk = chestData.idk.filter((x) => x !== id);
+    chestData[kind].push(id);
+    chestSave();
+  },
+  dismissHint() { chestData.hint = 1; chestSave(); },
+  /** Ao entrar na conta, junta o que está salvo nela com o que está no aparelho. */
+  fromAccount(meta?: Record<string, unknown>) {
+    const raw = meta && typeof meta.bau === 'object' && meta.bau ? cleanChest(meta.bau as Record<string, unknown>) : null;
+    if (!raw) { if (chestData.born) chestSave(); return; }
+    chestData = {
+      born: chestData.born || raw.born,
+      no: [...new Set([...raw.no, ...chestData.no])],
+      idk: [...new Set([...raw.idk, ...chestData.idk])],
+      hint: chestData.hint || raw.hint,
+    };
+    chestSave(false);
+  },
+};
+
+export function useChest(): ChestData {
+  return useSyncExternalStore(chest.subscribe, () => chestData);
 }

@@ -8,7 +8,7 @@ window.supabase={createClient(){
   const hasLink=(d,a,b)=>d.friendships.some(f=>(f.requester===a&&f.addressee===b)||(f.requester===b&&f.addressee===a));
   const q=(table)=>{ const st={op:'select',f:[],single:false};
     const run=async()=>{ const d=db(), me=d.session&&d.session.user.id; if(!me) return {data:st.single?null:[],error:{message:'no session'}};
-      const match=r=>st.f.every(([t,k,v])=>t==='eq'?r[k]===v:t==='neq'?r[k]!==v:t==='in'?v.includes(r[k]):true);
+      const val=(r,k)=>k.includes('->>')?String((r[k.split('->>')[0]]||{})[k.split('->>')[1]]??''):r[k]; const match=r=>st.f.every(([t,k,v])=>t==='eq'?val(r,k)===v:t==='neq'?r[k]!==v:t==='in'?v.includes(r[k]):true);
       if(table==='profiles'){
         if(st.op==='update'){ const u=Object.values(d.users).find(x=>x.id===me); u.prof=Object.assign(u.prof||{},st.patch); save(d); return {error:null}; }
         const rows=Object.values(d.users).filter(u=>u.id===me||hasLink(d,me,u.id)).map(profRow).filter(match); return {data:st.single?(rows[0]||null):rows,error:null}; }
@@ -44,6 +44,7 @@ window.supabase={createClient(){
       return {error:{message:'no rpc'}}; },
     auth:{ onAuthStateChange(f){cb=f; setTimeout(fire,0); return {data:{subscription:{unsubscribe(){}}}}},
       async signUp({email,password,options}){ const d=db(); if(d.users[email]) return {data:{},error:{message:'User already registered'}}; const user={id:uid(Object.keys(d.users).length+1),email}; d.users[email]={...user,password,username:options.data.username}; d.session={user}; save(d); fire(); return {data:{user,session:d.session},error:null}; },
-      async signInWithPassword({email,password}){ const d=db(), u=d.users[email]; if(!u||u.password!==password) return {error:{message:'Invalid login credentials'}}; d.session={user:{id:u.id,email}}; save(d); fire(); return {data:{session:d.session},error:null}; },
+      async signInWithPassword({email,password}){ const d=db(), u=d.users[email]; if(!u||u.password!==password) return {error:{message:'Invalid login credentials'}}; d.session={user:{id:u.id,email,user_metadata:u.meta||{}}}; save(d); fire(); return {data:{session:d.session},error:null}; },
+      async updateUser({data}){ const d=db(); if(!d.session) return {error:{message:'sem sessão'}}; const u=Object.values(d.users).find(x=>x.id===d.session.user.id); u.meta={...(u.meta||{}),...data}; d.session.user.user_metadata=u.meta; save(d); return {data:{user:d.session.user},error:null}; },
       async signOut(){ const d=db(); d.session=null; save(d); fire(); return {error:null}; } } };
 }};

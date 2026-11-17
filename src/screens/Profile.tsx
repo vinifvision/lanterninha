@@ -11,6 +11,7 @@ import { fmt, nFriends } from "../lib/format";
 import type { Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
 import { Ticket } from "../components/Ticket";
+import { ChestIcon } from "../components/icons";
 
 const EMPTY_PROFILE = cleanProfile({}) as ProfileData;
 
@@ -146,6 +147,7 @@ function Account() {
   const user = account.user!;
   const pr = account.profile || EMPTY_PROFILE;
   const rated = all.filter(isRated);
+  const chestN = all.filter((h) => h.b).length;
   const avg = rated.length
     ? rated.reduce((a, h) => a + h.s, 0) / rated.length
     : 0;
@@ -203,6 +205,14 @@ function Account() {
           <span>nota média</span>
         </div>
       </div>
+      <button className="chrow" id="chprof" onClick={() => nav.push({ k: "chest" })}>
+        <ChestIcon />
+        <span>
+          <b>Baú da infância</b>
+          <small>{chestN ? `${chestN} ${chestN === 1 ? "filme lembrado" : "filmes lembrados"}` : "Relembre os filmes da sua infância"}</small>
+        </span>
+        <i>›</i>
+      </button>
       <TicketDrawer />
       {account.social && (
         <>
