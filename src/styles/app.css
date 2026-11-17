@@ -1372,8 +1372,13 @@ body.tinted::after {
   gap: 10px;
   margin-bottom: 26px;
 }
-.stat div {
+.stat div,
+.stat button {
   flex: 1;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   background: var(--card);
   border-radius: 16px;
   padding: 16px;

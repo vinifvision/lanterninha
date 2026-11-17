@@ -7,6 +7,7 @@ import { useAsync } from "../components/hooks";
 import { Favorites } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
 import { fkey, isRated, useFilms } from "../lib/films";
+import { resetLibraryView } from "./Library";
 import { fmt, nFriends } from "../lib/format";
 import type { Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
@@ -148,6 +149,8 @@ function Account() {
   const pr = account.profile || EMPTY_PROFILE;
   const rated = all.filter(isRated);
   const chestN = all.filter((h) => h.b).length;
+  // Todos os assistidos: os avaliados e os marcados como "Já vi" sem nota
+  const watched = all.filter((h) => h.st !== "want").length;
   const avg = rated.length
     ? rated.reduce((a, h) => a + h.s, 0) / rated.length
     : 0;
@@ -196,10 +199,10 @@ function Account() {
         </>
       )}
       <div className="stat">
-        <div>
-          <b>{rated.length}</b>
-          <span>{rated.length === 1 ? "filme" : "filmes"}</span>
-        </div>
+        <button type="button" id="pfn" onClick={() => { resetLibraryView(); nav.tab("lib"); }}>
+          <b>{watched}</b>
+          <span>{watched === 1 ? "filme visto" : "filmes vistos"}</span>
+        </button>
         <div>
           <b>{rated.length ? fmt(Math.round(avg * 10) / 10) : "–"}</b>
           <span>nota média</span>
