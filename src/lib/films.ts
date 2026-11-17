@@ -132,6 +132,24 @@ export const films = {
     return e;
   },
 
+  /** O amigo confirmou que viu junto: o filme entra como visto no cinema (a nota, se houver, fica como está). */
+  fromTag(info: FilmInfo, cine: string, seen: string): Film {
+    let cur = films.find(info);
+    if (!cur || cur.st === 'want') {
+      const e: Film = { t: info.t, st: 'seen', c: false, ts: Date.now() };
+      if (info.id) { e.id = info.id; if (info.y) e.y = info.y; if (info.o) e.o = info.o; if (info.img) e.img = info.img; }
+      const old = cur;
+      hist = hist.filter((h) => h !== old);
+      hist.unshift(e);
+      cur = e;
+    }
+    cur.w = 'cine';
+    if (cine && !cur.tk?.cine) cur.tk = { ...cur.tk, cine };
+    if (seen && !cur.d) cur.d = seen;
+    films.save();
+    return cur;
+  },
+
   /** Junta um backup aos filmes atuais. Devolve quantos entraram e quantos foram atualizados. */
   merge(incoming: Film[]): { added: number; updated: number } {
     let added = 0, updated = 0;

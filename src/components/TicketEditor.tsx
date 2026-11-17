@@ -1,8 +1,8 @@
 // Campos do ingresso: o cinema (o app lembra o último usado) e os amigos que foram junto. Tudo opcional.
 import { useState } from 'react';
 import { nearbyCinemas, type Cinema } from '../lib/api';
-import { useCloud } from '../lib/cloud';
-import { films, useFilms } from '../lib/films';
+import { cloud, useCloud } from '../lib/cloud';
+import { films, fkey, useFilms } from '../lib/films';
 import { pname } from '../lib/format';
 import type { Film } from '../lib/types';
 import { Avatar } from './Avatar';
@@ -12,7 +12,8 @@ export const lastCinema = () => { try { return localStorage.getItem(LAST) || '';
 
 export function TicketEditor({ film }: { film: Film }) {
   const all = useFilms();
-  const { friends } = useCloud();
+  const { friends, sent, withMe } = useCloud();
+  const key = fkey(film);
   const tk = film.tk || {};
   // Cinemas já usados em outros ingressos, para sugerir enquanto digita
   const known = [...new Set(all.map((h) => h.tk?.cine).filter((c): c is string => !!c))].slice(0, 20);
@@ -31,6 +32,7 @@ export function TicketEditor({ film }: { film: Film }) {
   const toggle = (id: string) => {
     const w = tk.with || [];
     update({ with: w.includes(id) ? w.filter((x) => x !== id) : [...w, id] });
+    cloud.syncTags();
   };
 
   return (
@@ -41,11 +43,13 @@ export function TicketEditor({ film }: { film: Film }) {
       <NearbyCinemas onPick={setCine} />
       {friends.list.length > 0 && (
         <>
-          <span className="lbl">Quem foi junto</span>
+          <span className="lbl">Quem foi junto <em className="lblhint">· a pessoa confirma</em></span>
           <div className="tkfr">
             {friends.list.map((p) => (
-              <button key={p.id} type="button" className={(tk.with || []).includes(p.id!) ? 'on' : ''} data-f={p.id} onClick={() => toggle(p.id!)}>
+              <button key={p.id} type="button" className={(tk.with || []).includes(p.id!) || withMe[key]?.includes(p.id!) ? 'on' : ''} data-f={p.id}
+                disabled={withMe[key]?.includes(p.id!)} onClick={() => toggle(p.id!)}>
                 <Avatar p={p} /><span>{pname(p)}</span>
+                <TagState s={withMe[key]?.includes(p.id!) ? 'tagged' : (tk.with || []).includes(p.id!) ? sent[key]?.[p.id!] : undefined} />
               </button>
             ))}
           </div>
@@ -53,6 +57,12 @@ export function TicketEditor({ film }: { film: Film }) {
       )}
     </div>
   );
+}
+
+/** A resposta do amigo marcado, embaixo do nome dele. */
+function TagState({ s }: { s?: 'pending' | 'accepted' | 'declined' | 'tagged' }) {
+  if (!s) return null;
+  return <small className={`tgst ${s}`}>{s === 'tagged' ? 'marcou você' : s === 'accepted' ? '✓ confirmou' : s === 'declined' ? 'não foi' : 'aguardando'}</small>;
 }
 
 /** "Cinemas perto de mim": pede a localização uma vez e lista os cinemas reais por perto. */

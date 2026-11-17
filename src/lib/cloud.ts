@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { SUPABASE_KEY, SUPABASE_URL } from './config';
 import { cleanFilm, fhash, films, fkey, isRated } from './films';
 import { pname, POSTER_PATH, UUID } from './format';
-import type { Film, FilmInfo, FriendRating, Friends, Profile, RatedFilm, Rec, TopItem } from './types';
+import type { CineTag, Film, FilmInfo, FriendRating, Friends, Profile, RatedFilm, Rec, TagStatus, TopItem } from './types';
 
 export type SyncState = 'off' | 'busy' | 'ok' | 'err';
 export interface CloudUser { id: string; email: string }
@@ -21,6 +21,12 @@ export interface CloudState {
   social: boolean;
   friends: Friends;
   recs: Rec[];
+  /** Avisos de ingresso esperando resposta ("Fulano disse que vocês viram X juntos") */
+  tags: CineTag[];
+  /** O que cada amigo marcado no meu ingresso respondeu: filme → amigo → resposta */
+  sent: Record<string, Record<string, TagStatus>>;
+  /** Amigos que me marcaram e eu confirmei: filme → ids */
+  withMe: Record<string, string[]>;
   sync: SyncState;
 }
 export interface BoardRow { p: Profile; me: boolean; pts: number; n: number }
@@ -59,6 +65,7 @@ let profile: Profile | null = null;
 let extended = false, social = false, banners = false;
 let friends: Friends = emptyFriends();
 let recs: Rec[] = [];
+let tags: CineTag[] = [], sent: CloudState['sent'] = {}, withMe: CloudState['withMe'] = {}, tagsOk = false;
 let sync: SyncState = 'off';
 let timer: ReturnType<typeof setTimeout> | undefined;
 let busy = false, again = false, lastPull = 0, paused = false;
@@ -70,10 +77,10 @@ let synced: Record<string, string> = lsGet('lantSynced', {});
 let owner: string | null = lsGet<string | null>('lantOwner', null);
 const keep = () => { lsSet('lantSynced', synced); lsSet('lantOwner', owner); };
 
-let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, sync };
+let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync };
 const listeners = new Set<() => void>();
 function emit() {
-  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, sync };
+  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync };
   listeners.forEach((l) => l());
 }
 const setSync = (s: SyncState) => { sync = s; emit(); };
@@ -190,16 +197,88 @@ async function loadFriends(): Promise<void> {
     } catch {
       recs = [];
     }
+    await loadTags();
   } catch {
     social = false;
   }
   emit();
+  void syncTags();
 }
+
+// ---------- ingresso com amigos ("Amigo confirma"). Precisa do script supabase-ingressos.sql.
+async function loadTags(): Promise<void> {
+  if (!sb || !user) return;
+  try {
+    const { data, error } = await sb.from('cine_tags').select('id,from_id,to_id,film_key,film,cine,seen,status');
+    if (error) throw error;
+    tagsOk = true;
+    const me = user.id, str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+    const s: CloudState['sent'] = {}, w: CloudState['withMe'] = {}, inc: CineTag[] = [];
+    (data || []).forEach((r) => {
+      const key = str(r.film_key, 40), st = r.status as TagStatus;
+      if (!key || !['pending', 'accepted', 'declined'].includes(st)) return;
+      if (r.from_id === me) { (s[key] ||= {})[r.to_id as string] = st; return; }
+      if (r.to_id !== me) return;
+      if (st === 'accepted') { (w[key] ||= []).push(r.from_id as string); return; }
+      if (st !== 'pending') return;
+      const p = friends.list.find((x) => x.id === r.from_id);
+      const f = cleanFilm({ ...(r.film as object), st: 'seen' });
+      const seen = str(r.seen, 10);
+      if (!p || !f || !Number.isInteger(r.id)) return;
+      const info: FilmInfo = { t: f.t };
+      if (f.id) { info.id = f.id; if (f.y) info.y = f.y; if (f.o) info.o = f.o; if (f.img) info.img = f.img; }
+      inc.push({ id: r.id as number, p, film: info, cine: str(r.cine, 60), seen: /^\d{4}-\d{2}-\d{2}$/.test(seen) ? seen : '' });
+    });
+    tags = inc; sent = s; withMe = w;
+  } catch {
+    tagsOk = false; tags = []; sent = {}; withMe = {};
+  }
+}
+
+let tagBusy = false, tagAgain = false;
+/** Deixa os avisos enviados iguais aos amigos marcados nos ingressos: manda os novos e apaga os desmarcados. */
+async function syncTags(): Promise<void> {
+  if (!sb || !user || !tagsOk) return;
+  if (tagBusy) { tagAgain = true; return; }
+  tagBusy = true;
+  try {
+    let changed = false;
+    const friendIds = new Set(friends.list.map((p) => p.id));
+    const local = new Map(films.all.map((h) => [fkey(h), h] as const));
+    for (const h of films.all) {
+      if (h.w !== 'cine' || !h.tk?.with?.length) continue;
+      const key = fkey(h);
+      for (const id of h.tk.with) {
+        // Não manda de volta para quem me marcou nesse filme
+        if (!friendIds.has(id) || sent[key]?.[id] || withMe[key]?.includes(id)) continue;
+        const info: FilmInfo = { t: h.t };
+        if (h.id) { info.id = h.id; if (h.y) info.y = h.y; if (h.o) info.o = h.o; if (h.img) info.img = h.img; }
+        const { error } = await sb.from('cine_tags').insert({ to_id: id, film_key: key, film: info, cine: h.tk.cine || null, seen: h.d || null });
+        if (!error || error.code === '23505') changed = true;
+      }
+    }
+    // Só apaga quando o filme está no aparelho (num aparelho novo, os filmes ainda podem estar chegando)
+    for (const [key, who] of Object.entries(sent)) {
+      const h = local.get(key);
+      if (!h) continue;
+      for (const id of Object.keys(who)) {
+        if (h.w === 'cine' && h.tk?.with?.includes(id)) continue;
+        await sb.from('cine_tags').delete().eq('from_id', user.id).eq('to_id', id).eq('film_key', key);
+        changed = true;
+      }
+    }
+    if (changed) { await loadTags(); emit(); }
+  } catch { /* tenta de novo na próxima mudança */ }
+  tagBusy = false;
+  if (tagAgain) { tagAgain = false; void syncTags(); }
+}
+let tagTimer: ReturnType<typeof setTimeout> | undefined;
 
 async function onAuth(sessionUser: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
   const u: CloudUser | null = sessionUser ? { id: sessionUser.id, email: sessionUser.email || '' } : null;
   if ((u?.id || null) === (user?.id || null)) return;
   user = u; profile = null; friends = emptyFriends(); recs = []; social = false;
+  tags = []; sent = {}; withMe = {}; tagsOk = false;
   if (!u || !sb) { sync = 'off'; emit(); return; }
   chest.fromAccount(sessionUser?.user_metadata);
   emit();
@@ -423,6 +502,21 @@ export const cloud = {
       if (!error || error.code === '23505' || /duplicate|unique/i.test(error.message || '')) ok++;
     }
     return ok ? '' : 'Não consegui enviar agora.';
+  },
+  /** Chamado quando a pessoa marca ou desmarca amigos no ingresso. Espera um pouco para juntar os toques. */
+  syncTags() { clearTimeout(tagTimer); tagTimer = setTimeout(() => void syncTags(), 900); },
+  /** Responde ao aviso de ingresso. Devolve o filme quando a pessoa confirma. */
+  async answerTag(tag: CineTag, ok: boolean): Promise<Film | null> {
+    tags = tags.filter((t) => t.id !== tag.id);
+    let film: Film | null = null;
+    if (ok) {
+      film = films.fromTag(tag.film, tag.cine, tag.seen);
+      const key = fkey(film);
+      if (tag.p.id) withMe = { ...withMe, [key]: [...(withMe[key] || []), tag.p.id] };
+    }
+    emit();
+    try { await sb?.rpc('answer_cine_tag', { tag_id: tag.id, ok }); } catch { /* o aviso volta na próxima carga */ }
+    return film;
   },
   async dropRec(id: number): Promise<void> {
     recs = recs.filter((r) => r.id !== id); emit();

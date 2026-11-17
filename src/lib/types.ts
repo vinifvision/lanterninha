@@ -87,6 +87,10 @@ export interface Friends {
   outgoing: Profile[];
 }
 
+/** Aviso de ingresso: um amigo disse que vocês viram um filme juntos no cinema. */
+export interface CineTag { id: number; p: Profile; film: FilmInfo; cine: string; seen: string }
+export type TagStatus = 'pending' | 'accepted' | 'declined';
+
 export interface Rec {
   id: number;
   p: Profile;
