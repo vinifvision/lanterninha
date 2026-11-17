@@ -35,6 +35,7 @@ window.supabase={createClient(){
     return b; };
   return { from:q,
     rpc:async(n,arg)=>{ const d=db(), me=d.session&&d.session.user.id;
+      if(n==='film_stats'){ const m={}; d.films.filter(f=>f.key===arg.film_key&&typeof f.data.s==='number'&&!f.data.st).forEach(f=>{m[f.data.s]=(m[f.data.s]||0)+1}); return {data:Object.entries(m).map(([s,n])=>({s:Number(s),n})),error:null}; }
       if(n==='film_average'){ const rs=d.films.filter(f=>f.key===arg.film_key&&typeof f.data.s==='number'&&!f.data.st); return {data:[{avg:rs.length?Math.round(rs.reduce((a,f)=>a+f.data.s,0)/rs.length*10)/10:null,n:rs.length}],error:null}; }
       if(n==='username_available') return {data:!Object.values(d.users).some(u=>u.username===arg.name),error:null};
       if(n==='find_user'){ const u=Object.values(d.users).find(u=>u.username===arg.name&&u.id!==me); return {data:u?[{id:u.id,username:u.username,display_name:(u.prof||{}).display_name||null,avatar:(u.prof||{}).avatar||null}]:[],error:null}; }

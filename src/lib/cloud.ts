@@ -360,6 +360,24 @@ export const cloud = {
         .slice(0, limit);
     } catch { return []; }
   },
+  /** Notas de todos no Lanterninha para um filme: média, total e quantas pessoas deram cada nota (½ a 5).
+   *  Nunca diz quem deu cada nota. Sem o script novo no banco, cai para só a média. */
+  async filmStats(key: string): Promise<{ avg: number; n: number; dist: number[] | null } | null> {
+    if (!sb) return null;
+    try {
+      const { data, error } = await sb.rpc('film_stats', { film_key: key });
+      if (error) { const a = await this.filmAverage(key); return a && { ...a, dist: null }; }
+      const dist = Array<number>(10).fill(0);
+      for (const row of (data || []) as { s?: unknown; n?: unknown }[]) {
+        const s = Number(row.s), n = Number(row.n) || 0;
+        if (s >= 0.5 && s <= 5 && Number.isInteger(s * 2) && n > 0) dist[s * 2 - 1] += n;
+      }
+      const n = dist.reduce((a, b) => a + b, 0);
+      if (!n) return null;
+      const avg = dist.reduce((a, c, i) => a + c * (i + 1) / 2, 0) / n;
+      return { avg: Math.round(avg * 10) / 10, n, dist };
+    } catch { return null; }
+  },
   /** Média das notas de todos no Lanterninha para um filme (sem mostrar a nota de ninguém). */
   async filmAverage(key: string): Promise<{ avg: number; n: number } | null> {
     if (!sb) return null;

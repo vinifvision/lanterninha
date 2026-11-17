@@ -611,3 +611,18 @@ html.native{touch-action:pan-x pan-y}
 a.sc:active{opacity:.6}
 .sc .brand-imdb{height:20px;width:auto;border-radius:4px}
 .sc .brand-rt{height:21px;width:auto}
+
+/* ---------- Nota no Lanterninha (gráfico + média, no espírito do Letterboxd) */
+.lstats{margin:0 0 18px;padding:14px 16px 14px;border-radius:20px;background:var(--card);animation:fade .4s both}
+.lhead{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.lhead img{width:18px;height:18px;border-radius:5px}
+.lrow{display:flex;align-items:flex-end;gap:18px}
+.lchart{flex:1;min-width:0}
+.hist{display:flex;align-items:flex-end;gap:3px;height:58px;border-bottom:1px solid rgba(255,255,255,.08)}
+.hist i{flex:1;min-width:0;background:#45454c;border-radius:3px 3px 0 0;transform-origin:bottom;animation:barup .55s cubic-bezier(.2,.8,.2,1) both}
+.hist i.me{background:var(--gold)}
+@keyframes barup{from{transform:scaleY(0)}}
+.hl{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;letter-spacing:1px;color:var(--gold);opacity:.8}
+.lavg{text-align:right;flex:none}
+.lavg b{display:block;font-size:42px;font-weight:800;line-height:.95;letter-spacing:-1.5px;color:var(--gold)}
+.lavg small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}

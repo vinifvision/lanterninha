@@ -119,11 +119,12 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         <div><h2>{info.t}</h2>{sub && <p>{sub}</p>}</div>
       </div>
       {info.id ? <p className="facts">{facts}</p> : null}
-      <Scores filmKey={key} id={info.id ?? undefined} mine={rated?.s} />
+      <Scores id={info.id ?? undefined} />
       {details?.trailer && (
         <a className="trl" id="trl" href={`https://www.youtube.com/watch?v=${details.trailer}`} target="_blank" rel="noopener noreferrer"><PlayIcon />Ver trailer</a>
       )}
 
+      <LanternStats filmKey={key} mine={rated?.s} />
       <div className="mybox">{mine}</div>
 
       {hasFriends && crowd && (
@@ -175,16 +176,11 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   );
 }
 
-/** Notas numa linha só: a média do Lanterninha, IMDb e Rotten Tomatoes. Só aparece o que existir. */
-function Scores({ filmKey, id, mine }: { filmKey: string; id?: number; mine?: number }) {
-  const avg = useAsync(() => cloud.filmAverage(filmKey), [filmKey, mine]);
+/** Notas de fora numa linha só: IMDb e Rotten Tomatoes. Só aparece o que existir. */
+function Scores({ id }: { id?: number }) {
   const ext = useAsync(() => (id ? movieRatings(id).catch(() => null) : Promise.resolve(null)), [id]);
   const one = (n: number) => fmt(Math.round(n * 10) / 10);
   const items: JSX.Element[] = [];
-  if (avg) items.push(
-    <span className="sc lt" key="lt" title={`Média de ${avg.n} ${avg.n === 1 ? 'avaliação' : 'avaliações'} no Lanterninha`}>
-      <img src="/logo.svg" alt="Lanterninha" /><b>{one(avg.avg)}</b><small>({avg.n})</small>
-    </span>);
   if (ext?.imdb != null) {
     const body = <><img className="brand-imdb" src="/brands/imdb.png" alt="IMDb" /><b>{one(ext.imdb)}</b></>;
     items.push(ext.imdbId
@@ -202,4 +198,33 @@ function Scores({ filmKey, id, mine }: { filmKey: string; id?: number; mine?: nu
   if (ext && ext.imdb == null && ext.rt == null && ext.tmdb != null) items.push(<span className="sc" key="tmdb"><i className="lbl">TMDB</i><b>{one(ext.tmdb)}</b></span>);
   if (!items.length) return null;
   return <div className="scores" id="scores">{items}</div>;
+}
+
+/** Nota no Lanterninha, no estilo do Letterboxd: gráfico de quantas pessoas deram cada nota e a média em destaque. */
+function LanternStats({ filmKey, mine }: { filmKey: string; mine?: number }) {
+  const st = useAsync(() => cloud.filmStats(filmKey), [filmKey, mine]);
+  if (!st) return null;
+  const max = st.dist ? Math.max(...st.dist) : 0;
+  return (
+    <div className="lstats" id="lstats">
+      <div className="lhead"><img src="/logo.svg" alt="" /><span>Nota no Lanterninha</span></div>
+      <div className="lrow">
+        {st.dist && (
+          <div className="lchart">
+            <div className="hist" role="img" aria-label={`Distribuição de ${st.n} ${st.n === 1 ? 'avaliação' : 'avaliações'}`}>
+              {st.dist.map((c, i) => (
+                <i key={i} className={mine === (i + 1) / 2 ? 'me' : ''} title={`${fmt((i + 1) / 2)} estrela${i ? 's' : ''}: ${c}`}
+                  style={{ height: `${c ? Math.max(8, (c / max) * 100) : 4}%`, animationDelay: `${i * 35}ms` }} />
+              ))}
+            </div>
+            <div className="hl"><span>★</span><span>★★★★★</span></div>
+          </div>
+        )}
+        <div className="lavg">
+          <b>{fmt(st.avg)}</b>
+          <small>{st.n} {st.n === 1 ? 'avaliação' : 'avaliações'}</small>
+        </div>
+      </div>
+    </div>
+  );
 }

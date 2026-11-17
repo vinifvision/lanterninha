@@ -114,7 +114,7 @@ async def main():
         check('aceitar indicação vai pra fila','Filme 1:want:by bia' in await L() or any('want:by' in x for x in await L()),str(await L()))
         # nota da galera + reviews
         await pg.click('.seg button[data-t=watched]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')
-        await pg.wait_for_selector('.scores .lt'); txt=await pg.inner_text('#scores'); check('notas em destaque','4,5' in txt and '7,7' in txt and '90%' in txt and await pg.locator('#scores img[src*=rt-fresh]').count()==1 and await pg.locator('#scores img[src*=imdb]').count()==1, txt.replace(chr(10),' '))
+        await pg.wait_for_selector('#lstats'); lt=await pg.inner_text('#lstats'); check('nota no Lanterninha em destaque','4,5' in lt and '2 avaliações' in lt and await pg.locator('#lstats .hist i').count()==10 and await pg.locator('#lstats .hist i.me').count()==1, lt.replace(chr(10),' ')); await pg.wait_for_selector('#scores'); txt=await pg.inner_text('#scores'); check('notas em destaque','7,7' in txt and '90%' in txt and await pg.locator('#scores img[src*=rt-fresh]').count()==1 and await pg.locator('#scores img[src*=imdb]').count()==1, txt.replace(chr(10),' '))
         check('nota da galera só com estrelas',await pg.locator('#crowd .fr .stars').count()==1 and 'Review da Bia' not in await pg.inner_text('#crowd'))
         await pg.click('#crowd .fr'); await pg.wait_for_selector('.rvc.hl'); check('tela de reviews com a review do amigo','Review da Bia' in await pg.inner_text('.rvc.hl') and await pg.locator('#vfilm').count()==0)
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-reviews.png')); await pg.click('#vx'); await pg.click('#back')
