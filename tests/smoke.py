@@ -76,7 +76,11 @@ async def main():
         await pg.click('#back'); await pg.wait_for_selector('#t'); check('saiu da página: tinta removida',not await pg.evaluate("document.body.classList.contains('tinted')"))
         # estados
         await pg.fill('#t','Filme digitado'); await pg.click('#bseen'); await pg.wait_for_selector('.state'); check('já vi',(await L())[0]=='Filme digitado:seen',str(await L()))
-        await pg.click('#adel'); await pg.click('#adel'); await pg.wait_for_selector('#t'); check('tirar da lista',len(await L())==1)
+        await pg.click('#back'); await tab('lib'); await pg.wait_for_selector('.grid')
+        check('visto sem nota aparece em Assistidos',(await pg.inner_text('.seg button[data-t=watched]')).endswith('2') and 'sem nota' in await pg.inner_text('#lbody'))
+        await pg.click('button[data-n="-1"]'); await pg.wait_for_timeout(200); check('filtro sem nota',await pg.locator('#lbody .fc').count()==1)
+        await pg.click('button[data-n="0"]'); await pg.click('.fc >> nth=0'); await pg.wait_for_selector('.state')
+        await pg.click('#adel'); await pg.click('#adel'); await pg.wait_for_selector('#lbody'); await tab('rate'); await pg.wait_for_selector('#t'); check('tirar da lista',len(await L())==1)
         # contas e amigos
         bia=[{'t':'Filme %d'%i,'s':[5,4,3,2.5,1.5,4.5][i],'c':False,'id':100+i,'img':'/blue%d.jpg'%i,'note':'Review da Bia' if i==0 else None,'d':'2026-10-0%d'%(i+1)} for i in range(6)]
         for f in bia:
@@ -101,7 +105,7 @@ async def main():
         await tab('lib'); await pg.click('.seg button[data-t=want]'); await pg.wait_for_selector('.rcd'); await pg.click('[data-ra]'); await pg.wait_for_timeout(600)
         check('aceitar indicação vai pra fila','Filme 1:want:by bia' in await L() or any('want:by' in x for x in await L()),str(await L()))
         # nota da galera + reviews
-        await pg.click('.seg button[data-t=rated]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')
+        await pg.click('.seg button[data-t=watched]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')
         check('nota da galera só com estrelas',await pg.locator('#crowd .fr .stars').count()==1 and 'Review da Bia' not in await pg.inner_text('#crowd'))
         await pg.click('#crowd .fr'); await pg.wait_for_selector('.rvc.hl'); check('tela de reviews com a review do amigo','Review da Bia' in await pg.inner_text('.rvc.hl') and await pg.locator('#vfilm').count()==0)
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-reviews.png')); await pg.click('#vx'); await pg.click('#back')

@@ -1,4 +1,4 @@
-// Aba Meus filmes: avaliados (em diário ou por nota), já vistos e a fila, com busca.
+// Aba Meus filmes: assistidos (com ou sem nota, em diário ou por nota) e a fila, com busca.
 import { useState } from 'react';
 import { FilmCard } from '../components/FilmCard';
 import { Poster } from '../components/Poster';
@@ -8,17 +8,16 @@ import { fmt, MONTHS, pname } from '../lib/format';
 import type { Film } from '../lib/types';
 import { nav } from '../nav';
 
-type LibTab = 'rated' | 'seen' | 'want';
+type LibTab = 'watched' | 'want';
 type Sort = 'recent' | 'nota' | 'menor';
 
 // As escolhas da tela ficam guardadas enquanto a pessoa passeia pelo app.
-const view = { tab: 'rated' as LibTab, sort: 'recent' as Sort, star: 0, q: '' };
-export const resetLibraryView = () => { view.tab = 'rated'; view.sort = 'recent'; view.star = 0; view.q = ''; };
+const view = { tab: 'watched' as LibTab, sort: 'recent' as Sort, star: 0, q: '' };
+export const resetLibraryView = () => { view.tab = 'watched'; view.sort = 'recent'; view.star = 0; view.q = ''; };
 
 const SORTS: [Sort, string][] = [['recent', 'Diário'], ['nota', 'Maior nota'], ['menor', 'Menor nota']];
 const EMPTY: Record<LibTab, string> = {
-  rated: 'Nada por aqui ainda. Avalie um filme e ele aparece nesta tela.',
-  seen: 'Aqui ficam os filmes que você viu mas não deu nota.',
+  watched: 'Nada por aqui ainda. Avalie um filme ou marque como "Já vi" e ele aparece nesta tela.',
   want: 'Aqui fica sua fila: o que você guardou e o que seus amigos indicaram.',
 };
 
@@ -32,7 +31,7 @@ export function Library() {
   Object.assign(view, { tab, sort, star, q });
 
   const rated = all.filter(isRated);
-  const count = { rated: rated.length, seen: all.filter((h) => h.st === 'seen').length, want: all.filter((h) => h.st === 'want').length };
+  const count = { rated: rated.length, watched: all.filter((h) => h.st !== 'want').length, want: all.filter((h) => h.st === 'want').length };
   const year = String(new Date().getFullYear());
   const avg = rated.length ? fmt(Math.round((rated.reduce((a, h) => a + h.s, 0) / rated.length) * 10) / 10) : '–';
   const thisYear = rated.filter((h) => (h.d || '').startsWith(year)).length;
@@ -42,17 +41,22 @@ export function Library() {
   const needle = q.trim().toLowerCase();
   const bucket = (h: Film) => Math.max(1, Math.floor(h.s || 0));
   const byTs = (a: Film, b: Film) => (b.ts || 0) - (a.ts || 0);
-  let list = all.filter((h) => (h.st || 'rated') === tab).filter((h) => !needle || h.t.toLowerCase().includes(needle) || (h.o || '').toLowerCase().includes(needle));
-  if (tab === 'rated') {
-    list = list.filter((h) => !star || bucket(h) === star);
-    if (sort === 'nota') list.sort((a, b) => (b.s || 0) - (a.s || 0) || byTs(a, b));
-    else if (sort === 'menor') list.sort((a, b) => (a.s || 0) - (b.s || 0) || byTs(a, b));
+  // Assistidos = avaliados + vistos sem nota
+  let list = all.filter((h) => (tab === 'want' ? h.st === 'want' : h.st !== 'want'))
+    .filter((h) => !needle || h.t.toLowerCase().includes(needle) || (h.o || '').toLowerCase().includes(needle));
+  if (tab === 'watched') {
+    // star: 0 = todas, 1 a 5 = faixa de nota, -1 = sem nota
+    list = list.filter((h) => !star || (star === -1 ? !isRated(h) : isRated(h) && bucket(h) === star));
+    // Nas ordens por nota, quem não tem nota vai para o fim
+    const val = (h: Film, none: number) => (isRated(h) ? h.s : none);
+    if (sort === 'nota') list.sort((a, b) => val(b, -1) - val(a, -1) || byTs(a, b));
+    else if (sort === 'menor') list.sort((a, b) => val(a, 99) - val(b, 99) || byTs(a, b));
     else list.sort((a, b) => (b.d || '').localeCompare(a.d || '') || byTs(a, b));
   } else list.sort(byTs);
 
   // No diário, os filmes são agrupados pelo mês em que foram vistos
   const groups: { key: string; items: Film[] }[] = [];
-  if (tab === 'rated' && sort === 'recent') {
+  if (tab === 'watched' && sort === 'recent') {
     list.forEach((h) => {
       const k = h.d ? h.d.slice(0, 7) : '';
       const last = groups[groups.length - 1];
@@ -60,28 +64,27 @@ export function Library() {
     });
   }
   const card = (h: Film, i: number) => <FilmCard key={fkey(h)} film={h} delay={Math.min(i, 12) * 25} onClick={() => nav.openFilm(h)} />;
-  const emptyMsg = needle ? 'Nenhum filme com esse nome.' : tab === 'rated' && star ? 'Nenhum filme com essa nota.' : EMPTY[tab];
+  const emptyMsg = needle ? 'Nenhum filme com esse nome.' : tab === 'watched' && star ? (star === -1 ? 'Todos os seus filmes têm nota.' : 'Nenhum filme com essa nota.') : EMPTY[tab];
 
   return (
     <div className="screen">
       <h1>Meus filmes</h1>
       <p className="lsum">
-        <b>{count.rated}</b> {count.rated === 1 ? 'avaliado' : 'avaliados'} · média <b>{avg}</b>
+        <b>{count.watched}</b> {count.watched === 1 ? 'assistido' : 'assistidos'} · média <b>{avg}</b>
         {thisYear > 0 && <> · <b>{thisYear}</b> em {year}</>}
       </p>
       {all.length > 5 && (
         <input type="text" className="lq" id="lq" placeholder="Buscar nos meus filmes" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" autoCorrect="off" spellCheck={false} />
       )}
       <div className="seg">
-        <button className={tab === 'rated' ? 'on' : ''} data-t="rated" onClick={() => setTab('rated')}>Avaliados</button>
-        <button className={tab === 'seen' ? 'on' : ''} data-t="seen" onClick={() => setTab('seen')}>Já vi{count.seen ? ' · ' + count.seen : ''}</button>
+        <button className={tab === 'watched' ? 'on' : ''} data-t="watched" onClick={() => setTab('watched')}>Assistidos{count.watched ? ' · ' + count.watched : ''}</button>
         <button className={tab === 'want' ? 'on' : ''} data-t="want" onClick={() => setTab('want')}>Quero ver{queueTotal ? ' · ' + queueTotal : ''}</button>
       </div>
-      {tab === 'rated' && count.rated > 0 && (
+      {tab === 'watched' && count.watched > 0 && (
         <div className="chipsf">
           {SORTS.map(([k, label]) => <button key={k} data-s={k} className={sort === k ? 'on' : ''} onClick={() => setSort(k)}>{label}</button>)}
           <span style={{ width: 1, background: 'var(--card2)', flex: 'none', margin: '6px 2px' }} />
-          {[0, 5, 4, 3, 2, 1].map((n) => <button key={n} data-n={n} className={star === n ? 'on' : ''} onClick={() => setStar(n)}>{n ? '★ ' + n : 'Todas'}</button>)}
+          {[0, 5, 4, 3, 2, 1, ...(count.watched > count.rated ? [-1] : [])].map((n) => <button key={n} data-n={n} className={star === n ? 'on' : ''} onClick={() => setStar(n)}>{n === -1 ? 'Sem nota' : n ? '★ ' + n : 'Todas'}</button>)}
         </div>
       )}
 

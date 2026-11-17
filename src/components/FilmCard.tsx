@@ -9,7 +9,7 @@ export function FilmCard({ film, onClick, delay = 0 }: { film: Film; onClick: ()
       <span className="ph">
         <Poster img={film.img} title={film.t} />
         {film.st
-          ? <span className="bdg tag">{film.st === 'want' && film.by ? 'de ' + film.by : STATE[film.st]}</span>
+          ? <span className="bdg tag">{film.st === 'want' ? (film.by ? 'de ' + film.by : STATE.want) : 'sem nota'}</span>
           : <span className="bdg">{(film.n || 0) > 1 ? '↻ ' : ''}★ {fmt(film.s || 0)}</span>}
       </span>
     </button>
