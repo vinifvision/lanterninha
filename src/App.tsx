@@ -36,6 +36,7 @@ import { Result } from "./screens/Result";
 import { useCloud } from "./lib/cloud";
 import { fkey } from "./lib/films";
 import { Analytics } from "@vercel/analytics/react";
+import { UpdateSheet } from "./components/UpdateSheet";
 
 const TABS: [Tab, string][] = [
   ["rate", "Avaliar"],
@@ -281,6 +282,7 @@ export function App() {
         </div>
       </nav>
       {overlays.map(overlayView)}
+      <UpdateSheet />
       <Analytics />
     </>
   );
