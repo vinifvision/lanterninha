@@ -50,6 +50,12 @@ export function Home() {
       <h1>Início</h1>
       <p className="count">{hello ? `Oi, ${hello}.` : ' '}</p>
 
+      <button className="tncard" id="tonight" onClick={() => nav.open({ k: 'tonight' })}>
+        <span className="tnstrip" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map((i) => <i key={i} />)}</span>
+        <b>Não sei o que ver hoje</b>
+        <small>Gire a película e deixe o Lanterninha escolher</small>
+      </button>
+
       {account.recs.length > 0 && (
         <button className="hcard" onClick={() => nav.tab('lib')}>
           <b>{account.recs.length === 1 ? '1 indicação para você' : `${account.recs.length} indicações para você`}</b>

@@ -23,7 +23,7 @@ async def main():
             if '/api/credits' in u: return await route.fulfill(json={'key':[{'name':'Henry Selick','photo':'/blueh.jpg','role':'Direção e roteiro'},{'name':'Pete Kozachik','photo':'','role':'Direção de fotografia'},{'name':'Bruno Coulais','photo':'/bluem.jpg','role':'Trilha sonora'}],'cast':[{'name':'Dakota Fanning','character':'Coraline Jones','photo':'/bluec.jpg'},{'name':'Teri Hatcher','character':'Mãe','photo':''}],'depts':[{'name':'Direção','people':[{'job':'Direção','name':'Henry Selick'}]},{'name':'Fotografia','people':[{'job':'Direção de fotografia','name':'Pete Kozachik'}]}]})
             if '/api/ratings' in u: return await route.fulfill(json={'imdbId':'tt0327597','tmdb':7.8,'imdb':7.7,'rt':90,'mc':80})
             if '/api/images' in u: return await route.fulfill(json={'backdrops':['/blueback1.jpg','/blueback2.jpg']})
-            if '/api/discover' in u: return await route.fulfill(json={'results':[]})
+            if '/api/discover' in u: return await route.fulfill(json={'results':[{'id':500+i,'title':'Sugestão %d'%i,'original':'Sugestão %d'%i,'year':'2015','poster':'/blue5%d.jpg'%i} for i in range(4)] if 'similar' in u else []})
             if '/api/movie' in u: return await route.fulfill(json={'overview':'Sinopse do filme.','runtime':100,'genres':['Animação'],'director':'Henry Selick','backdrop':'/blueback.jpg','cast':['Dakota Fanning'],'trailer':'abc123XYZ_-','providers':{'stream':[{'name':'Netflix','logo':''}],'rent':[],'buy':[]}})
             if 'app.test' not in u: return await route.fulfill(status=404,body='')
             path=u.split('app.test')[1].split('?')[0]; path='/index.html' if path=='/' else path
@@ -118,6 +118,13 @@ async def main():
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-inicio.png'),full_page=True)
         await tab('lib'); await pg.click('.seg button[data-t=want]'); await pg.wait_for_selector('.rcd'); await pg.click('[data-ra]'); await pg.wait_for_timeout(600)
         check('aceitar indicação vai pra fila','Filme 1:want:by bia' in await L() or any('want:by' in x for x in await L()),str(await L()))
+        await tab('home'); await pg.click('#tonight'); await pg.wait_for_selector('#tnspin'); await pg.click('#tnspin'); await pg.wait_for_selector('#tnpick',timeout=9000)
+        tq=await pg.inner_text('#tnpick'); check('sorteio da fila','Indicado por' in tq or 'Está na sua fila' in tq, tq.replace(chr(10),' ')+' '+str(await L()))
+        await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-sorteio.png'))
+        await pg.click('.tonight button[data-m=taste]'); await pg.click('#tnspin'); await pg.wait_for_selector('#tnpick',timeout=9000); tp=await pg.inner_text('#tnpick')
+        check('sorteio no meu estilo','Sugestão' in tp and 'Porque você deu' in tp, tp.replace(chr(10),' '))
+        await pg.click('#tnadd'); await pg.wait_for_timeout(200); check('sugestão vai pra fila',any(x.startswith('Sugestão') and ':want' in x for x in await L()))
+        await pg.click('#tnx'); await tab('lib')
         # nota da galera + reviews
         await pg.click('.seg button[data-t=watched]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')
         await pg.wait_for_selector('#lstats'); lt=await pg.inner_text('#lstats'); check('nota no Lanterninha em destaque','4,5' in lt and '2 avaliações' in lt and await pg.locator('#lstats .hist i').count()==10 and await pg.locator('#lstats .hist i.me').count()==1, lt.replace(chr(10),' ')); await pg.wait_for_selector('#scores'); txt=await pg.inner_text('#scores'); check('notas em destaque','7,7' in txt and '90%' in txt and await pg.locator('#scores img[src*=rt-fresh]').count()==1 and await pg.locator('#scores img[src*=imdb]').count()==1, txt.replace(chr(10),' '))

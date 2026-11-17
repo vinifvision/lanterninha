@@ -88,6 +88,9 @@ export function Library() {
         </div>
       )}
 
+      {tab === 'want' && count.want > 1 && (
+        <button className="plain" id="tnlib" style={{ marginBottom: 18 }} onClick={() => nav.open({ k: 'tonight', start: 'queue' })}>Sortear um filme da fila</button>
+      )}
       {recs.length > 0 && (
         <>
           <div className="sech"><h3>Indicações para você</h3></div>

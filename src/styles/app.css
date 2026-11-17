@@ -3543,4 +3543,42 @@ a.sc:active {
 }
 body.rolling .tabs{transform:translateY(110%);transition:transform .6s}
 body.rolling .top{opacity:0;transition:opacity .6s}
-.tabs{transition:transform .4s,opacity .3s}
+
+/* ---------- Não sei o que ver hoje */
+.tncard{position:relative;display:block;width:100%;overflow:hidden;margin:4px 0 26px;padding:20px 18px 18px;border:none;border-radius:22px;text-align:left;color:#fff;font:inherit;
+  background:radial-gradient(120% 140% at 0% 0%,rgba(227,180,104,.38),transparent 55%),linear-gradient(135deg,#2a1a10,#151517 70%);box-shadow:inset 0 0 0 1px rgba(227,180,104,.22);transition:transform .15s}
+.tncard:active{transform:scale(.98)}
+.tncard b{position:relative;display:block;font-size:19px;font-weight:700;letter-spacing:-.3px}
+.tncard small{position:relative;display:block;margin-top:4px;font-size:13px;color:#d9cdb8}
+.tnstrip{position:absolute;right:-10px;top:12px;bottom:12px;display:flex;gap:6px;transform:rotate(-8deg);opacity:.5}
+.tnstrip i{width:26px;height:38px;border-radius:5px;background:linear-gradient(180deg,#e3b468,#a36b2c);animation:tnwiggle 3.2s ease-in-out infinite}
+.tnstrip i:nth-child(2n){background:linear-gradient(180deg,#f0575b,#8c2b2e);animation-delay:-.6s}
+.tnstrip i:nth-child(3n){background:linear-gradient(180deg,#fbf3e2,#9c9488);animation-delay:-1.2s}
+@keyframes tnwiggle{50%{transform:translateY(-6px)}}
+.tonight .tnh{margin:4px 0 18px;text-align:center;font-size:28px;letter-spacing:-.6px}
+.tonight .seg{margin-bottom:22px}
+/* A tira de película: furos em cima e embaixo, e uma "janela" dourada no meio onde o filme para */
+.reel{position:relative;height:214px;margin:0 -22px 22px;overflow:hidden;background:#0d0d0f;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.reel::before,.reel::after{content:"";position:absolute;left:0;right:0;height:14px;z-index:2;
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="26" height="14"><rect x="6" y="3" width="14" height="8" rx="2" fill="%23303036"/></svg>') repeat-x}
+.reel::before{top:4px}.reel::after{bottom:4px}
+.reelstrip{position:absolute;left:0;top:24px;display:flex;gap:12px;padding:0 0;will-change:transform}
+.rf{position:relative;flex:none;width:118px;height:166px;border-radius:10px;overflow:hidden;background:#1d1d21;transition:transform .45s cubic-bezier(.2,.9,.3,1.4),box-shadow .45s}
+.rf img{width:100%;height:100%;object-fit:cover;display:block}
+.rf>span{display:flex;align-items:center;justify-content:center;height:100%;padding:8px;text-align:center;font-size:12px;color:var(--muted)}
+.reel.going .rf{filter:blur(1.2px)}
+.rf.win{transform:scale(1.08);box-shadow:0 0 0 3px var(--gold),0 0 40px rgba(227,180,104,.55);z-index:1}
+.gate{position:absolute;left:50%;top:16px;bottom:16px;width:132px;margin-left:-66px;border-radius:14px;box-shadow:0 0 0 1.5px rgba(227,180,104,.55),0 0 0 999px rgba(0,0,0,.28);pointer-events:none;transition:opacity .4s}
+.reel.landed .gate{opacity:0}
+.tnpick{text-align:center;margin:0 0 18px;animation:tnpop .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tnpop{from{opacity:0;transform:translateY(14px)}}
+.tnpick b{display:block;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.15}
+.tnpick small{display:block;margin-top:2px;color:var(--muted);font-size:14px}
+.tnpick p{margin:10px 0 18px;color:var(--gold);font-size:14px;font-weight:500}
+.tnpick .row2{display:flex;gap:10px}
+.tnpick .row2 .cta{flex:1;margin:0}
+.tnspin{width:100%}
+.tnspin.again{background:var(--card);color:var(--text)}
+@media (min-width:900px){.reel{margin:0 0 22px;border-radius:18px}}
+.tnpick .ghost2{background:var(--card);color:var(--text)}
