@@ -17,7 +17,9 @@ async def main():
         async def h(route):
             u=route.request.url
             if '/api/img' in u or 'image.tmdb.org' in u: return await route.fulfill(path=os.path.join(HERE,'pb.jpg' if 'blue' in u else 'p5.jpg'),content_type='image/jpeg')
-            if '/api/search' in u: return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
+            if '/api/search' in u:
+                if 'digitado' in u: return await route.fulfill(json={'results':[{'id':78,'title':'Filme digitado','original':'Filme digitado','year':'2010','poster':'/blue78.jpg'}]})
+                return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
             if '/api/ratings' in u: return await route.fulfill(json={'imdbId':'tt0327597','tmdb':7.8,'imdb':7.7,'rt':90,'mc':80})
             if '/api/images' in u: return await route.fulfill(json={'backdrops':['/blueback1.jpg','/blueback2.jpg']})
             if '/api/discover' in u: return await route.fulfill(json={'results':[]})
@@ -78,7 +80,10 @@ async def main():
         await pg.screenshot(path=os.path.join(HERE,'out-film.png'),full_page=True)
         await pg.click('#back'); await pg.wait_for_selector('#t'); check('saiu da página: tinta removida',not await pg.evaluate("document.body.classList.contains('tinted')"))
         # estados
-        await pg.fill('#t','Filme digitado'); await pg.click('#bseen'); await pg.wait_for_selector('.state'); check('já vi',(await L())[0]=='Filme digitado:seen',str(await L()))
+        await pg.fill('#t','Qualquer coisa'); await pg.wait_for_timeout(600); await pg.click('#go'); await pg.wait_for_timeout(300)
+        check('texto qualquer não vira filme',await pg.locator('#rh').count()==1 and await pg.locator('.opt').count()==0 and len(await L())==1, str(await L()))
+        await pg.click('#bwant'); await pg.wait_for_timeout(300); check('nem como quero ver',len(await L())==1)
+        await pg.fill('#t','Filme digitado'); await pg.click('.sri:has-text("Filme digitado")'); await pg.click('#bseen'); await pg.wait_for_selector('.state'); check('já vi',(await L())[0]=='Filme digitado:seen',str(await L()))
         await pg.click('#back'); await tab('lib'); await pg.wait_for_selector('.grid')
         check('visto sem nota aparece em Assistidos',(await pg.inner_text('.seg button[data-t=watched]')).endswith('2') and 'sem nota' in await pg.inner_text('#lbody'))
         await pg.click('button[data-n="-1"]'); await pg.wait_for_timeout(200); check('filtro sem nota',await pg.locator('#lbody .fc').count()==1)

@@ -19,6 +19,7 @@ export function RateHome() {
   const [classic, setClassic] = useState(draft.classic);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [need, setNeed] = useState(false);
+  const [hint, setHint] = useState('');
   const input = useRef<HTMLInputElement>(null);
   const recent = all.filter(isRated).slice(0, 4);
 
@@ -35,10 +36,14 @@ export function RateHome() {
     return () => { clearTimeout(t); ctl.abort(); };
   }, [title, movie]);
 
+  // Só dá para avaliar ou marcar um filme escolhido na busca (que existe no TMDB), nunca um texto qualquer
   const info = (): FilmInfo | null => {
     const t = title.trim();
     if (!t) return null;
-    return movie && movie.title === t ? { id: movie.id, t, y: movie.year, o: movie.original, img: movie.poster } : { t };
+    if (movie && movie.title === t) return { id: movie.id, t, y: movie.year, o: movie.original, img: movie.poster };
+    setHint(results.length ? 'Escolha o filme na lista.' : 'Não achei esse filme. Confira o nome.');
+    setNeed(true); input.current?.focus(); setTimeout(() => setNeed(false), 1200);
+    return null;
   };
   const askName = () => {
     setNeed(true);
@@ -46,17 +51,19 @@ export function RateHome() {
     setTimeout(() => setNeed(false), 1200);
   };
   const pick = (m: SearchResult) => {
-    setMovie(m); setTitle(m.title); setResults([]);
+    setMovie(m); setTitle(m.title); setResults([]); setHint('');
     input.current?.blur();
     if (looksClassic(m.year)) setClassic(true);
   };
   const rate = () => {
-    const f = info(); if (!f) return askName();
+    if (!title.trim()) return askName();
+    const f = info(); if (!f) return;
     const mine = films.find(f);
     nav.startQuiz(f, { rewatch: isRated(mine) ? mine : null, classic });
   };
   const mark = (st: FilmState) => {
-    const f = info(); if (!f) return askName();
+    if (!title.trim()) return askName();
+    const f = info(); if (!f) return;
     const e = films.setStatus(f, st);
     clearRateDraft();
     nav.openFilm(e);
@@ -70,7 +77,7 @@ export function RateHome() {
         ref={input} type="text" id="t" className={need ? 'need' : ''} maxLength={80} value={title}
         placeholder={need ? 'Digite o nome do filme primeiro' : 'Nome do filme'}
         autoComplete="off" autoCorrect="off" spellCheck={false}
-        onChange={(e) => { setTitle(e.target.value); setMovie(null); }}
+        onChange={(e) => { setTitle(e.target.value); setMovie(null); setHint(''); }}
       />
       <div className="sr">
         {results.map((m) => (
@@ -80,6 +87,7 @@ export function RateHome() {
           </button>
         ))}
       </div>
+      {hint && <p className="fmsg bad" id="rh" style={{ margin: '-4px 0 10px' }}>{hint}</p>}
       {movie && movie.title === title.trim() && (
         <button className="dlink" onClick={() => { const f = info(); if (f) nav.openFilm(f); }}>Ver página do filme ›</button>
       )}
