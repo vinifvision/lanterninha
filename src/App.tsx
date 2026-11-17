@@ -12,6 +12,7 @@ import { ReviewEditor } from './overlays/ReviewEditor';
 import { ReviewsPage } from './overlays/ReviewsPage';
 import { Settings } from './overlays/Settings';
 import { ShareSheet } from './overlays/ShareSheet';
+import { Credits } from './screens/Credits';
 import { FilmPage } from './screens/FilmPage';
 import { FriendPage } from './screens/FriendPage';
 import { Home } from './screens/Home';
@@ -36,6 +37,7 @@ function tabScreen(tab: Tab) {
 function stackScreen(s: Screen, depth: number) {
   switch (s.k) {
     case 'film': return <FilmPage key={`film-${depth}-${fkey(s.info)}`} info={s.info} />;
+    case 'credits': return <Credits key={`credits-${depth}`} info={s.info} />;
     case 'friend': return <FriendPage key={`friend-${s.id}`} id={s.id} />;
     case 'quiz': return <Quiz key={`quiz-${depth}`} info={s.info} classic={s.classic} rewatch={s.rewatch} answers={s.answers} />;
     case 'result': return <Result key={`res-${depth}`} info={s.info} filmKey={s.key} base={s.base} classic={s.classic} rewatch={s.rewatch} replaced={s.replaced} answers={s.answers} />;
@@ -66,11 +68,11 @@ export function App() {
   const main = !top;
   const rating = top?.k === 'quiz' || top?.k === 'result';
   // Nome do "modo" da tela, usado pelo CSS para ajustar larguras e alinhamento
-  const mode = top ? { film: 'film', friend: 'friend', quiz: 'q', result: 'res' }[top.k] : { rate: 'home', home: 'feed', lib: 'lib', prof: 'prof' }[tab];
+  const mode = top ? { film: 'film', credits: 'credits', friend: 'friend', quiz: 'q', result: 'res' }[top.k] : { rate: 'home', home: 'feed', lib: 'lib', prof: 'prof' }[tab];
   const alignTop = mode !== 'home' && mode !== 'q' && mode !== 'res';
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend = top?.k === 'friend' ? account.friends.list.find((p) => p.id === top.id) : null;
-  const title = top ? (top.k === 'film' ? top.info.t : friend ? pname(friend) : '') : TAB_TITLE[tab];
+  const title = top ? (top.k === 'film' || top.k === 'credits' ? top.info.t : friend ? pname(friend) : '') : TAB_TITLE[tab];
 
   useEffect(() => {
     document.body.classList.toggle('tabs-on', !rating);

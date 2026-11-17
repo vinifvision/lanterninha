@@ -20,6 +20,7 @@ async def main():
             if '/api/search' in u:
                 if 'digitado' in u: return await route.fulfill(json={'results':[{'id':78,'title':'Filme digitado','original':'Filme digitado','year':'2010','poster':'/blue78.jpg'}]})
                 return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
+            if '/api/credits' in u: return await route.fulfill(json={'key':[{'name':'Henry Selick','photo':'/blueh.jpg','role':'Direção e roteiro'},{'name':'Pete Kozachik','photo':'','role':'Direção de fotografia'},{'name':'Bruno Coulais','photo':'/bluem.jpg','role':'Trilha sonora'}],'cast':[{'name':'Dakota Fanning','character':'Coraline Jones','photo':'/bluec.jpg'},{'name':'Teri Hatcher','character':'Mãe','photo':''}],'depts':[{'name':'Direção','people':[{'job':'Direção','name':'Henry Selick'}]},{'name':'Fotografia','people':[{'job':'Direção de fotografia','name':'Pete Kozachik'}]}]})
             if '/api/ratings' in u: return await route.fulfill(json={'imdbId':'tt0327597','tmdb':7.8,'imdb':7.7,'rt':90,'mc':80})
             if '/api/images' in u: return await route.fulfill(json={'backdrops':['/blueback1.jpg','/blueback2.jpg']})
             if '/api/discover' in u: return await route.fulfill(json={'results':[]})
@@ -76,6 +77,11 @@ async def main():
         # página do filme
         await pg.click('.rc'); await pg.wait_for_selector('.mybox .rate'); await pg.wait_for_selector('#trl')
         check('página do filme: sobre + onde assistir','Sinopse do filme.' in await pg.inner_text('.about') and 'Netflix' in await pg.inner_text('.prov'))
+        await pg.click('#crd'); await pg.wait_for_selector('.ck b'); ct=await pg.inner_text('#stage')
+        check('tela de elenco e equipe','Direção e roteiro'.lower() in ct.lower() and 'Dakota Fanning' in ct and 'ficha técnica' in ct.lower() and await pg.locator('.ck .face.none').count()==1, ct[:300].replace(chr(10),' | '))
+        await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-creditos.png')); await pg.click('#roll'); await pg.wait_for_timeout(2500)
+        check('rolar créditos desce a tela',await pg.evaluate("document.getElementById('scroller').scrollTop")>200)
+        await pg.screenshot(path=os.path.join(HERE,'out-creditos2.png')); await pg.click('#back'); await pg.wait_for_selector('.mybox')
         check('fundo tingido',await pg.evaluate("document.body.classList.contains('tinted')"))
         await pg.screenshot(path=os.path.join(HERE,'out-film.png'),full_page=True)
         await pg.click('#back'); await pg.wait_for_selector('#t'); check('saiu da página: tinta removida',not await pg.evaluate("document.body.classList.contains('tinted')"))

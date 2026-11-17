@@ -289,6 +289,12 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
                   Elenco: {details.cast.join(", ")}
                 </small>
               )}
+              {info.id ? (
+                <button className="crbtn" id="crd" onClick={() => nav.push({ k: "credits", info })}>
+                  <span><b>Elenco e equipe</b><small>Quem fez esse filme acontecer</small></span>
+                  <i>›</i>
+                </button>
+              ) : null}
             </>
           )}
           <h3 className="sec">Onde assistir</h3>

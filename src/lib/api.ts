@@ -3,7 +3,7 @@ import { API_BASE, IMG } from './config';
 import { POSTER_PATH } from './format';
 import type { MovieDetails, SearchResult } from './types';
 
-export const posterUrl = (path: string, size: 'w92' | 'w185' | 'w342' | 'w780' = 'w185') => IMG + size + path;
+export const posterUrl = (path: string, size: 'w92' | 'w185' | 'w342' | 'w780' | 'h632' = 'w185') => IMG + size + path;
 /** Pôster servido pelo próprio site, para poder ser desenhado na imagem de compartilhar. */
 export const proxiedPoster = (path: string, size: 'w342' | 'w500' = 'w500') =>
   `${API_BASE}api/img?size=${size}&path=${encodeURIComponent(path)}`;
@@ -108,6 +108,36 @@ export function movieRatings(id: number): Promise<Ratings> {
       }));
     ratingsCache.set(id, p);
     p.catch(() => ratingsCache.delete(id));
+  }
+  return p;
+}
+
+export interface Credits {
+  key: { name: string; photo: string; role: string }[];
+  cast: { name: string; character: string; photo: string }[];
+  depts: { name: string; people: { job: string; name: string }[] }[];
+}
+const creditsCache = new Map<number, Promise<Credits>>();
+
+/** Elenco e equipe do filme, com fotos. Tudo o que vem de fora é conferido e cortado no tamanho. */
+export function movieCredits(id: number): Promise<Credits> {
+  let p = creditsCache.get(id);
+  if (!p) {
+    const str = (v: unknown, max = 80) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+    const photo = (v: unknown) => (typeof v === 'string' && POSTER_PATH.test(v) ? v : '');
+    const arr = (v: unknown) => (Array.isArray(v) ? v : []) as Record<string, unknown>[];
+    p = fetch(`${API_BASE}api/credits?id=${id}`)
+      .then((r) => { if (!r.ok) throw new Error('créditos indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
+      .then((d) => ({
+        key: arr(d.key).map((x) => ({ name: str(x.name), photo: photo(x.photo), role: str(x.role) })).filter((x) => x.name).slice(0, 10),
+        cast: arr(d.cast).map((x) => ({ name: str(x.name), character: str(x.character, 100), photo: photo(x.photo) })).filter((x) => x.name).slice(0, 24),
+        depts: arr(d.depts).map((x) => ({
+          name: str(x.name, 40),
+          people: arr(x.people).map((y) => ({ job: str(y.job, 60), name: str(y.name) })).filter((y) => y.name).slice(0, 14),
+        })).filter((x) => x.name && x.people.length).slice(0, 12),
+      }));
+    creditsCache.set(id, p);
+    p.catch(() => creditsCache.delete(id));
   }
   return p;
 }

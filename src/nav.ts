@@ -7,6 +7,7 @@ export type Tab = 'rate' | 'home' | 'lib' | 'prof';
 export type Screen =
   | { k: 'film'; info: FilmInfo }
   | { k: 'friend'; id: string }
+  | { k: 'credits'; info: FilmInfo }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[] }
   | { k: 'result'; info: FilmInfo; key: string; base: number; classic: boolean; rewatch: RatedFilm | null; replaced: Film | null; answers: number[] };
 
