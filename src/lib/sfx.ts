@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 // Efeitos sonoros gerados na hora pelo navegador, sem arquivos de áudio.
-// Tocam só na avaliação e na revelação da nota.
+// Tocam só em momentos pontuais: avaliação, revelação da nota e o sorteio do "Não sei o que ver hoje".
 type Wave = OscillatorType;
 
 let ctx: AudioContext | null = null;
@@ -85,6 +85,27 @@ export const sfx = {
     tone(STAR_NOTES[i], half ? 0.3 : 0.55, half ? 0.045 : 0.085, when);
     tone(STAR_NOTES[i] * 2, half ? 0.2 : 0.4, half ? 0.012 : 0.022, when, 'triangle');
     setTimeout(() => buzz(half ? 6 : 12), when * 1000);
+  },
+  /** Sorteio: a película começa a girar (um sopro que sobe). */
+  reelStart() {
+    for (let k = 0; k < 6; k++) noise(0.09, 0.03 + k * 0.008, 700 + k * 260, k * 0.05);
+    tone(70, 0.5, 0.04, 0, 'sawtooth');
+  },
+  /** Sorteio: um quadro passando pela janela. Os tiques vão espaçando conforme a película desacelera. */
+  reelTicks(times: number[]) {
+    times.forEach((t, i) => {
+      const late = i / Math.max(1, times.length - 1);
+      noise(0.014, 0.12 + 0.1 * late, 3000 - 900 * late, t);
+      tone(1500 - 500 * late, 0.03, 0.025 + 0.025 * late, t, 'triangle');
+      if (late > 0.75) setTimeout(() => buzz(5), t * 1000);
+    });
+  },
+  /** Sorteio: a película trava no filme escolhido (batida + acorde que acende). */
+  reelLand(when = 0) {
+    noise(0.05, 0.28, 520, when); tone(98, 0.22, 0.12, when);
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, k) => tone(f, 0.9, 0.05, when + 0.12 + k * 0.06));
+    tone(1568, 0.6, 0.02, when + 0.4, 'triangle');
+    setTimeout(() => buzz(18), when * 1000);
   },
   /** Brilho final para notas altas. */
   fanfare(when: number) { [1046.5, 1318.5, 1568].forEach((f, k) => tone(f, 0.7, 0.035, when + k * 0.07)); },

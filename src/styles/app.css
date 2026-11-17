@@ -3571,14 +3571,34 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .rf.win{transform:scale(1.08);box-shadow:0 0 0 3px var(--gold),0 0 40px rgba(227,180,104,.55);z-index:1}
 .gate{position:absolute;left:50%;top:16px;bottom:16px;width:132px;margin-left:-66px;border-radius:14px;box-shadow:0 0 0 1.5px rgba(227,180,104,.55),0 0 0 999px rgba(0,0,0,.28);pointer-events:none;transition:opacity .4s}
 .reel.landed .gate{opacity:0}
-.tnpick{text-align:center;margin:0 0 18px;animation:tnpop .5s cubic-bezier(.2,.8,.2,1) both}
-@keyframes tnpop{from{opacity:0;transform:translateY(14px)}}
-.tnpick b{display:block;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.15}
-.tnpick small{display:block;margin-top:2px;color:var(--muted);font-size:14px}
-.tnpick p{margin:10px 0 18px;color:var(--gold);font-size:14px;font-weight:500}
-.tnpick .row2{display:flex;gap:10px}
-.tnpick .row2 .cta{flex:1;margin:0}
 .tnspin{width:100%}
 .tnspin.again{background:var(--card);color:var(--text)}
 @media (min-width:900px){.reel{margin:0 0 22px;border-radius:18px}}
-.tnpick .ghost2{background:var(--card);color:var(--text)}
+
+/* Sorteio: a película trava com um tranco, os outros quadros apagam e o projetor acende sobre o escolhido */
+.reel.landed{animation:reelstop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes reelstop{0%{transform:translateX(0)}30%{transform:translateX(-7px)}60%{transform:translateX(4px)}100%{transform:none}}
+.reel.landed .rf:not(.win){opacity:.28;transition:opacity .5s}
+.beam{position:absolute;left:50%;top:-40px;width:260px;height:300px;margin-left:-130px;pointer-events:none;opacity:0;z-index:3;
+  background:radial-gradient(50% 60% at 50% 55%,rgba(255,236,196,.42),transparent 70%);mix-blend-mode:screen}
+.reel.landed .beam{animation:beamon .9s ease-out forwards}
+@keyframes beamon{0%{opacity:0}15%{opacity:.9}25%{opacity:.4}40%{opacity:1}100%{opacity:.75}}
+/* Popup do filme sorteado */
+.tnpop{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,5,7,.62);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);animation:fade .3s both}
+.tncard2{position:relative;width:100%;max-width:360px;padding:22px 20px 18px;border-radius:28px;text-align:center;
+  background:linear-gradient(180deg,#1f1b16,#141416 60%);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 0 0 1px rgba(227,180,104,.22);
+  animation:tnin .6s cubic-bezier(.2,.9,.25,1.15) both}
+@keyframes tnin{from{opacity:0;transform:translateY(40px) scale(.9)}}
+.tnclose{position:absolute;right:12px;top:12px;width:36px;height:36px;border:none;border-radius:50%;background:rgba(255,255,255,.08);color:var(--text);font-size:15px}
+.tnlabel{display:block;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin:4px 0 14px}
+.tnposter{display:block;width:150px;height:225px;margin:0 auto 16px;border-radius:14px;object-fit:cover;box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 50px rgba(227,180,104,.25);animation:tnposter .8s cubic-bezier(.2,.9,.3,1.2) .1s both}
+.tnposter.none{display:flex;align-items:center;justify-content:center;padding:12px;background:var(--card);color:var(--muted);font-size:14px}
+@keyframes tnposter{from{transform:rotateY(80deg) scale(.8);opacity:0}}
+.tncard2 b{display:block;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.15}
+.tncard2 small{display:block;margin-top:3px;color:var(--muted);font-size:14px}
+.tncard2 p{margin:10px 0 18px;color:var(--gold);font-size:14px;font-weight:500}
+.tncard2 .cta{width:100%;margin:0}
+.tncard2 .row2{display:flex;gap:10px;margin-top:10px}
+.tncard2 .row2 .cta{flex:1}
+.tncard2 .ghost2{background:rgba(255,255,255,.08);color:var(--text)}

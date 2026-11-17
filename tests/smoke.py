@@ -121,10 +121,11 @@ async def main():
         await tab('home'); await pg.click('#tonight'); await pg.wait_for_selector('#tnspin'); await pg.click('#tnspin'); await pg.wait_for_selector('#tnpick',timeout=9000)
         tq=await pg.inner_text('#tnpick'); check('sorteio da fila','Indicado por' in tq or 'Está na sua fila' in tq, tq.replace(chr(10),' ')+' '+str(await L()))
         await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-sorteio.png'))
-        await pg.click('.tonight button[data-m=taste]'); await pg.click('#tnspin'); await pg.wait_for_selector('#tnpick',timeout=9000); tp=await pg.inner_text('#tnpick')
+        await pg.click('.tnclose'); await pg.click('.tonight button[data-m=taste]'); await pg.click('#tnspin'); await pg.wait_for_selector('#tnpick',timeout=9000); tp=await pg.inner_text('#tnpick')
         check('sorteio no meu estilo','Sugestão' in tp and 'Porque você deu' in tp, tp.replace(chr(10),' '))
         await pg.click('#tnadd'); await pg.wait_for_timeout(200); check('sugestão vai pra fila',any(x.startswith('Sugestão') and ':want' in x for x in await L()))
-        await pg.click('#tnx'); await tab('lib')
+        await pg.click('#tngo'); await pg.wait_for_selector('.fhead'); check('popup abre a página do filme','Sugestão' in await pg.inner_text('.fhead h2'))
+        await pg.click('#back'); await tab('lib')
         # nota da galera + reviews
         await pg.click('.seg button[data-t=watched]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')
         await pg.wait_for_selector('#lstats'); lt=await pg.inner_text('#lstats'); check('nota no Lanterninha em destaque','4,5' in lt and '2 avaliações' in lt and await pg.locator('#lstats .hist i').count()==10 and await pg.locator('#lstats .hist i.me').count()==1, lt.replace(chr(10),' ')); await pg.wait_for_selector('#scores'); txt=await pg.inner_text('#scores'); check('notas em destaque','7,7' in txt and '90%' in txt and await pg.locator('#scores img[src*=rt-fresh]').count()==1 and await pg.locator('#scores img[src*=imdb]').count()==1, txt.replace(chr(10),' '))

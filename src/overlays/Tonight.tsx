@@ -2,11 +2,14 @@
 // Dois modos: sortear da sua fila (Quero ver) ou uma surpresa no seu estilo,
 // a partir dos filmes que você avaliou bem (e dos que ganharam review).
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
 import { discover } from '../lib/api';
 import { films, fkey, isRated, useFilms } from '../lib/films';
 import { fmt } from '../lib/format';
+import { posterUrl } from '../lib/api';
+import { sfx } from '../lib/sfx';
 import type { FilmInfo, RatedFilm } from '../lib/types';
 import { nav } from '../nav';
 
@@ -14,6 +17,20 @@ type Mode = 'queue' | 'taste';
 interface Pick { info: FilmInfo; why: string }
 
 const CARD = 118, GAP = 12, STEP = CARD + GAP, LAND = 26;
+const EASE: [number, number, number, number] = [0.08, 0.72, 0.12, 1];
+
+/** Em que instantes (segundos) cada quadro passa pela janela, seguindo a mesma curva de desaceleração da animação. */
+function tickTimes(distance: number, dur: number): number[] {
+  const [x1, y1, x2, y2] = EASE;
+  const bez = (a: number, b: number, s: number) => 3 * a * s * (1 - s) ** 2 + 3 * b * s * s * (1 - s) + s ** 3;
+  const out: number[] = [];
+  let k = 1;
+  for (let i = 1; i <= 1200 && k * STEP <= distance; i++) {
+    const s = i / 1200;
+    if (bez(y1, y2, s) * distance >= k * STEP) { out.push(bez(x1, x2, s) * dur); k++; }
+  }
+  return out;
+}
 const shuffle = <T,>(a: T[]) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 
 /** Filmes "no seu estilo": recomendações do TMDB a partir de filmes que você avaliou bem. Review conta como um empurrãozinho. */
@@ -42,7 +59,7 @@ export function Tonight({ start }: { start?: Mode }) {
   const all = useFilms();
   const queue: Pick[] = all.filter((h) => h.st === 'want').map((h) => ({ info: h, why: h.by ? `Indicado por ${h.by}` : 'Está na sua fila' }));
   const [mode, setMode] = useState<Mode>(start || (queue.length ? 'queue' : 'taste'));
-  const [phase, setPhase] = useState<'idle' | 'loading' | 'spinning' | 'done' | 'empty'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'loading' | 'spinning' | 'landing' | 'done' | 'empty'>('idle');
   const [reel, setReel] = useState<Pick[]>([]);
   const [x, setX] = useState(0);
   const [moving, setMoving] = useState(false);
@@ -51,6 +68,7 @@ export function Tonight({ start }: { start?: Mode }) {
   const box = useRef<HTMLDivElement>(null);
   const last = useRef<number | string>('');
   const calm = useRef(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches).current;
+  const DUR = calm ? 0.6 : 3.4;
 
   useLayoutEffect(() => { if (box.current) setWidth(box.current.clientWidth); }, []);
 
@@ -74,12 +92,13 @@ export function Tonight({ start }: { start?: Mode }) {
     last.current = chosen.info.id || chosen.info.t;
     const fill = Array.from({ length: LAND + 4 }, (_, i) => (i === LAND ? chosen : pool[Math.floor(Math.random() * pool.length)]));
     setReel(fill); setMoving(false); setX(0); setPhase('spinning');
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      setMoving(true);
-      setX(-(LAND * STEP) + width / 2 - CARD / 2);
-    }));
+    const target = -(LAND * STEP) + width / 2 - CARD / 2;
+    sfx.reelStart();
+    sfx.reelTicks(tickTimes(-target, DUR).map((t) => t + 0.03));
+    requestAnimationFrame(() => requestAnimationFrame(() => { setMoving(true); setX(target); }));
   };
 
+  const landed = phase === 'landing' || phase === 'done';
   const pick = phase === 'done' ? reel[LAND] : null;
   const inQueue = pick ? all.some((h) => fkey(h) === fkey(pick.info) && h.st === 'want') : false;
 
@@ -88,22 +107,23 @@ export function Tonight({ start }: { start?: Mode }) {
       <OverlayHeader left={<button id="tnx" onClick={() => nav.close()}>Fechar</button>} title="Não sei o que ver" />
       <h2 className="tnh">O que vai ser hoje?</h2>
       <div className="seg">
-        <button data-m="queue" className={mode === 'queue' ? 'on' : ''} disabled={phase === 'spinning'} onClick={() => { setMode('queue'); setPhase('idle'); }}>Da minha fila{queue.length ? ' · ' + queue.length : ''}</button>
-        <button data-m="taste" className={mode === 'taste' ? 'on' : ''} disabled={phase === 'spinning'} onClick={() => { setMode('taste'); setPhase('idle'); }}>No meu estilo</button>
+        <button data-m="queue" className={mode === 'queue' ? 'on' : ''} disabled={phase === 'spinning' || phase === 'landing'} onClick={() => { setMode('queue'); setPhase('idle'); }}>Da minha fila{queue.length ? ' · ' + queue.length : ''}</button>
+        <button data-m="taste" className={mode === 'taste' ? 'on' : ''} disabled={phase === 'spinning' || phase === 'landing'} onClick={() => { setMode('taste'); setPhase('idle'); }}>No meu estilo</button>
       </div>
 
-      <div className={`reel${phase === 'done' ? ' landed' : ''}${phase === 'spinning' ? ' going' : ''}`} ref={box}>
+      <div className={`reel${landed ? ' landed' : ''}${phase === 'spinning' ? ' going' : ''}`} ref={box}>
         <div
           className="reelstrip"
-          style={{ transform: `translateX(${x}px)`, transition: moving ? `transform ${calm ? 0.6 : 3.4}s cubic-bezier(.08,.72,.12,1)` : 'none' }}
-          onTransitionEnd={() => { if (phase === 'spinning') setPhase('done'); }}
+          style={{ transform: `translateX(${x}px)`, transition: moving ? `transform ${DUR}s cubic-bezier(${EASE.join(',')})` : 'none' }}
+          onTransitionEnd={() => { if (phase !== 'spinning') return; sfx.reelLand(); setPhase('landing'); setTimeout(() => setPhase((ph) => (ph === 'landing' ? 'done' : ph)), calm ? 200 : 900); }}
         >
           {reel.map((p, i) => (
-            <span className={`rf${i === LAND && phase === 'done' ? ' win' : ''}`} key={i}><Poster img={p.info.img} title={p.info.t} /></span>
+            <span className={`rf${i === LAND && landed ? ' win' : ''}`} key={i}><Poster img={p.info.img} title={p.info.t} /></span>
           ))}
           {!reel.length && <span className="rf empty" />}
         </div>
         <div className="gate" />
+        <div className="beam" aria-hidden="true" />
       </div>
 
       {phase === 'empty' && (
@@ -112,25 +132,35 @@ export function Tonight({ start }: { start?: Mode }) {
           : 'Não achei sugestões agora. Avalie alguns filmes e tente de novo.'}</p>
       )}
 
-      {pick && (
-        <div className="tnpick" id="tnpick">
-          <b>{pick.info.t}</b>
-          {pick.info.y && <small>{pick.info.y}</small>}
-          <p>{pick.why}</p>
-          <div className="row2">
-            <button className="cta" id="tngo" onClick={() => nav.openFilm(pick.info)}>Ver filme</button>
-            {mode === 'taste' && (
-              <button className="cta ghost2" id="tnadd" disabled={inQueue || added} onClick={() => { films.setStatus(pick.info, 'want'); setAdded(true); }}>
-                {inQueue || added ? '✓ Na sua fila' : 'Quero ver'}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      <button className={`cta tnspin${pick ? ' again' : ''}`} id="tnspin" disabled={phase === 'spinning' || phase === 'loading'} onClick={() => void spin()}>
-        {phase === 'loading' ? 'Procurando…' : phase === 'spinning' ? 'Sorteando…' : pick ? 'Sortear de novo' : 'Sortear'}
+      <button className={`cta tnspin${pick ? ' again' : ''}`} id="tnspin" disabled={phase === 'spinning' || phase === 'landing' || phase === 'loading'} onClick={() => void spin()}>
+        {phase === 'loading' ? 'Procurando…' : phase === 'spinning' || phase === 'landing' ? 'Sorteando…' : pick ? 'Sortear de novo' : 'Sortear'}
       </button>
+
+      {/* O popup vai direto no corpo da página, para ficar centralizado por cima de tudo */}
+      {pick && createPortal(
+        <div className="tnpop" id="tnpick" role="dialog" aria-label={`Filme sorteado: ${pick.info.t}`}>
+          <div className="tncard2">
+            <button className="tnclose" aria-label="Fechar" onClick={() => setPhase('idle')}>✕</button>
+            <span className="tnlabel">Hoje é dia de</span>
+            {pick.info.img
+              ? <img className="tnposter" src={posterUrl(pick.info.img, 'w342')} alt="" />
+              : <div className="tnposter none">{pick.info.t}</div>}
+            <b>{pick.info.t}</b>
+            {pick.info.y && <small>{pick.info.y}</small>}
+            <p>{pick.why}</p>
+            <button className="cta" id="tngo" onClick={() => nav.openFilm(pick.info)}>Ver página do filme</button>
+            <div className="row2">
+              {mode === 'taste' && (
+                <button className="cta ghost2" id="tnadd" disabled={inQueue || added} onClick={() => { films.setStatus(pick.info, 'want'); setAdded(true); }}>
+                  {inQueue || added ? '✓ Na sua fila' : 'Quero ver'}
+                </button>
+              )}
+              <button className="cta ghost2" id="tnagain" onClick={() => void spin()}>Sortear de novo</button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </Overlay>
   );
 }
