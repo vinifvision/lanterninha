@@ -1,4 +1,4 @@
-// Página do filme: dados gerais, trailer, a minha nota em resumo e a nota dos amigos.
+// Página do filme: dados gerais, notas de fora com o trailer, a minha nota em resumo e a nota dos amigos.
 // Serve para qualquer filme, esteja ou não na lista de quem está olhando.
 import { useEffect, useState } from "react";
 import { Avatar } from "../components/Avatar";
@@ -250,19 +250,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         </div>
       </div>
       {info.id ? <p className="facts">{facts}</p> : null}
-      <Scores id={info.id ?? undefined} />
-      {details?.trailer && (
-        <a
-          className="trl"
-          id="trl"
-          href={`https://www.youtube.com/watch?v=${details.trailer}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <PlayIcon />
-          Ver trailer
-        </a>
-      )}
+      <Scores id={info.id ?? undefined} trailer={details?.trailer} />
 
       <LanternStats filmKey={key} mine={rated?.s} />
       <div className="mybox">{mine}</div>
@@ -377,8 +365,11 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   );
 }
 
-/** Notas de fora numa linha só: IMDb e Rotten Tomatoes. Só aparece o que existir. */
-function Scores({ id }: { id?: number }) {
+/**
+ * Notas de fora numa linha só: IMDb e Rotten Tomatoes, e o botão do trailer à direita.
+ * O trailer fica aqui, discreto, para a "Minha nota" ser o destaque da página. Só aparece o que existir.
+ */
+function Scores({ id, trailer }: { id?: number; trailer?: string | null }) {
   const tick = useRefresh();
   const ext = useAsync(
     () => (id ? movieRatings(id).catch(() => null) : Promise.resolve(null)),
@@ -430,10 +421,22 @@ function Scores({ id }: { id?: number }) {
       </span>,
     );
   }
-  if (!items.length) return null;
+  if (!items.length && !trailer) return null;
   return (
     <div className="scores" id="scores">
       {items}
+      {trailer && (
+        <a
+          className="trl"
+          id="trl"
+          href={`https://www.youtube.com/watch?v=${trailer}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <PlayIcon />
+          Trailer
+        </a>
+      )}
     </div>
   );
 }
