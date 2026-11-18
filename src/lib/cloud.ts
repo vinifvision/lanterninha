@@ -1,7 +1,7 @@
 // Conta, sincronização e tudo que é social (amigos, indicações, palpite), em cima do Supabase.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { useSyncExternalStore } from 'react';
-import { isNativeApp, SITE_URL, SUPABASE_KEY, SUPABASE_URL } from './config';
+import { API_BASE, isNativeApp, SITE_URL, SUPABASE_KEY, SUPABASE_URL } from './config';
 import { cleanFilm, fhash, films, fkey, isRated } from './films';
 import { pname, POSTER_PATH, UUID } from './format';
 import type { CineTag, Film, FilmInfo, FriendRating, Friends, Profile, RatedFilm, Rec, TagStatus, TopItem } from './types';
@@ -362,10 +362,35 @@ export const cloud = {
   syncNow: () => pull(),
   loadFriends,
 
-  async signIn(email: string, password: string): Promise<string> {
+  /** Entra com o e-mail ou com o @. O Supabase só entra com e-mail, então o @ passa pela
+   *  função /api/login, que acha o e-mail da conta sem mostrá-lo e devolve a sessão. */
+  async signIn(login: string, password: string): Promise<string> {
     if (!sb) return 'Sem conexão com a conta agora.';
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    return error ? niceError(error) : '';
+    const id = login.trim().replace(/^@/, '');
+    if (id.includes('@')) {
+      const { error } = await sb.auth.signInWithPassword({ email: id, password });
+      return error ? niceError(error) : '';
+    }
+    let r: Response;
+    try {
+      r = await fetch(API_BASE + 'api/login', {
+        method: 'POST',
+        // text/plain evita a pergunta extra (CORS) que o navegador faria antes de mandar JSON
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ username: id.toLowerCase(), password }),
+      });
+    } catch {
+      return 'Sem conexão. Confira a internet e tente de novo.';
+    }
+    const d = (await r.json().catch(() => ({}))) as { access_token?: string; refresh_token?: string; error?: string };
+    if (r.ok && d.access_token && d.refresh_token) {
+      const { error } = await sb.auth.setSession({ access_token: d.access_token, refresh_token: d.refresh_token });
+      return error ? niceError(error) : '';
+    }
+    if (d.error === 'invalid_login') return '@ ou senha errados.';
+    if (d.error === 'not_confirmed') return niceError({ message: 'not confirmed' });
+    if (r.status === 429) return niceError({ message: 'rate' });
+    return 'Não deu certo agora. Tente de novo.';
   },
   /** Devolve '' se entrou, 'CONFIRM' se falta confirmar o e-mail, ou a mensagem de erro. */
   async signUp(username: string, email: string, password: string): Promise<string> {

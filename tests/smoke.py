@@ -13,8 +13,9 @@ async def main():
         await ctx.add_init_script(open(os.path.join(HERE,'mock.js')).read()+"\nwindow.__LANTERNINHA_TEST_CLIENT__=window.supabase.createClient();\nObject.defineProperty(navigator,'geolocation',{value:{getCurrentPosition:(ok)=>setTimeout(()=>ok({coords:{latitude:-8.06,longitude:-34.88}}),50)}});")
         pg=await ctx.new_page(); pg.set_default_timeout(8000); errs=[]
         OFF={'on':False}  # simula o celular sem internet (as chamadas para /api falham)
+        BAD={'on':False}  # durante o teste de senha errada o /api/login responde 400 de propósito
         pg.on('pageerror',lambda e:errs.append(str(e)))
-        pg.on('console',lambda m:errs.append('console: '+m.text) if m.type=='error' and '404' not in m.text and not (OFF['on'] and 'ERR_FAILED' in m.text) else None)
+        pg.on('console',lambda m:errs.append('console: '+m.text) if m.type=='error' and '404' not in m.text and not (OFF['on'] and 'ERR_FAILED' in m.text) and not (BAD['on'] and '400' in m.text) else None)
         async def h(route):
             u=route.request.url
             if OFF['on'] and '/api/' in u: return await route.abort()
@@ -30,6 +31,10 @@ async def main():
             if '/api/images' in u: return await route.fulfill(json={'backdrops':['/blueback1.jpg','/blueback2.jpg']})
             if '/api/discover' in u: return await route.fulfill(json={'results':[{'id':500+i,'title':'Sugestão %d'%i,'original':'Sugestão %d'%i,'year':'2015','poster':'/blue5%d.jpg'%i} for i in range(4)] if 'similar' in u else []})
             if '/api/movie' in u: return await route.fulfill(json={'overview':'Sinopse do filme.','runtime':100,'genres':['Animação'],'director':'Henry Selick','backdrop':'/blueback.jpg','cast':['Dakota Fanning'],'trailer':'abc123XYZ_-','providers':{'stream':[{'name':'Netflix','logo':''}],'rent':[],'buy':[]}})
+            if '/api/login' in u:
+                bd=json.loads(route.request.post_data or '{}')
+                if bd.get('password')=='errada': return await route.fulfill(status=400,json={'error':'invalid_login'})
+                return await route.fulfill(json={'access_token':'login:%s:%s'%(bd.get('username'),bd.get('password')),'refresh_token':'r'})
             if 'app.test' not in u: return await route.fulfill(status=404,body='')
             path=u.split('app.test')[1].split('?')[0]; path='/index.html' if path=='/' else path
             f=DIST+path
@@ -288,6 +293,16 @@ async def main():
         await pg.click('#npok'); await pg.wait_for_selector('#fadd')
         await logout(); await pg.fill('#em','b@x.com'); await pg.fill('#pw','novasenha'); await pg.click('#ago'); await pg.wait_for_selector('#fadd')
         check('entra com a senha nova',True)
+        await logout()
+        # entrar com o @
+        BAD['on']=True
+        await pg.fill('#em','@bia'); await pg.fill('#pw','errada'); await pg.click('#ago'); await pg.wait_for_timeout(500)
+        BAD['on']=False
+        check('@ com senha errada avisa','@ ou senha errados' in await pg.inner_text('#fm'))
+        await pg.screenshot(path=os.path.join(HERE,'out-entrar.png'))
+        await pg.fill('#em','b c'); await pg.click('#ago'); check('@ inválido avisa','não parece' in await pg.inner_text('#fm'))
+        await pg.fill('#em','Bia'); await pg.fill('#pw','novasenha'); await pg.click('#ago'); await pg.wait_for_selector('#fadd')
+        check('entra com o @ (sem o @ na frente e com maiúscula)',True)
         await logout()
         # aviso de versão nova (simula um APK antigo)
         await pg.add_init_script("window.__LANTERNINHA_TEST_BUILD__=1"); await pg.reload(); await pg.wait_for_selector('#updgo',timeout=5000)
