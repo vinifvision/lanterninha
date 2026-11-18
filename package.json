@@ -11,9 +11,12 @@
     "android": "npm run build && cap sync android && cap open android"
   },
   "dependencies": {
+    "@capacitor-community/media": "^9.1.0",
     "@capacitor/android": "^8.6.2",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
     "@supabase/supabase-js": "^2.45.0",
     "@vercel/analytics": "^2.0.1",
     "react": "^18.3.1",

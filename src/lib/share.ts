@@ -3,6 +3,22 @@ import { loadImage, proxiedPoster } from './api';
 import { fmt, LABELS, STAR_PATH } from './format';
 import type { RatedFilm } from './types';
 
+// Pôster e logo ficam guardados depois da primeira vez: trocar Post/Story ou abrir de novo não baixa outra vez
+const images = new Map<string, Promise<HTMLImageElement | null>>();
+const cached = (src: string, cross = false) => {
+  let p = images.get(src);
+  if (!p) {
+    p = loadImage(src, cross).then((img) => { if (!img) images.delete(src); return img; });
+    images.set(src, p);
+  }
+  return p;
+};
+/** Começa a baixar o pôster antes de a pessoa tocar em Compartilhar (a página do filme chama isto). */
+export function preloadCard(h: { img?: string | null }) {
+  if (h.img) void cached(proxiedPoster(h.img, 'w500'), true);
+  void cached('/logo.svg');
+}
+
 const FONT = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Inter,Roboto,Arial,sans-serif';
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLines: number): string[] {
@@ -33,12 +49,12 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-/** Gera a imagem. `story` = formato vertical de tela cheia; senão, formato de post. */
+/** Gera a imagem (JPG). `story` = formato vertical de tela cheia; senão, formato de post. */
 export async function makeCard(h: RatedFilm, story: boolean): Promise<Blob | null> {
   const W = 1080, H = story ? 1920 : 1350;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const c = cv.getContext('2d'); if (!c) return null;
-  const [poster, logo] = await Promise.all([h.img ? loadImage(proxiedPoster(h.img, 'w500'), true) : null, loadImage('/logo.svg')]);
+  const [poster, logo] = await Promise.all([h.img ? cached(proxiedPoster(h.img, 'w500'), true) : null, cached('/logo.svg')]);
 
   c.fillStyle = '#0a0a0c'; c.fillRect(0, 0, W, H);
   if (poster) { // fundo: o pôster bem desfocado (reduz e amplia; funciona em qualquer navegador)
@@ -94,8 +110,9 @@ export async function makeCard(h: RatedFilm, story: boolean): Promise<Blob | nul
   const tw = c.measureText('Lanterninha').width, lw = logo ? 64 : 0, total = lw + (logo ? 18 : 0) + tw, fx = (W - total) / 2;
   if (logo) { c.save(); roundRect(c, fx, fy, 64, 64, 15); c.clip(); c.drawImage(logo, fx, fy, 64, 64); c.restore(); }
   c.textAlign = 'left'; c.fillStyle = 'rgba(245,245,247,.9)'; c.fillText('Lanterninha', fx + lw + (logo ? 18 : 0), fy + 12);
-  return new Promise((resolve) => cv.toBlob(resolve, 'image/png'));
+  // JPG: bem mais leve e rápido de gerar que PNG, e é o formato que o WhatsApp e o Instagram preferem
+  return new Promise((resolve) => cv.toBlob(resolve, 'image/jpeg', 0.92));
 }
 
 export const cardFileName = (title: string) =>
-  'lanterninha-' + title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) + '.png';
+  'lanterninha-' + title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) + '.jpg';

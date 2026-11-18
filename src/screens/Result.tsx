@@ -11,6 +11,7 @@ import { cloud } from '../lib/cloud';
 import { films, fkey, isRated, useFilms } from '../lib/films';
 import { clamp, fmt, LABELS } from '../lib/format';
 import { classicSeal } from '../lib/quiz';
+import { preloadCard } from '../lib/share';
 import { sfx } from '../lib/sfx';
 import type { Film, FilmInfo, RatedFilm } from '../lib/types';
 import { nav } from '../nav';
@@ -33,6 +34,7 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
 
   // Projetor, sons e contagem: só uma vez, quando a tela abre
   useEffect(() => {
+    preloadCard(info); // a imagem de compartilhar fica pronta mais rápido
     cloud.setPaused(true);
     const timers: ReturnType<typeof setTimeout>[] = [];
     let proj: HTMLDivElement | null = null;
