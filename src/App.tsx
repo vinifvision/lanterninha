@@ -75,6 +75,7 @@ function stackScreen(s: Screen, depth: number) {
           classic={s.classic}
           rewatch={s.rewatch}
           answers={s.answers}
+          direct={s.direct}
         />
       );
     case "result":

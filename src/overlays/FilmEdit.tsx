@@ -1,5 +1,5 @@
 // Editar um filme avaliado: data, onde viu e ingresso, sem refazer a avaliação.
-// Também é onde ficam "Corrigir nota", "Reassisti" e "Apagar".
+// Também é onde ficam "Mudar nota", "Refazer as perguntas", "Reassisti" e "Apagar".
 import { useArmed } from '../components/hooks';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { lastCinema, TicketEditor } from '../components/TicketEditor';
@@ -44,7 +44,8 @@ export function FilmEdit({ filmKey }: { filmKey: string }) {
       </div>
 
       <div className="felist">
-        <button id="feco" onClick={() => redo(false)}><b>Corrigir nota</b><small>Responder as perguntas de novo</small></button>
+        <button id="fest" onClick={() => { nav.close(); nav.startQuiz(film, { classic: film.c, direct: true }); }}><b>Mudar nota</b><small>Escolher a nota direto nas estrelas</small></button>
+        <button id="feco" onClick={() => redo(false)}><b>Refazer as perguntas</b><small>Responder o quiz de novo</small></button>
         <button id="fere" onClick={() => redo(true)}><b>Reassisti</b><small>Avaliar de novo e guardar a nota anterior</small></button>
         <button id="fedel" className="del" onClick={remove}><b>{armed ? 'Apagar mesmo?' : 'Apagar dos meus filmes'}</b><small>{armed ? 'Toque de novo para confirmar' : 'Tira a nota, a review e o ingresso'}</small></button>
       </div>

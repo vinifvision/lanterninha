@@ -106,10 +106,10 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
         {classic && <div className="seal">{classicSeal(stars)}</div>}
         <div className="adj">
           <button id="minus" aria-label="Diminuir meia estrela" onClick={() => adjust(-0.5)}>−</button>
-          <small>{stars === base ? 'Não concorda? Ajuste.' : 'Sugestão era ' + fmt(base)}</small>
+          <small>{stars === base ? (answers.length ? 'Não concorda? Ajuste.' : 'Ajuste fino') : (answers.length ? 'Sugestão era ' : 'Você escolheu ') + fmt(base)}</small>
           <button id="plus" aria-label="Aumentar meia estrela" onClick={() => adjust(0.5)}>+</button>
         </div>
-        <button className="redo" id="redo" onClick={redo}>Refazer as respostas</button>
+        <button className="redo" id="redo" onClick={redo}>{answers.length ? 'Refazer as respostas' : 'Responder as perguntas'}</button>
         <div className="meta">
           <WhenRow film={film} />
           <button className="revbtn" id="rvb" onClick={() => nav.open({ k: 'editor', key: filmKey })}>
