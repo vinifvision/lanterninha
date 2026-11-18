@@ -143,8 +143,8 @@ const TAB_TITLE: Record<Tab, string> = {
   prof: "Perfil",
 };
 
-/** Telas com "puxar para recarregar": Início, Perfil, página do filme e perfil do amigo. */
-const PULL_MODES = new Set(["feed", "prof", "film", "friend"]);
+/** Telas com "puxar para recarregar": Início, Meus filmes, Perfil, página do filme e perfil do amigo. */
+const PULL_MODES = new Set(["feed", "lib", "prof", "film", "friend"]);
 
 export function App() {
   const { tab, stack, overlays, progress } = useNav();
