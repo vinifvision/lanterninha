@@ -85,6 +85,10 @@ async def main():
         # compartilhar
         await pg.click('#shr'); await pg.wait_for_selector('.shr .pv img'); check('imagem de compartilhar gerada',True)
         await pg.click('.shr button[data-f="1"]'); await pg.wait_for_timeout(700); check('formato story gera',await pg.locator('.shr .pv img').count()==1 and await pg.inner_text('#shm')=='')
+        tp=await pg.evaluate("fetch(document.querySelector('.shr .pv img').src).then(r=>r.blob()).then(b=>b.type)"); check('imagem em JPG (mais leve)',tp=='image/jpeg',tp)
+        await pg.click('.shr button[data-f="0"]'); await pg.wait_for_timeout(120); check('voltar para Post é na hora (já estava pronta)',await pg.inner_text('#shm')=='' and await pg.is_enabled('#sd'))
+        async with pg.expect_download() as dl: await pg.click('#sv')
+        check('Salvar no site baixa a imagem e avisa',(await dl.value).suggested_filename.endswith('.jpg') and 'baixada' in await pg.inner_text('#shm'))
         await pg.click('.shr .x')
         # refazer as respostas desfaz a nota e volta para a última pergunta
         await pg.click('#redo'); await pg.wait_for_selector('.opt'); check('refazer as respostas desfaz a nota',await L()==[],str(await L()))

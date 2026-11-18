@@ -15,7 +15,11 @@ export const IMG = 'https://image.tmdb.org/t/p/';
  *  1) aumente o versionCode no android/app/build.gradle;
  *  2) coloque o APK em public/lanterninha.apk;
  *  3) mude estes números para os mesmos. Quem estiver com um APK mais velho vê o aviso para atualizar. */
-export const LATEST_APK = { build: 2, name: '1.1', news: 'Cinemas perto de mim no ingresso' };
+export const LATEST_APK = {
+  build: 3,
+  name: '1.2',
+  news: 'Compartilhar agora abre o WhatsApp, o Status e o Instagram, salva de verdade na galeria e gera a imagem mais rápido',
+};
 /** "http" de propósito: um endereço diferente do app faz o celular abrir o navegador, que baixa o arquivo.
  *  (A Vercel passa sozinha para https.) */
 export const APK_URL = 'http://lanterninha.vercel.app/lanterninha.apk';

@@ -9,6 +9,7 @@ import { Stars } from "../components/Stars";
 import { WhenRow } from "../components/WhenRow";
 import { movieDetails, movieRatings, posterUrl } from "../lib/api";
 import { refresh, useRefresh } from "../lib/refresh";
+import { preloadCard } from "../lib/share";
 import { sfx } from "../lib/sfx";
 import { cloud, useCloud } from "../lib/cloud";
 import { posterColor, setTint } from "../lib/color";
@@ -60,6 +61,12 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [info.img]);
+
+  // Se já tenho nota, o pôster da imagem de compartilhar começa a baixar agora (Compartilhar abre mais rápido)
+  useEffect(() => {
+    if (rated) preloadCard(rated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!rated, info.img]);
 
   // O banner entra suave depois de carregado
   useEffect(() => {
