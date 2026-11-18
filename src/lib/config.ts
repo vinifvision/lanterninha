@@ -7,6 +7,8 @@ export const SUPABASE_KEY = 'sb_publishable_2e2wmfwPRpExRQ_KMrqBfQ_V_VumbRg';
  *  dentro do aplicativo (Capacitor) precisa ser o endereço completo do site publicado. */
 export const isNativeApp = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
 export const API_BASE = isNativeApp ? 'https://lanterninha.vercel.app/' : '/';
+/** Endereço do site publicado. Os links dos e-mails (ex.: senha nova) abrem sempre aqui. */
+export const SITE_URL = 'https://lanterninha.vercel.app/';
 export const IMG = 'https://image.tmdb.org/t/p/';
 
 /** Versão mais nova do app de celular. Quando gerar um APK novo:

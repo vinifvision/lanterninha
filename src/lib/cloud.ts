@@ -1,7 +1,7 @@
 // Conta, sincronização e tudo que é social (amigos, indicações, palpite), em cima do Supabase.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { useSyncExternalStore } from 'react';
-import { SUPABASE_KEY, SUPABASE_URL } from './config';
+import { isNativeApp, SITE_URL, SUPABASE_KEY, SUPABASE_URL } from './config';
 import { cleanFilm, fhash, films, fkey, isRated } from './films';
 import { pname, POSTER_PATH, UUID } from './format';
 import type { CineTag, Film, FilmInfo, FriendRating, Friends, Profile, RatedFilm, Rec, TagStatus, TopItem } from './types';
@@ -28,6 +28,10 @@ export interface CloudState {
   /** Amigos que me marcaram e eu confirmei: filme → ids */
   withMe: Record<string, string[]>;
   sync: SyncState;
+  /** A pessoa abriu o link de "Esqueci minha senha" e precisa criar uma senha nova */
+  recovery: boolean;
+  /** O link do e-mail chegou vencido ou já usado */
+  linkError: string;
 }
 export interface BoardRow { p: Profile; me: boolean; pts: number; n: number }
 
@@ -67,6 +71,7 @@ let friends: Friends = emptyFriends();
 let recs: Rec[] = [];
 let tags: CineTag[] = [], sent: CloudState['sent'] = {}, withMe: CloudState['withMe'] = {}, tagsOk = false;
 let sync: SyncState = 'off';
+let recovery = false, linkError = '';
 let timer: ReturnType<typeof setTimeout> | undefined;
 let busy = false, again = false, lastPull = 0, paused = false;
 
@@ -77,10 +82,10 @@ let synced: Record<string, string> = lsGet('lantSynced', {});
 let owner: string | null = lsGet<string | null>('lantOwner', null);
 const keep = () => { lsSet('lantSynced', synced); lsSet('lantOwner', owner); };
 
-let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync };
+let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
 const listeners = new Set<() => void>();
 function emit() {
-  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync };
+  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
   listeners.forEach((l) => l());
 }
 const setSync = (s: SyncState) => { sync = s; emit(); };
@@ -297,6 +302,9 @@ async function onAuth(sessionUser: { id: string; email?: string; user_metadata?:
 
 function niceError(e: { message?: string } | null): string {
   const m = (e?.message || '').toLowerCase();
+  if (m.includes('different from the old')) return 'A senha nova precisa ser diferente da antiga.';
+  if (m.includes('session missing') || m.includes('session not found')) return 'O link venceu. Peça um novo em "Esqueci minha senha".';
+  if (m.includes('not authorized')) return 'Não consegui enviar o e-mail agora. Tente mais tarde.';
   if (m.includes('invalid login')) return 'E-mail ou senha errados.';
   if (m.includes('already registered') || m.includes('already been registered')) return 'Esse e-mail já tem conta. Tente entrar.';
   if (m.includes('password')) return 'A senha precisa ter pelo menos 6 caracteres.';
@@ -306,13 +314,29 @@ function niceError(e: { message?: string } | null): string {
   return 'Não deu certo agora. Tente de novo.';
 }
 
+/** Quando o link do e-mail está vencido, o Supabase devolve o erro no endereço
+ *  (ex.: #error_code=otp_expired). Lê o erro e limpa o endereço. */
+function readLinkError(): string {
+  try {
+    const p = new URLSearchParams(location.hash.slice(1) + '&' + location.search.slice(1));
+    if (!p.get('error') && !p.get('error_code')) return '';
+    history.replaceState(null, '', location.pathname);
+    return 'Esse link venceu ou já foi usado. Peça um novo aqui embaixo.';
+  } catch { return ''; }
+}
+
 function init() {
+  linkError = readLinkError();
   try {
     // Nos testes automáticos, um cliente falso pode ser injetado aqui.
     const fake = (window as unknown as { __LANTERNINHA_TEST_CLIENT__?: SupabaseClient }).__LANTERNINHA_TEST_CLIENT__;
     sb = fake || createClient(SUPABASE_URL, SUPABASE_KEY);
     // O setTimeout evita chamar o Supabase de dentro do próprio aviso de login (isso trava o cliente).
-    sb.auth.onAuthStateChange((_event, session) => { setTimeout(() => void onAuth(session?.user ?? null), 0); });
+    sb.auth.onAuthStateChange((event, session) => {
+      // Veio do link de "Esqueci minha senha": a pessoa já entra e o app pede a senha nova
+      if (event === 'PASSWORD_RECOVERY') { recovery = true; emit(); }
+      setTimeout(() => void onAuth(session?.user ?? null), 0);
+    });
   } catch {
     sb = null;
   }
@@ -354,6 +378,23 @@ export const cloud = {
     if (error) return niceError(error);
     return data.session ? '' : 'CONFIRM';
   },
+  /** Manda o e-mail com o link para criar uma senha nova. O link sempre abre o site
+   *  (no app de celular, abre no navegador). */
+  async sendReset(email: string): Promise<string> {
+    if (!sb) return 'Sem conexão com a conta agora.';
+    const redirectTo = isNativeApp ? SITE_URL : location.origin + '/';
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+    return error ? niceError(error) : '';
+  },
+  async setNewPassword(password: string): Promise<string> {
+    if (!sb) return 'Sem conexão com a conta agora.';
+    const { error } = await sb.auth.updateUser({ password });
+    return error ? niceError(error) : '';
+  },
+  /** O app já abriu a tela de senha nova. */
+  recoveryShown() { if (recovery) { recovery = false; emit(); } },
+  /** O aviso de link vencido já apareceu. */
+  linkErrorShown() { if (linkError) { linkError = ''; emit(); } },
   async signOut(): Promise<string> {
     if (!sb) return '';
     clearTimeout(timer);

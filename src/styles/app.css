@@ -4107,3 +4107,105 @@ body.rolling .top{opacity:0;transition:opacity .6s}
     animation: none;
   }
 }
+
+/* Esqueci minha senha e senha nova */
+.lnk {
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 15px;
+}
+.lnk:active {
+  opacity: 0.6;
+}
+.rlead {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+.rlead b {
+  color: var(--text);
+  font-weight: 600;
+}
+.rsent {
+  text-align: center;
+  padding: 28px 20px 22px;
+  border-radius: 22px;
+  background: var(--card);
+  animation: rsent-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.rsent-ic {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.rsent-ic svg {
+  width: 30px;
+  height: 30px;
+}
+.rsent-ic.ok path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: rsent-draw 0.45s 0.25s ease-out forwards;
+}
+.rsent b {
+  display: block;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.rsent p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0 0 18px;
+}
+.rsent p span {
+  color: var(--text);
+}
+.rsent .plain {
+  margin: 0;
+  background: var(--card2);
+}
+.rsent .plain:disabled {
+  color: var(--muted);
+}
+@keyframes rsent-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+@keyframes rsent-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.pwbox {
+  position: relative;
+}
+.pwbox input {
+  padding-right: 96px;
+}
+.pweye {
+  position: absolute;
+  top: 0;
+  bottom: 10px;
+  right: 6px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}

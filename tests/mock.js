@@ -2,6 +2,8 @@
 window.supabase={createClient(){
   const db=()=>JSON.parse(localStorage.__db||'{"users":{},"films":[],"friendships":[],"recs":[],"guesses":[],"session":null}'), save=d=>localStorage.__db=JSON.stringify(d);
   let cb=null; const fire=()=>cb&&cb('X',db().session);
+  // Simula a pessoa abrindo o link de "Esqueci minha senha" do e-mail
+  window.__mockRecover=email=>{ const d=db(), u=d.users[email]; d.session={user:{id:u.id,email,user_metadata:u.meta||{}}}; save(d); cb&&cb('PASSWORD_RECOVERY',d.session); };
   const uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
   const profRow=u=>Object.assign({id:u.id,username:u.username,top4:[]},u.prof||{});
   const isFriend=(d,a,b)=>d.friendships.some(f=>f.status==='accepted'&&((f.requester===a&&f.addressee===b)||(f.requester===b&&f.addressee===a)));
@@ -50,6 +52,9 @@ window.supabase={createClient(){
     auth:{ onAuthStateChange(f){cb=f; setTimeout(fire,0); return {data:{subscription:{unsubscribe(){}}}}},
       async signUp({email,password,options}){ const d=db(); if(d.users[email]) return {data:{},error:{message:'User already registered'}}; const user={id:uid(Object.keys(d.users).length+1),email}; d.users[email]={...user,password,username:options.data.username}; d.session={user}; save(d); fire(); return {data:{user,session:d.session},error:null}; },
       async signInWithPassword({email,password}){ const d=db(), u=d.users[email]; if(!u||u.password!==password) return {error:{message:'Invalid login credentials'}}; d.session={user:{id:u.id,email,user_metadata:u.meta||{}}}; save(d); fire(); return {data:{session:d.session},error:null}; },
-      async updateUser({data}){ const d=db(); if(!d.session) return {error:{message:'sem sessão'}}; const u=Object.values(d.users).find(x=>x.id===d.session.user.id); u.meta={...(u.meta||{}),...data}; d.session.user.user_metadata=u.meta; save(d); return {data:{user:d.session.user},error:null}; },
+      async updateUser({data,password}){ const d=db(); if(!d.session) return {error:{message:'Auth session missing!'}}; const u=Object.values(d.users).find(x=>x.id===d.session.user.id);
+        if(password){ if(password===u.password) return {error:{message:'New password should be different from the old password.'}}; u.password=password; }
+        if(data){ u.meta={...(u.meta||{}),...data}; d.session.user.user_metadata=u.meta; } save(d); return {data:{user:d.session.user},error:null}; },
+      async resetPasswordForEmail(email,opts){ const d=db(); d.reset={email,redirectTo:opts&&opts.redirectTo}; save(d); return {data:{},error:null}; },
       async signOut(){ const d=db(); d.session=null; save(d); fire(); return {error:null}; } } };
 }};
