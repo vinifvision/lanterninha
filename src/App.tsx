@@ -18,6 +18,7 @@ import { Recommend } from "./overlays/Recommend";
 import { ReviewEditor } from "./overlays/ReviewEditor";
 import { ReviewsPage } from "./overlays/ReviewsPage";
 import { NewPassword } from "./overlays/NewPassword";
+import { Signup } from "./overlays/Signup";
 import { Settings } from "./overlays/Settings";
 import { ShareSheet } from "./overlays/ShareSheet";
 import { TicketSheet } from "./overlays/TicketSheet";
@@ -117,6 +118,8 @@ function overlayView(o: OverlayState, i: number) {
       return <Settings key={i} />;
     case "newPassword":
       return <NewPassword key={i} />;
+    case "signup":
+      return <Signup key={i} />;
     case "ticket":
       return <TicketSheet key={i} filmKey={o.key} />;
     case "chestDeck":

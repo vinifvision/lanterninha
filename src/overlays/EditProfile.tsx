@@ -13,7 +13,7 @@ import { nav } from '../nav';
 import { PickBanner } from './PickBanner';
 
 /** Corta a foto no centro e reduz para 256px, até caber no limite do banco. */
-async function photoToAvatar(file: File): Promise<string> {
+export async function photoToAvatar(file: File): Promise<string> {
   const url = URL.createObjectURL(file);
   const im = await loadImage(url).catch(() => null);
   URL.revokeObjectURL(url);
@@ -90,7 +90,7 @@ export function EditProfile() {
 }
 
 /** Escolher um favorito entre os filmes já avaliados. */
-function PickTop({ slot, top4, onDone, onClose }: { slot: number; top4: (TopItem | null)[]; onDone: (f: TopItem | null) => void; onClose: () => void }) {
+export function PickTop({ slot, top4, onDone, onClose }: { slot: number; top4: (TopItem | null)[]; onDone: (f: TopItem | null) => void; onClose: () => void }) {
   const used = top4.map((f, i) => (f && i !== slot ? fkey(f) : null));
   const list = useFilms().filter(isRated).filter((h) => !used.includes(fkey(h))).sort((a, b) => b.s - a.s);
   return (
