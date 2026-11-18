@@ -8,6 +8,7 @@ import { Poster } from "../components/Poster";
 import { Stars } from "../components/Stars";
 import { WhenRow } from "../components/WhenRow";
 import { movieDetails, movieRatings, posterUrl } from "../lib/api";
+import { sfx } from "../lib/sfx";
 import { cloud, useCloud } from "../lib/cloud";
 import { posterColor, setTint } from "../lib/color";
 import { films, fkey, isRated, toInfo, useFilms } from "../lib/films";
@@ -23,9 +24,17 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   const account = useCloud();
   const film = all.find((h) => fkey(h) === key) || null;
   const rated = isRated(film) ? film : null;
+  // Sem conexão: a página mostra o que já tem e avisa, com "Tentar de novo"
+  const [detailsFailed, setDetailsFailed] = useState(false);
+  const [tries, setTries] = useState(0);
   const details = useAsync<MovieDetails | null>(
-    () => (info.id ? movieDetails(info.id) : Promise.resolve(null)),
-    [info.id],
+    () => {
+      setDetailsFailed(false);
+      return info.id
+        ? movieDetails(info.id).catch((e) => { setDetailsFailed(true); throw e; })
+        : Promise.resolve(null);
+    },
+    [info.id, tries],
   );
   const hasFriends = !!account.user && account.friends.list.length > 0;
   const crowd = useAsync(
@@ -285,6 +294,13 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {detailsFailed && (
+        <div className="offline" id="fpoff" role="status">
+          <span>Sem conexão: alguns dados do filme não carregaram.</span>
+          <button onClick={() => { sfx.tap(); setTries(tries + 1); }}>Tentar de novo</button>
         </div>
       )}
 

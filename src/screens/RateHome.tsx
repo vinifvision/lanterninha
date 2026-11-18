@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Poster } from '../components/Poster';
 import { searchMovies } from '../lib/api';
+import { sfx } from '../lib/sfx';
 import { films, isRated, useFilms } from '../lib/films';
 import { fmt } from '../lib/format';
 import { looksClassic } from '../lib/quiz';
@@ -20,6 +21,9 @@ export function RateHome() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [need, setNeed] = useState(false);
   const [hint, setHint] = useState('');
+  // A busca falhou por falta de conexão (não é que o filme não exista)
+  const [offline, setOffline] = useState(false);
+  const [tries, setTries] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const recent = all.filter(isRated).slice(0, 4);
 
@@ -28,20 +32,22 @@ export function RateHome() {
   // Busca enquanto digita, com uma pequena espera para não disparar a cada letra
   useEffect(() => {
     const q = title.trim();
-    if (q.length < 2 || (movie && movie.title === q)) { setResults([]); return; }
+    if (q.length < 2 || (movie && movie.title === q)) { setResults([]); setOffline(false); return; }
     const ctl = new AbortController();
     const t = setTimeout(() => {
-      searchMovies(q, ctl.signal).then((list) => setResults(list.slice(0, 5))).catch(() => { if (!ctl.signal.aborted) setResults([]); });
+      searchMovies(q, ctl.signal)
+        .then((list) => { setOffline(false); setResults(list.slice(0, 5)); })
+        .catch(() => { if (!ctl.signal.aborted) { setResults([]); setOffline(true); } });
     }, 320);
     return () => { clearTimeout(t); ctl.abort(); };
-  }, [title, movie]);
+  }, [title, movie, tries]);
 
   // Só dá para avaliar ou marcar um filme escolhido na busca (que existe no TMDB), nunca um texto qualquer
   const info = (): FilmInfo | null => {
     const t = title.trim();
     if (!t) return null;
     if (movie && movie.title === t) return { id: movie.id, t, y: movie.year, o: movie.original, img: movie.poster };
-    setHint(results.length ? 'Escolha o filme na lista.' : 'Não achei esse filme. Confira o nome.');
+    setHint(offline ? '' : results.length ? 'Escolha o filme na lista.' : 'Não achei esse filme. Confira o nome.');
     setNeed(true); input.current?.focus(); setTimeout(() => setNeed(false), 1200);
     return null;
   };
@@ -87,7 +93,13 @@ export function RateHome() {
           </button>
         ))}
       </div>
-      {hint && <p className="fmsg bad" id="rh" style={{ margin: '-4px 0 10px' }}>{hint}</p>}
+      {offline && (
+        <div className="offline" id="rhoff" role="status">
+          <span>Sem conexão. Confira a internet.</span>
+          <button onClick={() => { sfx.tap(); setTries(tries + 1); }}>Tentar de novo</button>
+        </div>
+      )}
+      {hint && !offline && <p className="fmsg bad" id="rh" style={{ margin: '-4px 0 10px' }}>{hint}</p>}
       {movie && movie.title === title.trim() && (
         <button className="dlink" onClick={() => { const f = info(); if (f) nav.openFilm(f); }}>Ver página do filme ›</button>
       )}

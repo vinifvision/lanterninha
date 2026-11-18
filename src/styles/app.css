@@ -4065,3 +4065,45 @@ body.rolling .top{opacity:0;transition:opacity .6s}
     animation: none;
   }
 }
+/* Aviso de sem conexão, com "Tentar de novo" */
+.offline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 14px;
+  background: rgba(255, 159, 10, 0.1);
+  border: 1px solid rgba(255, 159, 10, 0.25);
+  color: #ffd29a;
+  font-size: 14px;
+  line-height: 1.35;
+  animation: offin 0.3s ease both;
+}
+.offline button {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 159, 10, 0.16);
+  color: #ffd29a;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.offline button:active {
+  transform: scale(0.96);
+}
+@keyframes offin {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .offline {
+    animation: none;
+  }
+}
