@@ -1901,6 +1901,17 @@ body.tinted::after {
   height: 8px;
   border-radius: 50%;
   background: #f0575b;
+  animation: dotin 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes dotin {
+  from {
+    transform: scale(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab .dot {
+    animation: none;
+  }
 }
 .rcd {
   display: flex;

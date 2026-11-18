@@ -140,7 +140,13 @@ export function App() {
   const { tab, stack, overlays, progress } = useNav();
   const soundOn = useSound();
   const account = useCloud();
-  const hasRecs = account.recs.length > 0;
+  // Bolinhas nas abas: algo esperando a pessoa (indicação, convite de ingresso, pedido de amizade)
+  const badge: Record<Tab, boolean> = {
+    rate: false,
+    home: account.tags.length > 0,
+    lib: account.recs.length > 0,
+    prof: account.friends.incoming.length > 0,
+  };
   const [scrolled, setScrolled] = useState(false);
   const top = stack[stack.length - 1];
   const main = !top;
@@ -277,7 +283,7 @@ export function App() {
                 <path d={TAB_ICONS[k]} />
               </svg>
               {label}
-              {k === "lib" && hasRecs && <i className="dot" />}
+              {badge[k] && <i className="dot" />}
             </button>
           ))}
         </div>
