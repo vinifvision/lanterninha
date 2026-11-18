@@ -1,5 +1,5 @@
 // Aba Perfil: entrar ou criar conta; depois, o perfil com top 4, amigos, placar e sincronização.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
 import { FriendRow } from "../components/FriendRow";
@@ -30,22 +30,57 @@ export function Profile() {
   return account.user ? <Account /> : <AuthForm />;
 }
 
+type AuthMode = "in" | "up" | "reset";
+
 function AuthForm() {
   const all = useFilms();
-  const [up, setUp] = useState(false);
+  const account = useCloud();
+  // Se a pessoa chegou por um link vencido do e-mail, já abre no "Esqueci minha senha" com o aviso
+  const [mode, setMode] = useState<AuthMode>(account.linkError ? "reset" : "in");
+  const up = mode === "up";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ t: string; bad?: boolean } | null>(null);
+  const [msg, setMsg] = useState<{ t: string; bad?: boolean } | null>(
+    account.linkError ? { t: account.linkError, bad: true } : null,
+  );
+  /** E-mail para onde o link de senha nova foi mandado */
+  const [sentTo, setSentTo] = useState("");
+  /** Segundos até poder reenviar o link (o Supabase só aceita um pedido por minuto) */
+  const [wait, setWait] = useState(0);
+  useEffect(() => {
+    if (account.linkError) cloud.linkErrorShown();
+  }, []);
+  useEffect(() => {
+    if (!wait) return;
+    const id = setTimeout(() => setWait(wait - 1), 1000);
+    return () => clearTimeout(id);
+  }, [wait]);
   const hint =
     all.length && up
       ? "Os filmes deste aparelho vão junto para a sua conta."
       : "";
+  const bad = (t: string) => setMsg({ t, bad: true });
+  const go = (m: AuthMode) => {
+    setMode(m);
+    setMsg(null);
+    setSentTo("");
+  };
+
+  const sendLink = async (mail: string) => {
+    setBusy(true);
+    setMsg({ t: "Enviando…" });
+    const r = await cloud.sendReset(mail);
+    setBusy(false);
+    if (r) return bad(r);
+    setMsg(null);
+    setSentTo(mail);
+    setWait(60);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const bad = (t: string) => setMsg({ t, bad: true });
     const mail = email.trim();
     if (up && !/^[a-z0-9_.]{3,20}$/.test(name))
       return bad(
@@ -53,6 +88,7 @@ function AuthForm() {
       );
     if (!/^\S+@\S+\.\S+$/.test(mail))
       return bad("Esse e-mail não parece válido.");
+    if (mode === "reset") return sendLink(mail);
     if (pw.length < 6)
       return bad("A senha precisa ter pelo menos 6 caracteres.");
     setBusy(true);
@@ -62,12 +98,75 @@ function AuthForm() {
       : await cloud.signIn(mail, pw);
     setBusy(false);
     if (r === "CONFIRM") {
-      setUp(false);
+      setMode("in");
       setMsg({
         t: "Conta criada. Enviamos um e-mail: confirme por lá e depois entre aqui.",
       });
     } else if (r) bad(r);
   };
+
+  const emailInput = (
+    <input
+      type="email"
+      id="em"
+      placeholder="E-mail"
+      autoComplete="email"
+      autoCapitalize="none"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+    />
+  );
+  const message = (
+    <p className={`fmsg${msg?.bad ? " bad" : ""}`} id="fm">
+      {msg ? msg.t : hint}
+    </p>
+  );
+
+  if (mode === "reset")
+    return (
+      <div className="screen">
+        <h1>Perfil</h1>
+        <p className="count">Esqueceu a senha? Acontece.</p>
+        {sentTo ? (
+          <div className="rsent" id="rsent">
+            <div className="rsent-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="3" />
+                <path d="m4 7 8 6 8-6" />
+              </svg>
+            </div>
+            <b>Confira seu e-mail</b>
+            <p>
+              Se <span>{sentTo}</span> tiver conta no Lanterninha, o link para
+              criar uma senha nova chega em instantes. Olhe também o spam.
+            </p>
+            <button
+              className="plain"
+              id="rre"
+              disabled={wait > 0 || busy}
+              onClick={() => void sendLink(sentTo)}
+            >
+              {wait ? `Reenviar em ${wait}s` : "Reenviar link"}
+            </button>
+          </div>
+        ) : (
+          <form id="af" noValidate onSubmit={submit}>
+            <p className="rlead">
+              Digite o e-mail da sua conta. Vamos mandar um link para você criar
+              uma senha nova.
+            </p>
+            {emailInput}
+            <button className="cta" id="ago" type="submit" disabled={busy}>
+              Enviar link
+            </button>
+          </form>
+        )}
+        {message}
+        <button className="lnk" id="rback" onClick={() => go("in")}>
+          Voltar para entrar
+        </button>
+      </div>
+    );
 
   return (
     <div className="screen">
@@ -76,24 +175,10 @@ function AuthForm() {
         Entre para guardar seus filmes na conta e ver em qualquer aparelho.
       </p>
       <div className="seg">
-        <button
-          data-m="in"
-          className={up ? "" : "on"}
-          onClick={() => {
-            setUp(false);
-            setMsg(null);
-          }}
-        >
+        <button data-m="in" className={up ? "" : "on"} onClick={() => go("in")}>
           Entrar
         </button>
-        <button
-          data-m="up"
-          className={up ? "on" : ""}
-          onClick={() => {
-            setUp(true);
-            setMsg(null);
-          }}
-        >
+        <button data-m="up" className={up ? "on" : ""} onClick={() => go("up")}>
           Criar conta
         </button>
       </div>
@@ -114,15 +199,7 @@ function AuthForm() {
             }
           />
         )}
-        <input
-          type="email"
-          id="em"
-          placeholder="E-mail"
-          autoComplete="email"
-          autoCapitalize="none"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        {emailInput}
         <input
           type="password"
           id="pw"
@@ -135,9 +212,12 @@ function AuthForm() {
           {up ? "Criar conta" : "Entrar"}
         </button>
       </form>
-      <p className={`fmsg${msg?.bad ? " bad" : ""}`} id="fm">
-        {msg ? msg.t : hint}
-      </p>
+      {message}
+      {!up && (
+        <button className="lnk" id="forgot" onClick={() => go("reset")}>
+          Esqueci minha senha
+        </button>
+      )}
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { GuessGame } from "./overlays/GuessGame";
 import { Recommend } from "./overlays/Recommend";
 import { ReviewEditor } from "./overlays/ReviewEditor";
 import { ReviewsPage } from "./overlays/ReviewsPage";
+import { NewPassword } from "./overlays/NewPassword";
 import { Settings } from "./overlays/Settings";
 import { ShareSheet } from "./overlays/ShareSheet";
 import { TicketSheet } from "./overlays/TicketSheet";
@@ -33,7 +34,7 @@ import { Profile } from "./screens/Profile";
 import { Quiz } from "./screens/Quiz";
 import { RateHome } from "./screens/RateHome";
 import { Result } from "./screens/Result";
-import { useCloud } from "./lib/cloud";
+import { cloud, useCloud } from "./lib/cloud";
 import { fkey } from "./lib/films";
 import { Analytics } from "@vercel/analytics/react";
 import { UpdateSheet } from "./components/UpdateSheet";
@@ -114,6 +115,8 @@ function overlayView(o: OverlayState, i: number) {
       return <AddFriend key={i} />;
     case "settings":
       return <Settings key={i} />;
+    case "newPassword":
+      return <NewPassword key={i} />;
     case "ticket":
       return <TicketSheet key={i} filmKey={o.key} />;
     case "chestDeck":
@@ -148,6 +151,19 @@ export function App() {
     prof: account.friends.incoming.length > 0,
   };
   const [scrolled, setScrolled] = useState(false);
+  // Link de "Esqueci minha senha": abre a tela de senha nova.
+  // Link vencido: leva para o Perfil, onde aparece o aviso e dá para pedir outro.
+  useEffect(() => {
+    if (account.recovery) {
+      cloud.recoveryShown();
+      nav.home();
+      nav.tab("prof");
+      nav.open({ k: "newPassword" });
+    } else if (account.linkError) {
+      if (account.user) cloud.linkErrorShown();
+      else nav.tab("prof");
+    }
+  }, [account.recovery, account.linkError, account.user]);
   const top = stack[stack.length - 1];
   const main = !top;
   const rating = top?.k === "quiz" || top?.k === "result";

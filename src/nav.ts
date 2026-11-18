@@ -19,6 +19,7 @@ export type Overlay =
   | { k: 'editProfile' }
   | { k: 'addFriend' }
   | { k: 'settings' }
+  | { k: 'newPassword' }
   | { k: 'ticket'; key: string }
   | { k: 'chestDeck' }
   | { k: 'filmEdit'; key: string }
