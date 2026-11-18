@@ -30,15 +30,12 @@ export function Profile() {
   return account.user ? <Account /> : <AuthForm />;
 }
 
-type AuthMode = "in" | "up" | "reset";
+type AuthMode = "in" | "reset";
 
 function AuthForm() {
-  const all = useFilms();
   const account = useCloud();
   // Se a pessoa chegou por um link vencido do e-mail, já abre no "Esqueci minha senha" com o aviso
   const [mode, setMode] = useState<AuthMode>(account.linkError ? "reset" : "in");
-  const up = mode === "up";
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,10 +54,6 @@ function AuthForm() {
     const id = setTimeout(() => setWait(wait - 1), 1000);
     return () => clearTimeout(id);
   }, [wait]);
-  const hint =
-    all.length && up
-      ? "Os filmes deste aparelho vão junto para a sua conta."
-      : "";
   const bad = (t: string) => setMsg({ t, bad: true });
   const go = (m: AuthMode) => {
     setMode(m);
@@ -82,10 +75,6 @@ function AuthForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const mail = email.trim();
-    if (up && !/^[a-z0-9_.]{3,20}$/.test(name))
-      return bad(
-        "O nome de usuário precisa de 3 a 20 letras, números, ponto ou _.",
-      );
     // No "Entrar" vale o e-mail ou o @ (com ou sem o @ na frente)
     const byName = mode === "in" && !mail.replace(/^@/, "").includes("@");
     if (byName && !/^@?[a-z0-9_.]{3,20}$/i.test(mail))
@@ -96,17 +85,10 @@ function AuthForm() {
     if (pw.length < 6)
       return bad("A senha precisa ter pelo menos 6 caracteres.");
     setBusy(true);
-    setMsg({ t: up ? "Criando…" : "Entrando…" });
-    const r = up
-      ? await cloud.signUp(name, mail, pw)
-      : await cloud.signIn(mail, pw);
+    setMsg({ t: "Entrando…" });
+    const r = await cloud.signIn(mail, pw);
     setBusy(false);
-    if (r === "CONFIRM") {
-      setMode("in");
-      setMsg({
-        t: "Conta criada. Enviamos um e-mail: confirme por lá e depois entre aqui.",
-      });
-    } else if (r) bad(r);
+    if (r) bad(r);
   };
 
   const emailInput = (
@@ -126,7 +108,7 @@ function AuthForm() {
   );
   const message = (
     <p className={`fmsg${msg?.bad ? " bad" : ""}`} id="fm">
-      {msg ? msg.t : hint}
+      {msg ? msg.t : ""}
     </p>
   );
 
@@ -183,49 +165,31 @@ function AuthForm() {
         Entre para guardar seus filmes na conta e ver em qualquer aparelho.
       </p>
       <div className="seg">
-        <button data-m="in" className={up ? "" : "on"} onClick={() => go("in")}>
+        <button data-m="in" className="on" onClick={() => go("in")}>
           Entrar
         </button>
-        <button data-m="up" className={up ? "on" : ""} onClick={() => go("up")}>
+        <button data-m="up" onClick={() => nav.open({ k: "signup" })}>
           Criar conta
         </button>
       </div>
       <form id="af" noValidate onSubmit={submit}>
-        {up && (
-          <input
-            type="text"
-            id="un"
-            placeholder="Nome de usuário"
-            maxLength={20}
-            autoComplete="username"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            value={name}
-            onChange={(e) =>
-              setName(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))
-            }
-          />
-        )}
         {emailInput}
         <input
           type="password"
           id="pw"
           placeholder="Senha"
-          autoComplete={up ? "new-password" : "current-password"}
+          autoComplete="current-password"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
         />
         <button className="cta" id="ago" type="submit" disabled={busy}>
-          {up ? "Criar conta" : "Entrar"}
+          Entrar
         </button>
       </form>
       {message}
-      {!up && (
-        <button className="lnk" id="forgot" onClick={() => go("reset")}>
-          Esqueci minha senha
-        </button>
-      )}
+      <button className="lnk" id="forgot" onClick={() => go("reset")}>
+        Esqueci minha senha
+      </button>
     </div>
   );
 }

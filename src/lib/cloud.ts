@@ -439,6 +439,14 @@ export const cloud = {
     return '';
   },
 
+  /** O @ está livre? null quando não deu para conferir agora. */
+  async usernameAvailable(name: string): Promise<boolean | null> {
+    if (!sb) return null;
+    try {
+      const { data, error } = await sb.rpc('username_available', { name });
+      return error || typeof data !== 'boolean' ? null : data;
+    } catch { return null; }
+  },
   async friendCount(id: string): Promise<number | null> {
     if (!sb || !UUID.test(id)) return null;
     try { const { data, error } = await sb.rpc('friend_count', { who: id }); return error || typeof data !== 'number' ? null : data; } catch { return null; }

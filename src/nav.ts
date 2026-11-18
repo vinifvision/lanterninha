@@ -20,6 +20,7 @@ export type Overlay =
   | { k: 'addFriend' }
   | { k: 'settings' }
   | { k: 'newPassword' }
+  | { k: 'signup' }
   | { k: 'ticket'; key: string }
   | { k: 'chestDeck' }
   | { k: 'filmEdit'; key: string }
@@ -39,6 +40,8 @@ let state: NavState = { tab: 'rate', stack: [], overlays: [], progress: null };
 const listeners = new Set<() => void>();
 /** Uma tela pode tratar o "voltar" por conta própria (ex.: voltar uma pergunta). Devolve true se tratou. */
 let backHandler: (() => boolean) | null = null;
+/** O mesmo, para a tela sobreposta do topo (ex.: criar conta volta um passo). */
+let overlayBack: (() => boolean) | null = null;
 const set = (patch: Partial<NavState>) => { state = { ...state, ...patch }; listeners.forEach((l) => l()); };
 
 /** A área que rola (o corpo da página fica parado, como em um aplicativo). */
@@ -61,8 +64,9 @@ export const nav = {
   /** Troca a tela do topo (ex.: da avaliação para o resultado). */
   replace(screen: Screen) { set({ stack: [...state.stack.slice(0, -1), screen], progress: null }); scrollTo(0); },
   setBackHandler(fn: (() => boolean) | null) { backHandler = fn; },
+  setOverlayBackHandler(fn: (() => boolean) | null) { overlayBack = fn; },
   back() {
-    if (state.overlays.length) return nav.close();
+    if (state.overlays.length) { if (overlayBack?.()) return; return nav.close(); }
     if (backHandler?.()) return;
     if (state.stack.length) {
       // Volta para o ponto da tela em que a pessoa estava antes de abrir esta

@@ -4209,3 +4209,365 @@ body.rolling .top{opacity:0;transition:opacity .6s}
   font-size: 14px;
   font-weight: 500;
 }
+
+/* Criar conta em formato de conversa */
+.ov.su {
+  overflow-x: hidden;
+}
+.su > div {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+/* O facho do projetor, com as cores do logo; gira um pouco a cada passo */
+.su-beam {
+  position: fixed;
+  top: -30vh;
+  left: -40vw;
+  width: 150vw;
+  height: 150vh;
+  pointer-events: none;
+  transform-origin: 30% 20%;
+  background: conic-gradient(
+    from 100deg at 30% 20%,
+    transparent 0deg,
+    rgba(240, 87, 91, 0.07) 6deg,
+    rgba(240, 87, 91, 0.07) 13deg,
+    rgba(227, 180, 104, 0.09) 13.5deg,
+    rgba(227, 180, 104, 0.09) 21deg,
+    rgba(251, 243, 226, 0.06) 21.5deg,
+    rgba(251, 243, 226, 0.06) 28deg,
+    transparent 30deg
+  );
+  opacity: 0.75;
+  transition:
+    transform 0.9s cubic-bezier(0.3, 0.9, 0.3, 1),
+    opacity 0.9s;
+}
+.su.lit .su-beam {
+  opacity: 1;
+  filter: brightness(1.9);
+}
+.su-top {
+  position: relative;
+  margin-bottom: 6px;
+}
+/* O rolo de filme: cada quadro é um passo; o atual acende */
+.su-strip {
+  position: relative;
+  height: 34px;
+  margin: 0 -22px 30px;
+  overflow: hidden;
+  background: #121214;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+}
+.su-strip::before,
+.su-strip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, transparent 0 5px, #2c2c31 5px 9px);
+}
+.su-strip::before {
+  top: 3px;
+}
+.su-strip::after {
+  bottom: 3px;
+}
+.su-reel {
+  position: absolute;
+  top: 9px;
+  left: calc(50% - 13px);
+  display: flex;
+  gap: 6px;
+  transition: transform 0.55s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.su-reel i {
+  width: 26px;
+  height: 16px;
+  border-radius: 3px;
+  background: #232327;
+  transition:
+    background 0.4s,
+    box-shadow 0.4s;
+}
+.su-reel i.past {
+  background: rgba(227, 180, 104, 0.32);
+}
+.su-reel i.on {
+  background: var(--gold);
+  box-shadow: 0 0 14px rgba(227, 180, 104, 0.55);
+}
+.su-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  animation: su-fwd 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.05) both;
+}
+.su-step.su-back {
+  animation-name: su-back;
+}
+@keyframes su-fwd {
+  from {
+    opacity: 0;
+    transform: translateX(34px);
+  }
+}
+@keyframes su-back {
+  from {
+    opacity: 0;
+    transform: translateX(-34px);
+  }
+}
+.su-step h2 {
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+}
+.su-sub {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0 0 24px;
+}
+.su-at {
+  position: relative;
+}
+.su-at span {
+  position: absolute;
+  left: 20px;
+  top: 17px;
+  font-size: 17px;
+  color: var(--gold);
+  pointer-events: none;
+}
+.su-at input {
+  padding-left: 40px;
+}
+/* A luzinha do @: acende quando está livre */
+.su-av {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 2px 0 0;
+  min-height: 20px;
+}
+.su-av i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3a3a3e;
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
+}
+.su-av.check i {
+  animation: blink 0.8s infinite;
+}
+.su-av.ok {
+  color: var(--text);
+}
+.su-av.ok i {
+  background: var(--gold);
+  box-shadow: 0 0 10px 2px rgba(227, 180, 104, 0.6);
+  animation: su-glow 0.6s ease-out;
+}
+.su-av.taken {
+  color: #ff7a73;
+}
+.su-av.taken i {
+  background: #ff5a52;
+}
+@keyframes su-glow {
+  from {
+    transform: scale(0.4);
+    box-shadow: 0 0 0 0 rgba(227, 180, 104, 0.9);
+  }
+}
+.su-actions {
+  margin-top: auto;
+  padding-top: 24px;
+}
+.su-actions .lnk {
+  margin-top: 8px;
+}
+/* "Conta criada" como um ingresso carimbado */
+.su-ticket {
+  align-self: flex-start;
+  position: relative;
+  margin: 0 0 18px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px dashed rgba(227, 180, 104, 0.45);
+  animation: su-stamp 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) 0.15s both;
+}
+.su-ticket::before,
+.su-ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: #0a0a0c;
+}
+.su-ticket::before {
+  left: -6px;
+}
+.su-ticket::after {
+  right: -6px;
+}
+@keyframes su-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.6) rotate(-8deg);
+  }
+}
+.su-photo {
+  width: 132px;
+  height: 132px;
+  margin: 6px auto 4px;
+  border-radius: 50%;
+  border: 1.5px dashed #3a3a3e;
+  background: var(--card);
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.su-photo:active {
+  transform: scale(0.96);
+}
+.su-photo svg {
+  width: 40px;
+  height: 40px;
+}
+.su-photo.has {
+  border: 2px solid var(--gold);
+}
+.su-photo .av {
+  width: 100%;
+  height: 100%;
+  font-size: 48px;
+  animation: su-stamp 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.su-find {
+  display: flex;
+  gap: 8px;
+}
+.su-find input {
+  flex: 1;
+}
+.su-find .plain {
+  width: auto;
+  height: 57px;
+  margin: 0;
+  padding: 0 18px;
+  border-radius: 18px;
+}
+.su-found {
+  margin-top: 8px;
+  animation: su-fwd 0.35s both;
+}
+/* A contagem do começo dos filmes antigos: cruz, círculo e o ponteiro girando */
+.su-leader {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  margin: 50px auto 0;
+  border-radius: 50%;
+  border: 2px solid #3a3a3e;
+  background:
+    linear-gradient(#3a3a3e, #3a3a3e) center / 1px 100% no-repeat,
+    linear-gradient(#3a3a3e, #3a3a3e) center / 100% 1px no-repeat,
+    #121214;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.su-leader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(rgba(227, 180, 104, 0.28) 0deg 90deg, transparent 90deg);
+  animation: su-spin 0.5s linear infinite;
+}
+.su-leader::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 1px solid #3a3a3e;
+}
+.su-leader b {
+  position: relative;
+  z-index: 1;
+  font-size: 76px;
+  font-weight: 700;
+  color: var(--text);
+  animation: su-flick 0.5s steps(2) both;
+}
+@keyframes su-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes su-flick {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.su-end {
+  text-align: center;
+  padding-top: 30px;
+  animation: su-fwd 0.6s both;
+}
+.su-me {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--gold), 0 0 50px rgba(227, 180, 104, 0.45);
+  animation: su-stamp 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  overflow: hidden;
+}
+.su-me .av {
+  width: 100%;
+  height: 100%;
+  font-size: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .su-step,
+  .su-ticket,
+  .su-me,
+  .su-end,
+  .su-photo .av,
+  .su-leader::before,
+  .su-av.ok i {
+    animation: none;
+  }
+  .su-reel,
+  .su-beam {
+    transition: none;
+  }
+}
