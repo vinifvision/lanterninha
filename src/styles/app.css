@@ -3817,3 +3817,59 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .upd p{margin:8px 6px 18px;color:var(--muted);font-size:14px;line-height:1.4}
 .updgo{display:block;padding:14px;border-radius:14px;background:var(--gold);color:#1b1408;font-weight:700;text-decoration:none}
 .updno{width:100%;margin-top:6px;padding:12px;border:none;background:none;color:var(--muted);font:inherit;font-size:14px}
+
+/* Tela do resultado: "Refazer as respostas" e o "Pronto" preso embaixo */
+.redo {
+  display: block;
+  margin: -10px auto 18px;
+  min-height: 44px;
+  padding: 0 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.resdone {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin: 26px -22px 0;
+  padding: 18px 22px calc(10px + var(--sab));
+  /* Vidro fosco, como a barra de abas: o que está embaixo aparece borrado e mostra que a tela continua */
+  background: rgba(14, 14, 17, 0.8);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.4s,
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.25, 1);
+  pointer-events: none;
+}
+.resdone.in {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.resdone .again {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: var(--gold);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+@media (prefers-reduced-motion: reduce) {
+  .resdone {
+    transition: opacity 0.2s;
+    transform: none;
+  }
+}
