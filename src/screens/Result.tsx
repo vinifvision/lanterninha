@@ -1,4 +1,5 @@
 // A revelação da nota: projetor, estrelas acendendo, ajuste fino, data e review.
+// Para sair: "Pronto" (vai para a página do filme) ou voltar; os dois guardam a nota. "Refazer as respostas" desfaz.
 import { useEffect, useRef, useState } from 'react';
 import { ShareIcon } from '../components/icons';
 import { Poster } from '../components/Poster';
@@ -60,15 +61,11 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Voltar: desfaz a avaliação e reabre a última pergunta
+  // Voltar (a seta e o botão do Android): sai do resultado e a nota fica guardada
   useEffect(() => {
-    nav.setBackHandler(() => {
-      if (film) films.undoRated(film, replaced);
-      nav.replace({ k: 'quiz', info, classic, rewatch, answers });
-      return true;
-    });
+    nav.setBackHandler(() => { clearRateDraft(); return false; });
     return () => nav.setBackHandler(null);
-  }, [film, replaced, info, classic, rewatch, answers]);
+  }, []);
 
   if (!film) return null;
   const stars = film.s;
@@ -77,6 +74,19 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
     films.save();
     sfx.tick(d > 0);
     setTouched(true); setRevealed(true); setShown(film.s);
+  };
+  /** Refazer: desfaz a nota e reabre a última pergunta, com as respostas de antes. */
+  const redo = () => {
+    films.undoRated(film, replaced);
+    nav.replace({ k: 'quiz', info, classic, rewatch, answers });
+  };
+  /** Pronto: vai para a página do filme (ou volta para ela, se a avaliação começou lá). */
+  const done = () => {
+    sfx.tap();
+    clearRateDraft();
+    const below = nav.state.stack[nav.state.stack.length - 2];
+    if (below?.k === 'film' && fkey(below.info) === filmKey) nav.back();
+    else nav.replace({ k: 'film', info: film });
   };
   const diff = rewatch ? stars - rewatch.s : 0;
   const sub = [info.o && info.o !== info.t ? info.o : '', info.y || ''].filter(Boolean).join(' · ');
@@ -99,6 +109,7 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
           <small>{stars === base ? 'Não concorda? Ajuste.' : 'Sugestão era ' + fmt(base)}</small>
           <button id="plus" aria-label="Aumentar meia estrela" onClick={() => adjust(0.5)}>+</button>
         </div>
+        <button className="redo" id="redo" onClick={redo}>Refazer as respostas</button>
         <div className="meta">
           <WhenRow film={film} />
           <button className="revbtn" id="rvb" onClick={() => nav.open({ k: 'editor', key: filmKey })}>
@@ -115,7 +126,10 @@ export function Result({ info, filmKey, base, classic, rewatch, replaced, answer
           </div>
         )}
         <button className="share" id="shr" onClick={() => nav.open({ k: 'share', key: filmKey })}><ShareIcon />Compartilhar</button>
-        <button className="cta" id="again" onClick={() => { clearRateDraft(); nav.tab('rate'); }}>Avaliar outro filme</button>
+        <div className={`resdone${revealed ? ' in' : ''}`}>
+          <button className="cta" id="done" onClick={done}>Pronto</button>
+          <button className="again" id="again" onClick={() => { clearRateDraft(); nav.tab('rate'); }}>Avaliar outro filme</button>
+        </div>
       </div>
     </div>
   );

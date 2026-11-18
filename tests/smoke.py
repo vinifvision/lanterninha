@@ -76,9 +76,31 @@ async def main():
         await pg.click('#shr'); await pg.wait_for_selector('.shr .pv img'); check('imagem de compartilhar gerada',True)
         await pg.click('.shr button[data-f="1"]'); await pg.wait_for_timeout(700); check('formato story gera',await pg.locator('.shr .pv img').count()==1 and await pg.inner_text('#shm')=='')
         await pg.click('.shr .x')
-        # voltar do resultado desfaz
-        await pg.click('#back'); await pg.wait_for_selector('.opt'); check('voltar do resultado desfaz a nota',await L()==[],str(await L()))
+        # refazer as respostas desfaz a nota e volta para a última pergunta
+        await pg.click('#redo'); await pg.wait_for_selector('.opt'); check('refazer as respostas desfaz a nota',await L()==[],str(await L()))
         await pg.click('.opt >> nth=2'); await pg.wait_for_timeout(450); await pg.click('.opt[data-w=casa]'); await pg.wait_for_timeout(2600); await pg.wait_for_selector('#num'); check('em casa não mostra ingresso',await pg.locator('#tkres').count()==0); print('   nota refeita:',await pg.inner_text('#num'))
+        await pg.wait_for_selector('#done'); check('botão Pronto aparece depois da revelação',await pg.locator('.resdone.in').count()==1)
+        await pg.click('#back'); await pg.wait_for_selector('#t'); check('voltar do resultado guarda a nota',len(await L())==1 and await pg.input_value('#t')=='',str(await L()))
+        await pg.click('.rc'); await pg.wait_for_selector('#medit'); await pg.click('#medit'); await pg.click('#feco'); await pg.wait_for_selector('.opt')
+        for _ in range(9):
+            if await pg.locator('#num').count(): break
+            await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '.opt >> nth=1'); await pg.wait_for_timeout(450)
+        await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600); await pg.click('#done'); await pg.wait_for_selector('.mybox .rate')
+        check('Pronto volta para a página do filme',await pg.locator('#stage[data-mode=film]').count()==1 and len(await L())==1,str(await L()))
+        await pg.click('#back'); await pg.wait_for_selector('#t')
+        check('sem telas sobrando depois do Pronto',await pg.evaluate("document.getElementById('back').classList.contains('gone')"))
+        await pg.fill('#t','coral'); await pg.wait_for_selector('.sri'); await pg.click('.sri'); await pg.click('#go')
+        for _ in range(9):
+            if await pg.locator('#num').count(): break
+            await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '.opt >> nth=2'); await pg.wait_for_timeout(450)
+        await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600)
+        await pg.click('#done'); await pg.wait_for_selector('.mybox .rate'); check('Pronto abre a página do filme',True)
+        await pg.click('#back'); await pg.wait_for_selector('#t')
+        await pg.fill('#t','coral'); await pg.wait_for_selector('.sri'); await pg.click('.sri'); await pg.click('#go')
+        for _ in range(9):
+            if await pg.locator('#num').count(): break
+            await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '.opt >> nth=2'); await pg.wait_for_timeout(450)
+        await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600)
         await pg.click('#again'); await pg.wait_for_selector('#t'); check('avaliar outro limpa o campo',await pg.input_value('#t')=='')
         check('recentes na aba Avaliar',await pg.locator('.rc').count()==1)
         # página do filme
