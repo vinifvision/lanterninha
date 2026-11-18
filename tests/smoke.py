@@ -12,13 +12,16 @@ async def main():
         ctx=await b.new_context(viewport={'width':390,'height':844},locale='pt-BR',geolocation={'latitude':-8.06,'longitude':-34.88},permissions=['geolocation'])
         await ctx.add_init_script(open(os.path.join(HERE,'mock.js')).read()+"\nwindow.__LANTERNINHA_TEST_CLIENT__=window.supabase.createClient();\nObject.defineProperty(navigator,'geolocation',{value:{getCurrentPosition:(ok)=>setTimeout(()=>ok({coords:{latitude:-8.06,longitude:-34.88}}),50)}});")
         pg=await ctx.new_page(); pg.set_default_timeout(8000); errs=[]
+        OFF={'on':False}  # simula o celular sem internet (as chamadas para /api falham)
         pg.on('pageerror',lambda e:errs.append(str(e)))
-        pg.on('console',lambda m:errs.append('console: '+m.text) if m.type=='error' and '404' not in m.text else None)
+        pg.on('console',lambda m:errs.append('console: '+m.text) if m.type=='error' and '404' not in m.text and not (OFF['on'] and 'ERR_FAILED' in m.text) else None)
         async def h(route):
             u=route.request.url
+            if OFF['on'] and '/api/' in u: return await route.abort()
             if '/api/img' in u or 'image.tmdb.org' in u: return await route.fulfill(path=os.path.join(HERE,'pb.jpg' if 'blue' in u else 'p5.jpg'),content_type='image/jpeg')
             if '/api/search' in u:
                 if 'digitado' in u: return await route.fulfill(json={'results':[{'id':78,'title':'Filme digitado','original':'Filme digitado','year':'2010','poster':'/blue78.jpg'}]})
+                if 'semrede' in u: return await route.fulfill(json={'results':[{'id':79,'title':'Filme novo','original':'Filme novo','year':'2012','poster':'/blue79.jpg'}]})
                 return await route.fulfill(json={'results':[{'id':77,'title':'Coraline','original':'Coraline','year':'2009','poster':'/blue77.jpg'}]})
             if '/api/cinemas' in u: return await route.fulfill(json={'cinemas':[{'name':'Cinemark RioMar Recife','place':'Pina, Recife','km':2.4},{'name':'Cinema São Luiz','place':'Boa Vista, Recife','km':3.1}]})
             if '/api/childhood' in u: return await route.fulfill(json={'results':[{'id':700+i,'title':'Infância %d'%i,'original':'Infância %d'%i,'year':'2004','poster':'/bluek%d.jpg'%i} for i in range(24)]})
@@ -250,6 +253,19 @@ async def main():
         await pg.click('#cmptie'); await pg.wait_for_selector('.opt[data-w]'); await pg.click('.opt[data-w=casa]'); await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600)
         check('Empate dá a mesma nota do outro filme',await pg.inner_text('#num')==str(sc).replace('.0','').replace('.',','),await pg.inner_text('#num')+' vs '+str(sc))
         await pg.click('#done'); await pg.wait_for_selector('.mybox'); await pg.click('#back')
+        # sem internet: a busca e a página do filme avisam, e "Tentar de novo" funciona quando a internet volta
+        OFF['on']=True
+        await tab('rate'); await pg.fill('#t','matrix sem rede'); await pg.wait_for_selector('#rhoff',timeout=4000)
+        check('busca sem internet avisa sem conexão','conexão' in await pg.inner_text('#rhoff'))
+        await pg.click('#go'); await pg.wait_for_timeout(300); check('sem internet não diz "não achei esse filme"',await pg.locator('#rh').count()==0)
+        OFF['on']=False; await pg.click('#rhoff button'); await pg.wait_for_selector('.sri',timeout=4000)
+        check('Tentar de novo busca quando a internet volta',await pg.locator('#rhoff').count()==0)
+        await pg.fill('#t','semrede'); await pg.click('.sri:has-text("Filme novo")'); OFF['on']=True
+        await pg.click('.dlink'); await pg.wait_for_selector('#fpoff',timeout=5000)
+        check('página do filme sem internet avisa','conexão' in await pg.inner_text('#fpoff'))
+        OFF['on']=False; await pg.click('#fpoff button'); await pg.wait_for_selector('.about',timeout=5000)
+        check('Tentar de novo carrega a página do filme',await pg.locator('#fpoff').count()==0)
+        await pg.click('#back'); await pg.fill('#t','')
         # aviso de versão nova (simula um APK antigo)
         await pg.add_init_script("window.__LANTERNINHA_TEST_BUILD__=1"); await pg.reload(); await pg.wait_for_selector('#updgo',timeout=5000)
         check('aviso de versão nova','Tem um Lanterninha novo' in await pg.inner_text('.upd') and (await pg.get_attribute('#updgo','href')).endswith('/lanterninha.apk'))
