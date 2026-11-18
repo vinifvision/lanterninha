@@ -3943,3 +3943,114 @@ body.rolling .top{opacity:0;transition:opacity .6s}
   font-size: 15px;
   font-weight: 500;
 }
+
+/* "Qual te marcou mais?": os dois filmes lado a lado e, embaixo e no meio, Empate e Não dá pra comparar, um sobre o outro */
+.cmp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
+  animation: cmpin 0.35s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+@keyframes cmpin {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.cmpc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 10px 14px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  transition:
+    transform 0.15s,
+    border-color 0.2s,
+    background 0.2s;
+}
+.cmpc:active {
+  transform: scale(0.96);
+}
+.cmpc.on {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.cmpp {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card2);
+}
+.cmpp img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cmpn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.cmpc b {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cmpc small {
+  color: var(--muted);
+  font-size: 13px;
+}
+.cmpb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+.cmpb button {
+  width: min(100%, 250px);
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    transform 0.15s,
+    border-color 0.2s,
+    background 0.2s;
+}
+.cmpb button:active {
+  transform: scale(0.96);
+}
+.cmpb button.on {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmp {
+    animation: none;
+  }
+}

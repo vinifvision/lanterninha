@@ -1,4 +1,4 @@
-// As perguntas da avaliação, uma por tela, e a comparação final com um filme de nota parecida.
+// As perguntas da avaliação, uma por tela, e a comparação final com um filme parecido (nota, gênero e época).
 // Atalho "Já sei minha nota": pula as perguntas e a pessoa escolhe a nota direto nas estrelas.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cloud } from '../lib/cloud';
@@ -9,6 +9,8 @@ import type { FilmInfo, RatedFilm, Where } from '../lib/types';
 import { lastCinema } from '../components/TicketEditor';
 import { nav } from '../nav';
 import { StarPicker } from '../components/StarPicker';
+import { Poster } from '../components/Poster';
+import { movieDetails } from '../lib/api';
 import { clamp, fmt, LABELS, today } from '../lib/format';
 
 interface Props { info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean }
@@ -19,7 +21,10 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
   const [step, setStep] = useState(initial ? Math.max(0, initial.length - 1) : 0);
   const [answers, setAnswers] = useState<number[]>(initial || []);
   const [picked, setPicked] = useState<number | null>(null);
-  const [rival, setRival] = useState<RatedFilm | null>(null);
+  // Comparação final: filmes parecidos, do mais parecido para o menos; "Trocar filme" passa para o próximo
+  const [rivals, setRivals] = useState<RatedFilm[]>([]);
+  const [ri, setRi] = useState(0);
+  const rival = rivals.length ? rivals[ri % rivals.length] : null;
   // Última tela: onde a pessoa viu o filme (não mexe na nota)
   const [asking, setAsking] = useState(false);
   const pending = useRef(3);
@@ -38,7 +43,7 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
     nav.setBackHandler(() => {
       if (asking) { setAsking(false); return true; }
       if (direct && !startDirect) { setDirect(false); return true; }
-      if (rival) { setRival(null); return true; }
+      if (rival) { setRivals([]); setRi(0); return true; }
       if (step > 0) { setStep(step - 1); return true; }
       return false;
     });
@@ -82,11 +87,37 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
     finalAnswers.current = next;
     const value = computeStars(questions, next);
     stars.current = value;
-    // Procura um filme já avaliado com nota parecida, de preferência do mesmo tipo (clássico ou não)
-    const near = films.all.filter(isRated).filter((h) => fkey(h) !== fkey(info) && Math.abs(h.s - value) <= 0.5);
-    const found = near.find((h) => !!h.c === classic) || near[0] || null;
-    if (found) setRival(found); else ask(value);
+    void findRivals(value).then((list) => { if (list.length) { setRivals(list); setRi(0); } else ask(value); });
   });
+
+  /**
+   * Filmes já avaliados com nota parecida (até meia estrela de diferença), do mais parecido para o menos:
+   * mesmo gênero, mesma época e mesmo tipo (clássico ou não). Os gêneros vêm do TMDB; se demorar, segue sem eles.
+   */
+  const findRivals = async (value: number): Promise<RatedFilm[]> => {
+    const year = (f: { y?: string }) => (f.y ? +f.y : 0);
+    const base = (h: RatedFilm) =>
+      (!!h.c === classic ? 2 : 0) +
+      (year(info) && year(h) ? Math.max(0, 3 - Math.abs(year(info) - year(h)) / 5) : 0) +
+      (0.5 - Math.abs(h.s - value));
+    const near = films.all.filter(isRated)
+      .filter((h) => fkey(h) !== fkey(info) && Math.abs(h.s - value) <= 0.5)
+      .sort((a, b) => base(b) - base(a));
+    if (near.length < 2 || !info.id) return near;
+    locked.current = true; // enquanto busca os gêneros, ignora toques repetidos
+    const genres = (id?: number | null) => (id ? movieDetails(id).then((d) => d.genres).catch(() => [] as string[]) : Promise.resolve([] as string[]));
+    const top = near.slice(0, 6);
+    const timeout = new Promise<null>((r) => setTimeout(() => r(null), 700));
+    const got = await Promise.race([Promise.all([genres(info.id), ...top.map((h) => genres(h.id))]), timeout]);
+    locked.current = false;
+    if (!got) return near;
+    const [mine, ...theirs] = got;
+    const shared = (i: number) => theirs[i].filter((g) => mine.includes(g)).length;
+    const ranked = top.map((h, i) => ({ h, sc: base(h) + shared(i) * 3 })).sort((a, b) => b.sc - a.sc).map((x) => x.h);
+    return ranked.concat(near.slice(6));
+  };
+  // Já deixa os gêneros deste filme carregando, para a comparação não demorar no fim
+  useEffect(() => { if (info.id) void movieDetails(info.id).catch(() => null); }, [info.id]);
 
   const compare = (i: number) => choose(i, () => {
     if (!rival) return;
@@ -143,16 +174,28 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
   }
 
   if (rival) {
+    const card = (f: FilmInfo, i: number, id: string) => (
+      <button className={`cmpc${picked === i ? ' on' : ''}`} id={id} onClick={() => compare(i)}>
+        <span className="cmpp">{f.img ? <Poster img={f.img} title={f.t} size="w342" /> : <span className="cmpn">{f.t}</span>}</span>
+        <b>{f.t || 'Este filme'}</b>
+        {f.y && <small>{f.y}</small>}
+      </button>
+    );
     return (
       <div key="cmp" className="screen">
         <div className="q">Qual te marcou mais?</div>
         <p className="sub">Se tivesse que escolher um para guardar na memória.</p>
-        <div className="opts">
-          <button className={`opt${picked === 0 ? ' on' : ''}`} onClick={() => compare(0)}>{info.t || 'Este filme'}</button>
-          <button className={`opt${picked === 2 ? ' on' : ''}`} onClick={() => compare(2)}>{rival.t}</button>
-          <button className={`opt${picked === 1 ? ' on' : ''}`} onClick={() => compare(1)}>Empate</button>
-          <button className="opt" style={{ background: 'none', color: 'var(--muted)', textAlign: 'center' }} onClick={() => compare(3)}>Não dá pra comparar</button>
+        <div className="cmp" key={fkey(rival)}>
+          {card(info, 0, 'cmpme')}
+          {card(rival, 2, 'cmpthem')}
         </div>
+        <div className="cmpb">
+          <button className={picked === 1 ? 'on' : ''} id="cmptie" onClick={() => compare(1)}>Empate</button>
+          <button className={picked === 3 ? 'on' : ''} id="cmpskip" onClick={() => compare(3)}>Não dá pra comparar</button>
+        </div>
+        {rivals.length > 1 && (
+          <button className="helpme" id="cmpswap" onClick={() => { sfx.tap(); setRi(ri + 1); }}>Trocar filme</button>
+        )}
       </div>
     );
   }

@@ -45,7 +45,7 @@ async def main():
         async def quiz(n_expected=None):
             n=0
             while await pg.locator('#num').count()==0:
-                await pg.wait_for_selector('.opt'); await pg.click('.opt >> nth=0'); await pg.wait_for_timeout(420); n+=1
+                await pg.wait_for_selector('.opt, .cmpc'); await pg.click('.cmpc >> nth=0' if await pg.locator('.cmpc').count() else '.opt >> nth=0'); await pg.wait_for_timeout(420); n+=1
                 if n>14: break
             return n
 
@@ -84,7 +84,7 @@ async def main():
         await pg.click('.rc'); await pg.wait_for_selector('#medit'); await pg.click('#medit'); await pg.click('#feco'); await pg.wait_for_selector('.opt')
         for _ in range(9):
             if await pg.locator('#num').count(): break
-            await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '.opt >> nth=1'); await pg.wait_for_timeout(450)
+            await pg.wait_for_selector('.opt, .cmpc'); await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '#cmptie' if await pg.locator('.cmpc').count() else '.opt >> nth=1'); await pg.wait_for_timeout(450)
         await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600); await pg.click('#done'); await pg.wait_for_selector('.mybox .rate')
         check('Pronto volta para a página do filme',await pg.locator('#stage[data-mode=film]').count()==1 and len(await L())==1,str(await L()))
         await pg.click('#back'); await pg.wait_for_selector('#t')
@@ -92,14 +92,14 @@ async def main():
         await pg.fill('#t','coral'); await pg.wait_for_selector('.sri'); await pg.click('.sri'); await pg.click('#go')
         for _ in range(9):
             if await pg.locator('#num').count(): break
-            await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '.opt >> nth=2'); await pg.wait_for_timeout(450)
+            await pg.wait_for_selector('.opt, .cmpc'); await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '#cmptie' if await pg.locator('.cmpc').count() else '.opt >> nth=2'); await pg.wait_for_timeout(450)
         await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600)
         await pg.click('#done'); await pg.wait_for_selector('.mybox .rate'); check('Pronto abre a página do filme',True)
         await pg.click('#back'); await pg.wait_for_selector('#t')
         await pg.fill('#t','coral'); await pg.wait_for_selector('.sri'); await pg.click('.sri'); await pg.click('#go')
         for _ in range(9):
             if await pg.locator('#num').count(): break
-            await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '.opt >> nth=2'); await pg.wait_for_timeout(450)
+            await pg.wait_for_selector('.opt, .cmpc'); await pg.click('.opt[data-w=casa]' if await pg.locator('.opt[data-w]').count() else '#cmptie' if await pg.locator('.cmpc').count() else '.opt >> nth=2'); await pg.wait_for_timeout(450)
         await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600)
         await pg.click('#again'); await pg.wait_for_selector('#t'); check('avaliar outro limpa o campo',await pg.input_value('#t')=='')
         check('recentes na aba Avaliar',await pg.locator('.rc').count()==1)
@@ -233,6 +233,21 @@ async def main():
         check('Mudar nota não pergunta onde viu e guarda a nota nova',any(x.startswith('Filme digitado:4') for x in await L()) and await pg.evaluate("JSON.parse(localStorage.notaFilmeV2).find(x=>x.t=='Filme digitado').w")=='casa',str(await L()))
         await pg.click('#done'); await pg.wait_for_selector('.mybox .rate'); check('Pronto volta para a página com a nota nova',(await pg.inner_text('.mybox .rate b'))=='4')
         await pg.click('#back')
+        # "Qual te marcou mais?": pôsteres lado a lado, Empate e Não dá pra comparar visíveis, e Trocar filme
+        await tab('rate'); await pg.fill('#t','coral'); await pg.click('.sri:has-text("Coraline")'); await pg.click('#go')
+        for _ in range(7):
+            await pg.wait_for_selector('.opt'); await pg.click('.opt >> nth=1'); await pg.wait_for_timeout(450)
+        await pg.wait_for_selector('.cmpc'); c1=await pg.inner_text('#cmpthem b')
+        check('comparação com pôsteres lado a lado',await pg.locator('.cmpc img').count()==2 and 'Coraline' in await pg.inner_text('#cmpme'))
+        check('filme parecido primeiro (mesma época)',c1=='Filme digitado',c1)
+        t=await pg.locator('#cmptie').bounding_box(); k=await pg.locator('#cmpskip').bounding_box()
+        check('Empate e Não dá pra comparar do mesmo tamanho e com 44px ou mais',abs(t['width']-k['width'])<1 and abs(t['height']-k['height'])<1 and t['height']>=44,str((t,k)))
+        await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-comparacao.png'))
+        await pg.click('#cmpswap'); await pg.wait_for_timeout(200); c2=await pg.inner_text('#cmpthem b'); check('Trocar filme mostra outro',c2!=c1 and c2 in ('Truman','Filme 0'),c2)
+        sc=await pg.evaluate("t=>JSON.parse(localStorage.notaFilmeV2).find(x=>x.t==t).s",c2)
+        await pg.click('#cmptie'); await pg.wait_for_selector('.opt[data-w]'); await pg.click('.opt[data-w=casa]'); await pg.wait_for_selector('#done'); await pg.wait_for_timeout(2600)
+        check('Empate dá a mesma nota do outro filme',await pg.inner_text('#num')==str(sc).replace('.0','').replace('.',','),await pg.inner_text('#num')+' vs '+str(sc))
+        await pg.click('#done'); await pg.wait_for_selector('.mybox'); await pg.click('#back')
         # aviso de versão nova (simula um APK antigo)
         await pg.add_init_script("window.__LANTERNINHA_TEST_BUILD__=1"); await pg.reload(); await pg.wait_for_selector('#updgo',timeout=5000)
         check('aviso de versão nova','Tem um Lanterninha novo' in await pg.inner_text('.upd') and (await pg.get_attribute('#updgo','href')).endswith('/lanterninha.apk'))
