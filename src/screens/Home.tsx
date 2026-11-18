@@ -8,10 +8,10 @@ import { Stars } from '../components/Stars';
 import { discover, type DiscoverList } from '../lib/api';
 import { cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
-import { pname } from '../lib/format';
+import { fmt, pname } from '../lib/format';
 import type { Film, FilmInfo, FriendRating, SearchResult } from '../lib/types';
 import { nav } from '../nav';
-import { ChestIcon } from '../components/icons';
+import { BookmarkIcon, ChestIcon, StarIcon } from '../components/icons';
 import { chest, useChest } from '../lib/cloud';
 import { fd } from '../lib/format';
 import { sfx } from '../lib/sfx';
@@ -50,7 +50,8 @@ export function Home() {
   // "Porque você gostou de…": o filme mais recente com nota 4 ou mais
   const liked = all.filter(isRated).filter((h) => h.s >= 4 && h.id).sort(byTs)[0];
   const hello = account.profile ? pname(account.profile) : '';
-  const mine = new Set(all.map(fkey));
+  // Meus filmes por chave, para o selo dos pôsteres: nota, "Já vi" ou "Quero ver"
+  const mine = new Map(all.map((h) => [fkey(h), h] as const));
 
   return (
     <div className="screen">
@@ -127,7 +128,7 @@ export function Home() {
 }
 
 /** Uma fileira de pôsteres que rola para o lado. Some se a lista vier vazia ou falhar. */
-function DiscoverRow({ title, list, id, mine }: { title: string; list: DiscoverList; id?: number; mine: Set<string> }) {
+function DiscoverRow({ title, list, id, mine }: { title: string; list: DiscoverList; id?: number; mine: Map<string, Film> }) {
   const tick = useRefresh();
   const items = useAsync(() => discover(list, id), [list, id, tick], true);
   if (items && items.length === 0) return null;
@@ -138,12 +139,23 @@ function DiscoverRow({ title, list, id, mine }: { title: string; list: DiscoverL
         {!items && [0, 1, 2, 3].map((i) => <span className="hp sk" key={i}><span className="ph" /></span>)}
         {items?.map((m) => (
           <button className="hp" key={m.id} onClick={() => nav.openFilm(toFilm(m))}>
-            <span className="ph"><Poster img={m.poster} title={m.title} />{mine.has('m' + m.id) && <i className="mk">✓</i>}</span>
+            <span className="ph"><Poster img={m.poster} title={m.title} /><MineBadge film={mine.get('m' + m.id)} /></span>
           </button>
         ))}
       </div>
     </section>
   );
+}
+
+/**
+ * Selo no canto do pôster, diferente para cada situação (o mesmo jeito do Meus filmes):
+ * ★ nota quando avaliei, ✓ quando vi sem dar nota e marcador quando está em "Quero ver".
+ */
+function MineBadge({ film }: { film?: Film }) {
+  if (!film) return null;
+  if (isRated(film)) return <i className="mk rated" aria-label={`Sua nota: ${fmt(film.s)}`}><StarIcon />{fmt(film.s)}</i>;
+  if (film.st === 'want') return <i className="mk want" aria-label="Na sua fila Quero ver"><BookmarkIcon /></i>;
+  return <i className="mk seen" aria-label="Já vi">✓</i>;
 }
 
 /** Atalho do Baú da infância. Logo depois de criar a conta, aparece uma vez como convite. */
