@@ -9,7 +9,7 @@ export type Screen =
   | { k: 'friend'; id: string }
   | { k: 'credits'; info: FilmInfo }
   | { k: 'chest' }
-  | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[] }
+  | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean }
   | { k: 'result'; info: FilmInfo; key: string; base: number; classic: boolean; rewatch: RatedFilm | null; replaced: Film | null; answers: number[] };
 
 export type Overlay =
@@ -78,9 +78,9 @@ export const nav = {
   setProgress(progress: number | null) { if (progress !== state.progress) set({ progress }); },
 
   /** Atalho: começar a avaliar um filme. */
-  startQuiz(info: FilmInfo, opts: { rewatch?: RatedFilm | null; classic: boolean }) {
+  startQuiz(info: FilmInfo, opts: { rewatch?: RatedFilm | null; classic: boolean; direct?: boolean }) {
     set({ overlays: [] });
-    nav.push({ k: 'quiz', info, classic: opts.classic, rewatch: opts.rewatch || null });
+    nav.push({ k: 'quiz', info, classic: opts.classic, rewatch: opts.rewatch || null, direct: opts.direct });
   },
   openFilm(info: FilmInfo) { set({ overlays: [] }); nav.push({ k: 'film', info }); },
 };

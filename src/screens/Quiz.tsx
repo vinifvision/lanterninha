@@ -1,17 +1,19 @@
 // As perguntas da avaliação, uma por tela, e a comparação final com um filme de nota parecida.
+// Atalho "Já sei minha nota": pula as perguntas e a pessoa escolhe a nota direto nas estrelas.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cloud } from '../lib/cloud';
 import { films, fkey, isRated } from '../lib/films';
-import { clamp, today } from '../lib/format';
 import { buildQuestions, computeStars } from '../lib/quiz';
 import { sfx } from '../lib/sfx';
 import type { FilmInfo, RatedFilm, Where } from '../lib/types';
 import { lastCinema } from '../components/TicketEditor';
 import { nav } from '../nav';
+import { StarPicker } from '../components/StarPicker';
+import { clamp, fmt, LABELS, today } from '../lib/format';
 
-interface Props { info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[] }
+interface Props { info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean }
 
-export function Quiz({ info, classic, rewatch, answers: initial }: Props) {
+export function Quiz({ info, classic, rewatch, answers: initial, direct: startDirect }: Props) {
   const questions = useMemo(() => buildQuestions(!!rewatch, classic), [rewatch, classic]);
   // Quem volta da tela do resultado cai na última pergunta, com as respostas de antes
   const [step, setStep] = useState(initial ? Math.max(0, initial.length - 1) : 0);
@@ -24,20 +26,24 @@ export function Quiz({ info, classic, rewatch, answers: initial }: Props) {
   const stars = useRef(3);
   const finalAnswers = useRef<number[]>(initial || []);
   const locked = useRef(false);
+  // Nota escolhida direto nas estrelas ("Já sei minha nota"). Vindo de "Mudar nota", já começa na nota atual.
+  const [direct, setDirect] = useState(!!startDirect);
+  const [picked5, setPicked5] = useState(() => { const cur = films.find(info); return startDirect && isRated(cur) ? cur.s : 0; });
 
   // Enquanto a pessoa avalia, a sincronização não mexe nos dados
   useEffect(() => { cloud.setPaused(true); return () => cloud.setPaused(false); }, []);
-  useEffect(() => { nav.setProgress(asking || rival ? 1 : step / questions.length); }, [step, rival, asking, questions.length]);
+  useEffect(() => { nav.setProgress(asking || rival || direct ? 1 : step / questions.length); }, [step, rival, asking, direct, questions.length]);
   // Voltar: da comparação para a última pergunta, de uma pergunta para a anterior, e da primeira para fora
   useEffect(() => {
     nav.setBackHandler(() => {
       if (asking) { setAsking(false); return true; }
+      if (direct && !startDirect) { setDirect(false); return true; }
       if (rival) { setRival(null); return true; }
       if (step > 0) { setStep(step - 1); return true; }
       return false;
     });
     return () => nav.setBackHandler(null);
-  }, [step, rival, asking]);
+  }, [step, rival, asking, direct, startDirect]);
 
   /** Depois da nota calculada, só falta saber onde viu. */
   const ask = (value: number) => { pending.current = value; setAsking(true); };
@@ -91,6 +97,35 @@ export function Quiz({ info, classic, rewatch, answers: initial }: Props) {
     ask(v);
   });
 
+  /** Confirmar a nota escolhida nas estrelas. Em "Mudar nota", não pergunta de novo onde viu. */
+  const confirmDirect = () => {
+    if (!picked5) return;
+    finalAnswers.current = [];
+    sfx.tap();
+    if (startDirect) finish(picked5, films.find(info)?.w);
+    else ask(picked5);
+  };
+
+  if (direct && !asking) {
+    return (
+      <div key="direct" className="screen">
+        <div className="q">{startDirect ? 'Qual a nota agora?' : 'Qual a sua nota?'}</div>
+        <p className="sub">Toque ou arraste nas estrelas. A metade de uma estrela vale meia.</p>
+        <div className="dpick">
+          <StarPicker value={picked5} onChange={setPicked5} />
+          <div className={`dnum${picked5 ? '' : ' none'}`} id="dnum">{picked5 ? fmt(picked5) : '–'}</div>
+          <div className="label">{picked5 ? LABELS[picked5] : '\u00a0'}</div>
+          <div className="adj">
+            <button id="dminus" aria-label="Diminuir meia estrela" disabled={!picked5 || picked5 <= 0.5} onClick={() => { setPicked5(clamp(picked5 - 0.5)); sfx.tick(false); }}>−</button>
+            <button id="dplus" aria-label="Aumentar meia estrela" disabled={picked5 >= 5} onClick={() => { setPicked5(clamp((picked5 || 0) + 0.5)); sfx.tick(true); }}>+</button>
+          </div>
+        </div>
+        <button className="cta" id="dok" disabled={!picked5} onClick={confirmDirect}>Confirmar</button>
+        <button className="helpme" id="helpme" onClick={() => { setDirect(false); setStep(0); }}>Me ajuda a decidir</button>
+      </div>
+    );
+  }
+
   const WHERE: [Where | undefined, string][] = [['cine', 'No cinema'], ['casa', 'Em casa'], ['outro', 'Em outro lugar']];
   if (asking) {
     return (
@@ -132,6 +167,7 @@ export function Quiz({ info, classic, rewatch, answers: initial }: Props) {
           <button key={o} className={`opt${(picked ?? answers[step]) === i ? ' on' : ''}`} onClick={() => answer(i)}>{o}</button>
         ))}
       </div>
+      {step === 0 && <button className="know" id="know" onClick={() => { sfx.tap(); setDirect(true); }}>Já sei minha nota</button>}
     </div>
   );
 }

@@ -3873,3 +3873,73 @@ body.rolling .top{opacity:0;transition:opacity .6s}
     transform: none;
   }
 }
+
+/* "Já sei minha nota": atalho do quiz e a tela de escolher nas estrelas */
+.know {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 22px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  transition: transform 0.15s;
+}
+.know:active {
+  transform: scale(0.97);
+}
+.dpick {
+  text-align: center;
+  margin: 26px 0 8px;
+}
+.spick {
+  display: inline-block;
+  padding: 6px 4px;
+  touch-action: none;
+  cursor: pointer;
+  border-radius: 14px;
+  outline: none;
+}
+.spick:focus-visible {
+  box-shadow: 0 0 0 2px var(--gold);
+}
+.spick .stars {
+  margin: 0;
+  pointer-events: none;
+}
+.dnum {
+  margin-top: 14px;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.dnum.none {
+  color: #3a3a40;
+}
+.dpick .adj {
+  margin: 18px 0 22px;
+  gap: 40px;
+}
+.adj button:disabled {
+  opacity: 0.35;
+}
+.cta:disabled {
+  opacity: 0.4;
+}
+.helpme {
+  display: block;
+  margin: 10px auto 0;
+  min-height: 44px;
+  padding: 0 16px;
+  background: none;
+  border: none;
+  color: var(--gold);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
