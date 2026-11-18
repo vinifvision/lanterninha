@@ -86,7 +86,11 @@ function AuthForm() {
       return bad(
         "O nome de usuário precisa de 3 a 20 letras, números, ponto ou _.",
       );
-    if (!/^\S+@\S+\.\S+$/.test(mail))
+    // No "Entrar" vale o e-mail ou o @ (com ou sem o @ na frente)
+    const byName = mode === "in" && !mail.replace(/^@/, "").includes("@");
+    if (byName && !/^@?[a-z0-9_.]{3,20}$/i.test(mail))
+      return bad(mail ? "Esse @ não parece certo." : "Digite seu e-mail ou seu @.");
+    if (!byName && !/^\S+@\S+\.\S+$/.test(mail))
       return bad("Esse e-mail não parece válido.");
     if (mode === "reset") return sendLink(mail);
     if (pw.length < 6)
@@ -107,11 +111,15 @@ function AuthForm() {
 
   const emailInput = (
     <input
-      type="email"
+      // No "Entrar" o campo aceita e-mail ou @; o teclado continua com a tecla @ à mão
+      type={mode === "in" ? "text" : "email"}
+      inputMode="email"
       id="em"
-      placeholder="E-mail"
-      autoComplete="email"
+      placeholder={mode === "in" ? "E-mail ou @usuário" : "E-mail"}
+      autoComplete={mode === "in" ? "username" : "email"}
       autoCapitalize="none"
+      autoCorrect="off"
+      spellCheck={false}
       value={email}
       onChange={(e) => setEmail(e.target.value)}
     />

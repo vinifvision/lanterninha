@@ -55,6 +55,8 @@ window.supabase={createClient(){
       async updateUser({data,password}){ const d=db(); if(!d.session) return {error:{message:'Auth session missing!'}}; const u=Object.values(d.users).find(x=>x.id===d.session.user.id);
         if(password){ if(password===u.password) return {error:{message:'New password should be different from the old password.'}}; u.password=password; }
         if(data){ u.meta={...(u.meta||{}),...data}; d.session.user.user_metadata=u.meta; } save(d); return {data:{user:d.session.user},error:null}; },
+      // Sessão vinda do /api/login (entrar com o @). No teste, o token falso é "login:@:senha".
+      async setSession({access_token}){ const d=db(), [,name,pw]=String(access_token).split(':'); const u=Object.values(d.users).find(x=>x.username===name&&x.password===pw); if(!u) return {data:{},error:{message:'Invalid login credentials'}}; d.session={user:{id:u.id,email:u.email,user_metadata:u.meta||{}}}; save(d); fire(); return {data:{session:d.session},error:null}; },
       async resetPasswordForEmail(email,opts){ const d=db(); d.reset={email,redirectTo:opts&&opts.redirectTo}; save(d); return {data:{},error:null}; },
       async signOut(){ const d=db(); d.session=null; save(d); fire(); return {error:null}; } } };
 }};
