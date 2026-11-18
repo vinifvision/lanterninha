@@ -39,6 +39,7 @@ import { cloud, useCloud } from "./lib/cloud";
 import { fkey } from "./lib/films";
 import { Analytics } from "@vercel/analytics/react";
 import { UpdateSheet } from "./components/UpdateSheet";
+import { PullRefresh } from "./components/PullRefresh";
 
 const TABS: [Tab, string][] = [
   ["rate", "Avaliar"],
@@ -141,6 +142,9 @@ const TAB_TITLE: Record<Tab, string> = {
   lib: "Meus filmes",
   prof: "Perfil",
 };
+
+/** Telas com "puxar para recarregar": Início, Perfil, página do filme e perfil do amigo. */
+const PULL_MODES = new Set(["feed", "prof", "film", "friend"]);
 
 export function App() {
   const { tab, stack, overlays, progress } = useNav();
@@ -307,6 +311,8 @@ export function App() {
           ))}
         </div>
       </nav>
+      {/* Puxar para recarregar: nas telas que mostram coisas da internet */}
+      <PullRefresh enabled={PULL_MODES.has(mode) && !overlays.length} />
       {overlays.map(overlayView)}
       <UpdateSheet />
       <Analytics />

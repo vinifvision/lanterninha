@@ -8,6 +8,7 @@ import { Poster } from "../components/Poster";
 import { Stars } from "../components/Stars";
 import { WhenRow } from "../components/WhenRow";
 import { movieDetails, movieRatings, posterUrl } from "../lib/api";
+import { refresh, useRefresh } from "../lib/refresh";
 import { sfx } from "../lib/sfx";
 import { cloud, useCloud } from "../lib/cloud";
 import { posterColor, setTint } from "../lib/color";
@@ -24,22 +25,25 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   const account = useCloud();
   const film = all.find((h) => fkey(h) === key) || null;
   const rated = isRated(film) ? film : null;
-  // Sem conexão: a página mostra o que já tem e avisa, com "Tentar de novo"
+  // Sem conexão: a página mostra o que já tem e avisa. "Tentar de novo" e puxar para baixo recarregam tudo.
+  const tick = useRefresh();
   const [detailsFailed, setDetailsFailed] = useState(false);
-  const [tries, setTries] = useState(0);
   const details = useAsync<MovieDetails | null>(
-    () => {
-      setDetailsFailed(false);
-      return info.id
-        ? movieDetails(info.id).catch((e) => { setDetailsFailed(true); throw e; })
-        : Promise.resolve(null);
-    },
-    [info.id, tries],
+    () =>
+      info.id
+        ? movieDetails(info.id).then(
+            (d) => { setDetailsFailed(false); return d; },
+            (e) => { setDetailsFailed(true); throw e; },
+          )
+        : Promise.resolve(null),
+    [info.id, tick],
+    true,
   );
   const hasFriends = !!account.user && account.friends.list.length > 0;
   const crowd = useAsync(
     () => (hasFriends ? cloud.filmRatings(key) : Promise.resolve([])),
-    [key, hasFriends],
+    [key, hasFriends, tick],
+    true,
   );
   const [backdropReady, setBackdropReady] = useState(false);
   const [armed, press] = useArmed();
@@ -300,7 +304,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
       {detailsFailed && (
         <div className="offline" id="fpoff" role="status">
           <span>Sem conexão: alguns dados do filme não carregaram.</span>
-          <button onClick={() => { sfx.tap(); setTries(tries + 1); }}>Tentar de novo</button>
+          <button onClick={() => { sfx.tap(); void refresh.run(); }}>Tentar de novo</button>
         </div>
       )}
 
@@ -375,9 +379,11 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
 
 /** Notas de fora numa linha só: IMDb e Rotten Tomatoes. Só aparece o que existir. */
 function Scores({ id }: { id?: number }) {
+  const tick = useRefresh();
   const ext = useAsync(
     () => (id ? movieRatings(id).catch(() => null) : Promise.resolve(null)),
-    [id],
+    [id, tick],
+    true,
   );
   const one = (n: number) => fmt(Math.round(n * 10) / 10);
   const items: JSX.Element[] = [];
@@ -434,7 +440,8 @@ function Scores({ id }: { id?: number }) {
 
 /** Nota no Lanterninha, no estilo do Letterboxd: gráfico de quantas pessoas deram cada nota e a média em destaque. */
 function LanternStats({ filmKey, mine }: { filmKey: string; mine?: number }) {
-  const st = useAsync(() => cloud.filmStats(filmKey), [filmKey, mine]);
+  const tick = useRefresh();
+  const st = useAsync(() => cloud.filmStats(filmKey), [filmKey, mine, tick], true);
   if (!st) return null;
   const max = st.dist ? Math.max(...st.dist) : 0;
   return (

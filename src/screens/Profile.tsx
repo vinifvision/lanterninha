@@ -4,6 +4,7 @@ import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
 import { FriendRow } from "../components/FriendRow";
 import { useAsync } from "../components/hooks";
+import { useRefresh } from "../lib/refresh";
 import { Favorites } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
 import { fkey, isRated, useFilms } from "../lib/films";
@@ -361,7 +362,8 @@ function FriendsBlock({ onError }: { onError: (t: string) => void }) {
 }
 
 function Board() {
-  const rows = useAsync(() => cloud.board(), []);
+  const tick = useRefresh();
+  const rows = useAsync(() => cloud.board(), [tick], true);
   if (!rows || !rows.length) return <div id="board" />;
   return (
     <div id="board">

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { useAsync } from '../components/hooks';
+import { useRefresh } from '../lib/refresh';
 import { Poster } from '../components/Poster';
 import { Stars } from '../components/Stars';
 import { discover, type DiscoverList } from '../lib/api';
@@ -35,13 +36,14 @@ export function Home() {
   const account = useCloud();
   const hasFriends = !!account.user && account.friends.list.length > 0;
   const [activity, setActivity] = useState<FriendRating[] | null>(null);
+  const tick = useRefresh();
 
   useEffect(() => {
     if (!hasFriends) { setActivity([]); return; }
     let alive = true;
     void cloud.friendsActivity(20).then((a) => { if (alive) setActivity(a); });
     return () => { alive = false; };
-  }, [hasFriends, account.friends.list.length]);
+  }, [hasFriends, account.friends.list.length, tick]);
 
   const byTs = (a: Film, b: Film) => (b.ts || 0) - (a.ts || 0);
   const queue = all.filter((h) => h.st === 'want').sort(byTs).slice(0, 12);
@@ -126,7 +128,8 @@ export function Home() {
 
 /** Uma fileira de pôsteres que rola para o lado. Some se a lista vier vazia ou falhar. */
 function DiscoverRow({ title, list, id, mine }: { title: string; list: DiscoverList; id?: number; mine: Set<string> }) {
-  const items = useAsync(() => discover(list, id), [list, id]);
+  const tick = useRefresh();
+  const items = useAsync(() => discover(list, id), [list, id, tick], true);
   if (items && items.length === 0) return null;
   return (
     <section className="hsec">
