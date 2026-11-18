@@ -116,6 +116,9 @@ async def main():
         # página do filme
         await pg.click('.rc'); await pg.wait_for_selector('.mybox .rate'); await pg.wait_for_selector('#trl')
         check('página do filme: sobre + onde assistir','Sinopse do filme.' in await pg.inner_text('.about') and 'Netflix' in await pg.inner_text('.prov'))
+        await pg.wait_for_selector('#scores .sc'); t=await pg.locator('#trl').bounding_box(); i=await pg.locator('#scores .sc >> nth=0').bounding_box(); m=await pg.locator('.mybox').bounding_box()
+        check('trailer na linha das notas, à direita e com 44px',await pg.locator('#scores #trl').count()==1 and t['x']>i['x'] and abs((t['y']+t['height']/2)-(i['y']+i['height']/2))<4 and t['height']>=44,str((t,i)))
+        check('Minha nota aparece inteira na primeira tela',m['y']+m['height']<=844-64,str(m))
         await pg.click('#crd'); await pg.wait_for_selector('.ck b'); ct=await pg.inner_text('#stage')
         check('tela de elenco e equipe','Direção e roteiro'.lower() in ct.lower() and 'Dakota Fanning' in ct and 'ficha técnica' in ct.lower() and await pg.locator('.ck .face.none').count()==1, ct[:300].replace(chr(10),' | '))
         await pg.wait_for_timeout(700); await pg.screenshot(path=os.path.join(HERE,'out-creditos.png')); await pg.click('#roll'); await pg.wait_for_timeout(2500)
