@@ -15,12 +15,15 @@ export function useArmed(ms = 3000): [boolean, () => boolean] {
   return [armed, press];
 }
 
-/** Guarda o resultado de uma busca assíncrona; ignora a resposta se o componente sumir ou a chave mudar. */
-export function useAsync<T>(load: () => Promise<T>, deps: unknown[]): T | undefined {
+/**
+ * Guarda o resultado de uma busca assíncrona; ignora a resposta se o componente sumir ou a chave mudar.
+ * Com `keep`, o valor antigo continua na tela enquanto busca de novo (bom para "puxar para recarregar").
+ */
+export function useAsync<T>(load: () => Promise<T>, deps: unknown[], keep = false): T | undefined {
   const [value, setValue] = useState<T>();
   useEffect(() => {
     let alive = true;
-    setValue(undefined);
+    if (!keep) setValue(undefined);
     load().then((v) => { if (alive) setValue(v); }).catch(() => { /* fica sem dado */ });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

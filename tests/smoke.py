@@ -332,6 +332,21 @@ async def main():
         check('Começar fecha a conversa e abre Avaliar',await pg.locator('.su').count()==0 and await pg.locator('.tab[data-v=rate].on').count()==1)
         await tab('prof'); await pg.wait_for_selector('#fadd'); check('nome salvo no perfil','Carol' in await pg.inner_text('.pf'))
         await logout()
+        # puxar para baixo recarrega: a nota que a amiga acabou de dar aparece na página do filme
+        PULL="""(d)=>{const el=document.getElementById('scroller'); el.scrollTop=0; const mk=y=>new Touch({identifier:1,target:el,clientX:200,clientY:y});
+          const fire=(t,y)=>el.dispatchEvent(new TouchEvent(t,{touches:t==='touchend'?[]:[mk(y)],changedTouches:[mk(y)],bubbles:true,cancelable:true}));
+          fire('touchstart',150); for(let i=1;i<=10;i++) fire('touchmove',150+d*i/10); fire('touchend',150+d);}"""
+        await login('a@x.com')
+        await tab('rate'); await pg.fill('#t','digitado'); await pg.click('.sri:has-text("Filme digitado")'); await pg.click('.dlink'); await pg.wait_for_selector('#crowd'); await pg.wait_for_timeout(400)
+        check('antes: nenhum amigo avaliou',await pg.locator('#crowd .fr').count()==0)
+        await pg.evaluate("""()=>{const d=JSON.parse(localStorage.__db); const me=d.session.user.id; const bia=d.users['b@x.com'].id;
+          const r=d.films.find(x=>x.user_id===me&&x.data.t==='Filme digitado'); d.films.push({user_id:bia,key:r.key,data:Object.assign({},r.data,{s:3,ts:Date.now()})}); localStorage.__db=JSON.stringify(d);}""")
+        await pg.evaluate(PULL,30); await pg.wait_for_timeout(200); check('puxar pouco não recarrega',await pg.locator('#ptr.load').count()==0)
+        await pg.evaluate(PULL,220); await pg.wait_for_selector('#ptr.load',timeout=2000); check('puxar até o fim mostra a lanterninha girando',True)
+        await pg.wait_for_selector('#ptr.idle',timeout=5000); await pg.wait_for_timeout(300)
+        check('depois de recarregar, a nota da amiga aparece',await pg.locator('#crowd .fr').count()>=1,await pg.inner_text('#crowd'))
+        await pg.click('#back')
+        await logout()
         # aviso de versão nova (simula um APK antigo)
         await pg.add_init_script("window.__LANTERNINHA_TEST_BUILD__=1"); await pg.reload(); await pg.wait_for_selector('#updgo',timeout=5000)
         check('aviso de versão nova','Tem um Lanterninha novo' in await pg.inner_text('.upd') and (await pg.get_attribute('#updgo','href')).endswith('/lanterninha.apk'))

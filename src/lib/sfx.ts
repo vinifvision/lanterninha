@@ -74,6 +74,8 @@ export const sfx = {
     buzz(8);
   },
   /** Ajuste de meia estrela para cima ou para baixo. */
+  /** Só uma vibração curta, sem som (ex.: puxar para recarregar passou do ponto). */
+  haptic(ms = 8) { buzz(ms); },
   tick(up: boolean) { tone(up ? 740 : 520, 0.08, 0.05, 0, 'triangle'); buzz(6); },
   /** Projetor rodando antes da nota aparecer. */
   projector(dur: number) {

@@ -4571,3 +4571,74 @@ body.rolling .top{opacity:0;transition:opacity .6s}
     transition: none;
   }
 }
+
+/* Puxar para recarregar: a lanterninha desce e os feixes abrem; carregando, giram como um farol */
+.ptr {
+  position: fixed;
+  top: calc(var(--sat) + 56px);
+  left: 50%;
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1c1a20;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.ptr.idle,
+.ptr.done {
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.25s;
+}
+.ptr.load {
+  transition: transform 0.2s;
+}
+.ptr svg {
+  display: block;
+  width: 44px;
+  height: 44px;
+  padding: 2px;
+}
+.ptr .fan {
+  transform-box: view-box;
+  transform-origin: 20px 20px;
+}
+.ptr.ready:not(.load) .fan {
+  filter: brightness(1.15);
+}
+.ptr.load .fan {
+  animation: ptrspin 0.9s linear infinite;
+}
+@keyframes ptrspin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ptr.load .fan {
+    animation: ptrpulse 1s ease-in-out infinite alternate;
+  }
+  @keyframes ptrpulse {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.35;
+    }
+  }
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
