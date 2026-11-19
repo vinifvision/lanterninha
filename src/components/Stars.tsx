@@ -17,9 +17,9 @@ export function Stars({ value, anim = false, base = 0, gap = 90, onClick }: Prop
     <div className="stars" onClick={onClick}>
       {[0, 1, 2, 3, 4].map((i) => (
         <div className="star" key={i} style={anim ? { animationDelay: `${base + i * gap}ms` } : { animation: 'none' }}>
-          <svg viewBox="0 0 24 24"><path d={STAR_PATH} fill="#2c2c30" /></svg>
+          <svg viewBox="0 0 24 24"><path d={STAR_PATH} fill="#2c2830" /></svg>
           <div className="f" style={{ width: `${Math.max(0, Math.min(1, value - i)) * 100}%` }}>
-            <svg viewBox="0 0 24 24"><path d={STAR_PATH} fill="#e3b468" /></svg>
+            <svg viewBox="0 0 24 24"><path d={STAR_PATH} fill="#f2c97f" /></svg>
           </div>
         </div>
       ))}

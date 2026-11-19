@@ -1,11 +1,15 @@
 :root {
-  --bg: #0a0a0c;
-  --card: #1a1a1d;
-  --card2: #232327;
-  --text: #f5f5f7;
-  --muted: #8e8e93;
-  --gold: #e3b468;
-  --gold-soft: rgba(227, 180, 104, 0.14);
+  /* Sistema visual v2 */
+  --bg: #0b0a0d; /* Sala */
+  --card: #151318; /* Poltrona */
+  --card2: #1e1b21; /* Corredor */
+  --text: #f4eee3; /* Texto */
+  --muted: #a8a094; /* Legenda */
+  --gold: #f2c97f; /* Facho */
+  --gold-soft: rgba(242, 201, 127, 0.14);
+  --red: #e8494f; /* Cortina */
+  --screen: #fbf3e2; /* Tela */
+  --serif: "Instrument Serif", Georgia, serif;
 }
 * {
   box-sizing: border-box;
@@ -20,8 +24,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
-    Inter, Roboto, sans-serif;
+    Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Helvetica Neue", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -33,7 +37,7 @@ body::before {
   background:
     radial-gradient(
       120% 55% at 50% -10%,
-      var(--glow, rgba(227, 180, 104, 0.13)),
+      var(--glow, rgba(242, 201, 127, 0.10)),
       transparent 60%
     ),
     linear-gradient(180deg, var(--wash, transparent), transparent 640px);
@@ -239,10 +243,10 @@ input::placeholder {
 .cta {
   width: 100%;
   padding: 17px;
-  border-radius: 18px;
+  border-radius: 28px;
   border: none;
   background: var(--gold);
-  color: #1d1403;
+  color: #1a1408;
   font: inherit;
   font-size: 17px;
   font-weight: 600;
@@ -3591,7 +3595,7 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .tncard b{position:relative;display:block;font-size:19px;font-weight:700;letter-spacing:-.3px}
 .tncard small{position:relative;display:block;margin-top:4px;font-size:13px;color:#d9cdb8}
 .tnstrip{position:absolute;right:-10px;top:12px;bottom:12px;display:flex;gap:6px;transform:rotate(-8deg);opacity:.5}
-.tnstrip i{width:26px;height:38px;border-radius:5px;background:linear-gradient(180deg,#e3b468,#a36b2c);animation:tnwiggle 3.2s ease-in-out infinite}
+.tnstrip i{width:26px;height:38px;border-radius:5px;background:linear-gradient(180deg,#f2c97f,#a36b2c);animation:tnwiggle 3.2s ease-in-out infinite}
 .tnstrip i:nth-child(2n){background:linear-gradient(180deg,#f0575b,#8c2b2e);animation-delay:-.6s}
 .tnstrip i:nth-child(3n){background:linear-gradient(180deg,#fbf3e2,#9c9488);animation-delay:-1.2s}
 @keyframes tnwiggle{50%{transform:translateY(-6px)}}
@@ -3700,8 +3704,8 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .chrow i{font-style:normal;font-size:22px;color:var(--muted)}
 /* O ícone do baú desenhado em CSS: uma arca de madeira com a tampa entreaberta e luz saindo */
 .chicon{position:relative;display:block;width:64px;height:52px;margin:0 auto 14px}
-.chicon::before{content:"";position:absolute;left:4px;right:4px;bottom:0;height:30px;border-radius:5px;background:linear-gradient(180deg,#8a5a2b,#5e3a19);box-shadow:inset 0 0 0 2px #e3b468,inset 0 -8px 0 rgba(0,0,0,.18)}
-.chicon::after{content:"";position:absolute;left:2px;right:2px;top:2px;height:20px;border-radius:14px 14px 4px 4px;background:linear-gradient(180deg,#a06a35,#7a4d22);box-shadow:inset 0 0 0 2px #e3b468,0 -10px 26px rgba(255,214,140,.55);transform:rotate(-12deg);transform-origin:12% 100%;animation:chlid 3s ease-in-out infinite}
+.chicon::before{content:"";position:absolute;left:4px;right:4px;bottom:0;height:30px;border-radius:5px;background:linear-gradient(180deg,#8a5a2b,#5e3a19);box-shadow:inset 0 0 0 2px #f2c97f,inset 0 -8px 0 rgba(0,0,0,.18)}
+.chicon::after{content:"";position:absolute;left:2px;right:2px;top:2px;height:20px;border-radius:14px 14px 4px 4px;background:linear-gradient(180deg,#a06a35,#7a4d22);box-shadow:inset 0 0 0 2px #f2c97f,0 -10px 26px rgba(255,214,140,.55);transform:rotate(-12deg);transform-origin:12% 100%;animation:chlid 3s ease-in-out infinite}
 @keyframes chlid{50%{transform:rotate(-20deg)}}
 .chinvite{position:relative;margin:0 0 26px;padding:22px 18px 18px;border-radius:22px;text-align:center;background:radial-gradient(120% 100% at 50% 0,rgba(227,180,104,.25),transparent 60%),var(--card);box-shadow:inset 0 0 0 1px rgba(227,180,104,.25)}
 .chinvite b{display:block;font-size:19px;font-weight:700}
@@ -3743,7 +3747,7 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .dinfo b{display:block;font-size:21px;font-weight:700;line-height:1.15}
 .dinfo small{color:#c7c7cc;font-size:14px}
 .stamp{position:absolute;top:26px;padding:6px 14px;border:3px solid;border-radius:10px;font-size:24px;font-weight:800;letter-spacing:1px;text-transform:uppercase;background:rgba(0,0,0,.35)}
-.stamp.seen{left:20px;color:#e3b468;transform:rotate(-12deg)}
+.stamp.seen{left:20px;color:#f2c97f;transform:rotate(-12deg)}
 .stamp.no{right:20px;color:#ff6b62;transform:rotate(12deg)}
 .stamp.idk{left:50%;transform:translateX(-50%);color:#9ec5ff}
 .deckbtns{display:flex;justify-content:center;align-items:center;gap:22px;margin-top:16px}
@@ -4665,4 +4669,146 @@ body.rolling .top{opacity:0;transition:opacity .6s}
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+
+/* ===== Redesign v2 · etapa 1: base ===== */
+.serif {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+/* Botões: pílula de 52px. Principal (facho) e secundário (corredor). */
+.btn {
+  height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 26px;
+  font: 600 16px Inter, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s, opacity 0.2s;
+}
+.btn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+.btn:disabled {
+  opacity: 0.45;
+}
+.btn.block {
+  width: 100%;
+}
+.btn-primary {
+  background: var(--gold);
+  color: #1a1408;
+}
+.btn-sec {
+  background: var(--card2);
+  color: var(--text);
+}
+
+/* Pôster: sempre 2:3, nunca esticado */
+.poster {
+  aspect-ratio: 2 / 3;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Marca de nota pequena: ★ 4,5 */
+.chip {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: var(--card2);
+  color: var(--gold);
+  font: 500 12px Inter, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Avatar com anel aceso (avaliou algo novo) */
+.avr {
+  display: inline-flex;
+  flex: none;
+  padding: 2.5px;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, var(--red), var(--gold), var(--screen), var(--red));
+}
+.avr .av {
+  border: 2.5px solid var(--bg);
+}
+
+/* Barra de abas flutuante (vale para celular e computador) */
+.tabs {
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: calc(12px + var(--sab));
+  width: min(calc(100% - 24px), 400px);
+  padding-bottom: 0;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: 33px;
+  background: rgba(30, 27, 33, 0.92);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.tabs.off {
+  transform: translate(-50%, 160%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tabs div {
+  height: 66px;
+  max-width: none;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+}
+.tab {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  color: #8a8378;
+  border-radius: 24px;
+}
+.tab svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+}
+.tab.on {
+  color: var(--text);
+}
+.tab.mid {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  background: var(--gold);
+  color: #1a1408;
+  box-shadow: 0 0 24px rgba(242, 201, 127, 0.35);
+}
+.tab.mid svg {
+  fill: currentColor;
+}
+.tab .dot {
+  top: 6px;
+  left: calc(50% + 7px);
+  background: var(--red);
+}
+body.tabs-on .app {
+  padding-top: 18px;
+  padding-bottom: calc(112px + var(--sab));
+}
+body.rolling .tabs {
+  transform: translate(-50%, 160%);
 }

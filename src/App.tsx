@@ -1,6 +1,6 @@
 // A moldura do app: barra de cima, a tela atual, as abas e o que estiver aberto por cima.
 import { useEffect, useState } from "react";
-import { GearIcon, TAB_ICONS } from "./components/icons";
+import { GearIcon, TabIcon } from "./components/icons";
 import { sfx, useSound } from "./lib/sfx";
 import { pname } from "./lib/format";
 import {
@@ -41,16 +41,19 @@ import { Analytics } from "@vercel/analytics/react";
 import { UpdateSheet } from "./components/UpdateSheet";
 import { PullRefresh } from "./components/PullRefresh";
 
+// Ordem da barra flutuante. "Buscar" e "Avaliar" mostram a mesma tela até a etapa 2 do redesign.
 const TABS: [Tab, string][] = [
-  ["rate", "Avaliar"],
   ["home", "Início"],
-  ["lib", "Meus filmes"],
-  ["prof", "Perfil"],
+  ["search", "Buscar"],
+  ["rate", "Avaliar"],
+  ["lib", "Quero ver"],
+  ["prof", "Você"],
 ];
 
 function tabScreen(tab: Tab) {
   switch (tab) {
     case "rate":
+    case "search":
       return <RateHome />;
     case "home":
       return <Home />;
@@ -138,9 +141,10 @@ function overlayView(o: OverlayState, i: number) {
 
 const TAB_TITLE: Record<Tab, string> = {
   rate: "",
+  search: "Buscar",
   home: "Início",
-  lib: "Meus filmes",
-  prof: "Perfil",
+  lib: "Quero ver",
+  prof: "Você",
 };
 
 /** Telas com "puxar para recarregar": Início, Meus filmes, Perfil, página do filme e perfil do amigo. */
@@ -153,6 +157,7 @@ export function App() {
   // Bolinhas nas abas: algo esperando a pessoa (indicação, convite de ingresso, pedido de amizade)
   const badge: Record<Tab, boolean> = {
     rate: false,
+    search: false,
     home: account.tags.length > 0,
     lib: account.recs.length > 0,
     prof: account.friends.incoming.length > 0,
@@ -184,7 +189,7 @@ export function App() {
         quiz: "q",
         result: "res",
       }[top.k]
-    : { rate: "home", home: "feed", lib: "lib", prof: "prof" }[tab];
+    : { rate: "home", search: "home", home: "feed", lib: "lib", prof: "prof" }[tab];
   const alignTop = mode !== "home" && mode !== "q" && mode !== "res";
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend =
@@ -298,14 +303,13 @@ export function App() {
           {TABS.map(([k, label]) => (
             <button
               key={k}
-              className={`tab${tab === k ? " on" : ""}`}
+              className={`tab${tab === k ? " on" : ""}${k === "rate" ? " mid" : ""}`}
               data-v={k}
+              aria-label={label}
+              aria-current={tab === k ? "page" : undefined}
               onClick={() => pressTab(k)}
             >
-              <svg viewBox="0 0 24 24">
-                <path d={TAB_ICONS[k]} />
-              </svg>
-              {label}
+              <TabIcon tab={k} />
               {badge[k] && <i className="dot" />}
             </button>
           ))}
