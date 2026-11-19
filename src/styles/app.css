@@ -4841,3 +4841,57 @@ span.pfb em {
   overflow-wrap: anywhere;
 }
 
+
+/* ===== Redesign v2 · etapa 1, parte 2 ===== */
+/* Nomes de filme na serifada (título de cinema) */
+.fhead h2,
+.rvhead h2,
+.center > .film,
+.tktitle,
+.dinfo b,
+.tncard2 > b,
+.tnposter.none,
+.rcd b,
+.chcardtx b {
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.center > .film small {
+  font-family: Inter, sans-serif;
+}
+
+/* Notas grandes: serifada; ao lado das estrelas, em dourado */
+.num,
+.rate > b,
+.mybox .rate > b,
+.lavg b,
+.dnum {
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.center > .num,
+.rate > b,
+.dnum {
+  color: var(--gold);
+}
+.dnum.none {
+  color: var(--muted);
+}
+
+/* Reviews na serifada */
+.rvc .txt,
+.act q {
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+/* Aba ativa: ícone preenchido (a busca só engrossa o traço) */
+.tab.on:not(.mid):not([data-v="search"]) svg {
+  fill: currentColor;
+}
+.tab.on[data-v="search"] svg {
+  stroke-width: 2.6;
+}
