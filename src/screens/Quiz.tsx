@@ -55,7 +55,7 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: editing
   useEffect(() => {
     const b = document.body.style;
     b.setProperty('--glow', `rgba(242, 201, 127, ${(0.08 + note * 0.05).toFixed(3)})`);
-    return () => b.removeProperty('--glow');
+    return () => { b.removeProperty('--glow'); };
   }, [note]);
   // Diretor (para o cabeçalho) e gêneros já carregando, para a comparação não demorar no fim
   useEffect(() => {
