@@ -1,16 +1,17 @@
-// Aba Perfil: entrar ou criar conta; depois, o perfil com top 4, amigos, placar e sincronização.
+// Aba Você: entrar ou criar conta; depois, o perfil com Top 4, Seu ano, visto recentemente, amigos e placar.
 import { useEffect, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
 import { FriendRow } from "../components/FriendRow";
 import { useAsync } from "../components/hooks";
+import { Poster } from "../components/Poster";
 import { useRefresh } from "../lib/refresh";
-import { Favorites } from "../components/TopFour";
+import { TopFour } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
 import { fkey, isRated, useFilms } from "../lib/films";
-import { resetLibraryView } from "./Library";
-import { fmt, nFriends } from "../lib/format";
-import type { Profile as ProfileData } from "../lib/types";
+import { byDiary } from "./Diary";
+import { fmt, MONTHS } from "../lib/format";
+import type { Film, Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
 import { Ticket } from "../components/Ticket";
 import { ChestIcon } from "../components/icons";
@@ -200,14 +201,13 @@ function Account() {
   const all = useFilms();
   const user = account.user!;
   const pr = account.profile || EMPTY_PROFILE;
-  const rated = all.filter(isRated);
-  const chestN = all.filter((h) => h.b).length;
   // Todos os assistidos: os avaliados e os marcados como "Já vi" sem nota
-  const watched = all.filter((h) => h.st !== "want").length;
-  const avg = rated.length
-    ? rated.reduce((a, h) => a + h.s, 0) / rated.length
-    : 0;
-  const title =
+  const watched = all.filter((h) => h.st !== "want");
+  const chestN = all.filter((h) => h.b).length;
+  const year = String(new Date().getFullYear());
+  const thisYear = watched.filter((h) => (h.d || "").startsWith(year));
+  const recent = watched.filter((h) => h.d || h.ts).sort(byDiary).slice(0, 4);
+  const name =
     pr.display_name || (pr.username ? "@" + pr.username : "Minha conta");
   const [err, setErr] = useState("");
 
@@ -217,58 +217,81 @@ function Account() {
     const h = all.find((x) => fkey(x) === fkey(f));
     if (h) nav.openFilm(h);
   };
+  const diary = () => nav.push({ k: "diary" });
   return (
-    <div className="screen">
-      {pr.banner ? (
-        <Banner path={pr.banner} />
-      ) : (
-        <>
-          <h1>Perfil</h1>
-          <p className="count">&nbsp;</p>
-        </>
-      )}
-      <div className={`pf${pr.banner ? " onb" : ""}`}>
-        <Avatar p={pr} fallback={user.email} />
-        <div>
-          <b>{title}</b>
-          {pr.display_name && pr.username && <em>@{pr.username}</em>}
-          {account.social && (
-            <small>{nFriends(account.friends.list.length)}</small>
+    <div className="screen v2pf">
+      {pr.banner ? <Banner path={pr.banner} /> : <div className="pbanner v2nob" />}
+      <div className="v2pfhead">
+        <div className="v2pfrow">
+          <Avatar p={pr} fallback={user.email} />
+          {account.extended && (
+            <button className="v2pill" id="ped" onClick={() => nav.open({ k: "editProfile" })}>
+              Editar perfil
+            </button>
           )}
         </div>
+        <h1 className="v2pfname">{name}</h1>
+        {pr.display_name && pr.username && <p className="v2pfsub">@{pr.username}</p>}
       </div>
-      {pr.bio && <p className="bio">{pr.bio}</p>}
+      {pr.bio && <p className="bio v2bio">{pr.bio}</p>}
+
+      <div className="v2nums">
+        <button type="button" id="pfn" onClick={diary}>
+          <b>{watched.length}</b>
+          <span>{watched.length === 1 ? "filme" : "filmes"}</span>
+        </button>
+        <i aria-hidden="true" />
+        <button type="button" onClick={diary}>
+          <b>{thisYear.length}</b>
+          <span>em {year}</span>
+        </button>
+        {account.social && (
+          <>
+            <i aria-hidden="true" />
+            <div>
+              <b>{account.friends.list.length}</b>
+              <span>{account.friends.list.length === 1 ? "amigo" : "amigos"}</span>
+            </div>
+          </>
+        )}
+      </div>
+
       {account.extended && (
         <>
-          <button
-            className="plain"
-            id="ped"
-            style={{ margin: "0 0 30px" }}
-            onClick={() => nav.open({ k: "editProfile" })}
-          >
-            Editar perfil
-          </button>
-          <Favorites id="t4" top4={pr.top4} empty="+" onPick={openTop} />
+          <h2 className="v2h">Top 4</h2>
+          <TopFour id="t4" top4={pr.top4} empty="+" onPick={openTop} />
         </>
       )}
-      <div className="stat">
-        <button type="button" id="pfn" onClick={() => { resetLibraryView(); nav.tab("lib"); }}>
-          <b>{watched}</b>
-          <span>{watched === 1 ? "filme visto" : "filmes vistos"}</span>
+
+      <YearCard films={thisYear} year={year} />
+
+      {recent.length > 0 && (
+        <>
+          <h2 className="v2h">Visto recentemente</h2>
+          <div className="v2rec">
+            {recent.map((h) => (
+              <button key={fkey(h)} onClick={() => nav.openFilm(h)}>
+                <span className="v2rpos"><Poster img={h.img} title={h.t} /></span>
+                <small>{isRated(h) ? "★ " + fmt(h.s) : "Já vi"}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <nav className="v2links" aria-label="Suas coleções">
+        <button onClick={diary}>
+          <span>Diário</span>
+          <em>{watched.length}</em>
+          <i aria-hidden="true">›</i>
         </button>
-        <div>
-          <b>{rated.length ? fmt(Math.round(avg * 10) / 10) : "–"}</b>
-          <span>nota média</span>
-        </div>
-      </div>
-      <button className="chrow" id="chprof" onClick={() => nav.push({ k: "chest" })}>
-        <ChestIcon />
-        <span>
-          <b>Baú da infância</b>
-          <small>{chestN ? `${chestN} ${chestN === 1 ? "filme lembrado" : "filmes lembrados"}` : "Relembre os filmes da sua infância"}</small>
-        </span>
-        <i>›</i>
-      </button>
+        <button id="chprof" onClick={() => nav.push({ k: "chest" })}>
+          <span className="v2lic"><ChestIcon />Baú da infância</span>
+          <em>{chestN || ""}</em>
+          <i aria-hidden="true">›</i>
+        </button>
+      </nav>
+
       <TicketDrawer />
       {account.social && (
         <>
@@ -280,6 +303,62 @@ function Account() {
         {err}
       </p>
     </div>
+  );
+}
+
+/** Seu ano: filmes por mês (o mês mais forte em dourado), a nota que você mais dá e a média. */
+function YearCard({ films, year }: { films: Film[]; year: string }) {
+  if (!films.length) return null;
+  const per: number[] = Array(12).fill(0);
+  films.forEach((h) => per[+h.d!.slice(5, 7) - 1]++);
+  const max = Math.max(...per);
+  const best = per.indexOf(max);
+  const rated = films.filter(isRated);
+  const counts = new Map<number, number>();
+  rated.forEach((h) => counts.set(h.s, (counts.get(h.s) || 0) + 1));
+  let mode = 0;
+  let mc = 0;
+  counts.forEach((c, s) => {
+    if (c > mc || (c === mc && s > mode)) {
+      mode = s;
+      mc = c;
+    }
+  });
+  const avg = rated.length
+    ? Math.round((rated.reduce((a, h) => a + h.s, 0) / rated.length) * 10) / 10
+    : 0;
+  return (
+    <section className="v2year" aria-label={`Seu ${year}`}>
+      <div className="v2yh">
+        <h2>Seu {year}</h2>
+        <span>{films.length} {films.length === 1 ? "filme" : "filmes"} até agora</span>
+      </div>
+      <div
+        className="v2bars"
+        role="img"
+        aria-label={`Filmes por mês em ${year}: ${MONTHS[best].toLowerCase()} foi o mês com mais filmes`}
+      >
+        {per.map((q, i) => (
+          <div key={i}>
+            <span
+              className={i === best ? "on" : q ? "" : "z"}
+              style={{ height: q ? 8 + Math.round((q / max) * 64) : 4 }}
+            />
+            <small>{MONTHS[i][0]}</small>
+          </div>
+        ))}
+      </div>
+      <div className="v2yg">
+        <div>
+          <small>Nota que você mais dá</small>
+          <b className="g">{mode ? "★ " + fmt(mode) : "–"}</b>
+        </div>
+        <div>
+          <small>Nota média</small>
+          <b className="s">{avg ? fmt(avg) : "–"}</b>
+        </div>
+      </div>
+    </section>
   );
 }
 

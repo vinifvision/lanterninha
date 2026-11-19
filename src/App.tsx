@@ -31,6 +31,7 @@ import { FilmPage } from "./screens/FilmPage";
 import { FriendPage } from "./screens/FriendPage";
 import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
+import { Diary } from "./screens/Diary";
 import { Profile } from "./screens/Profile";
 import { Quiz } from "./screens/Quiz";
 import { RateHome } from "./screens/RateHome";
@@ -72,6 +73,8 @@ function stackScreen(s: Screen, depth: number) {
       return <Credits key={`credits-${depth}`} info={s.info} />;
     case "chest":
       return <Chest key="chest" />;
+    case "diary":
+      return <Diary key="diary" />;
     case "friend":
       return <FriendPage key={`friend-${s.id}`} id={s.id} />;
     case "quiz":
@@ -162,8 +165,8 @@ const TAB_TITLE: Record<Tab, string> = {
   prof: "Você",
 };
 
-/** Telas com "puxar para recarregar": Início, Meus filmes, Perfil, página do filme e perfil do amigo. */
-const PULL_MODES = new Set(["feed", "lib", "prof", "film", "friend"]);
+/** Telas com "puxar para recarregar": Início, Quero ver, Diário, Perfil, página do filme e perfil do amigo. */
+const PULL_MODES = new Set(["feed", "lib", "diary", "prof", "film", "friend"]);
 
 export function App() {
   const { tab, stack, overlays, progress } = useNav();
@@ -200,6 +203,7 @@ export function App() {
         film: "film",
         credits: "credits",
         chest: "chest",
+        diary: "diary",
         friend: "friend",
         quiz: "q",
         details: "det",
@@ -215,6 +219,8 @@ export function App() {
   const title = top
     ? top.k === "chest"
       ? "Baú da infância"
+      : top.k === "diary"
+      ? "Diário"
       : top.k === "film" || top.k === "credits"
         ? top.info.t
         : friend
