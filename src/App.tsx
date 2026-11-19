@@ -35,6 +35,7 @@ import { Profile } from "./screens/Profile";
 import { Quiz } from "./screens/Quiz";
 import { RateHome } from "./screens/RateHome";
 import { Result } from "./screens/Result";
+import { Details } from "./screens/Details";
 import { cloud, useCloud } from "./lib/cloud";
 import { fkey } from "./lib/films";
 import { Analytics } from "@vercel/analytics/react";
@@ -82,6 +83,20 @@ function stackScreen(s: Screen, depth: number) {
           rewatch={s.rewatch}
           answers={s.answers}
           direct={s.direct}
+          help={s.help}
+        />
+      );
+    case "details":
+      return (
+        <Details
+          key={`det-${depth}`}
+          info={s.info}
+          filmKey={s.key}
+          base={s.base}
+          classic={s.classic}
+          rewatch={s.rewatch}
+          replaced={s.replaced}
+          answers={s.answers}
         />
       );
     case "result":
@@ -178,7 +193,7 @@ export function App() {
   }, [account.recovery, account.linkError, account.user]);
   const top = stack[stack.length - 1];
   const main = !top;
-  const rating = top?.k === "quiz" || top?.k === "result";
+  const rating = top?.k === "quiz" || top?.k === "details" || top?.k === "result";
   // Nome do "modo" da tela, usado pelo CSS para ajustar larguras e alinhamento
   const mode = top
     ? {
@@ -187,9 +202,10 @@ export function App() {
         chest: "chest",
         friend: "friend",
         quiz: "q",
+        details: "det",
         result: "res",
       }[top.k]
-    : { rate: "home", search: "home", home: "feed", lib: "lib", prof: "prof" }[tab];
+    : { rate: "rate", search: "home", home: "feed", lib: "lib", prof: "prof" }[tab];
   const alignTop = mode !== "home" && mode !== "q" && mode !== "res";
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend =
@@ -236,7 +252,7 @@ export function App() {
                   <path d="M15 5l-7 7 7 7" />
                 </svg>
               </button>
-              {top?.k === "quiz" ? (
+              {top?.k === "quiz" && progress !== null ? (
                 <div className="bar" id="bar">
                   <i id="fill" style={{ width: `${(progress ?? 1) * 100}%` }} />
                 </div>

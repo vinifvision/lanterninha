@@ -1,23 +1,38 @@
-// As perguntas da avaliação, uma por tela, e a comparação final com um filme parecido (nota, gênero e época).
-// Atalho "Já sei minha nota": pula as perguntas e a pessoa escolhe a nota direto nas estrelas.
+// Dar a nota: as estrelas aparecem primeiro e a nota sai em um toque.
+// "Me ajuda a decidir" abre as perguntas e a comparação com um filme parecido; no fim a nota volta para as estrelas.
+// "Continuar" salva a nota e vai para Review e detalhes.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '../components/Button';
+import { Poster } from '../components/Poster';
+import { StarPicker } from '../components/StarPicker';
+import { lastCinema } from '../components/TicketEditor';
+import { movieDetails } from '../lib/api';
 import { cloud } from '../lib/cloud';
 import { films, fkey, isRated } from '../lib/films';
-import { buildQuestions, computeStars } from '../lib/quiz';
-import { sfx } from '../lib/sfx';
-import type { FilmInfo, RatedFilm, Where } from '../lib/types';
-import { lastCinema } from '../components/TicketEditor';
-import { nav } from '../nav';
-import { StarPicker } from '../components/StarPicker';
-import { Poster } from '../components/Poster';
-import { movieDetails } from '../lib/api';
 import { clamp, fmt, LABELS, today } from '../lib/format';
+import { buildQuestions, computeStars } from '../lib/quiz';
+import type { FilmInfo, RatedFilm, Where } from '../lib/types';
+import { nav } from '../nav';
 
-interface Props { info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean }
+interface Props {
+  info: FilmInfo;
+  classic: boolean;
+  rewatch: RatedFilm | null;
+  answers?: number[];
+  /** Mudar nota: as estrelas já começam na nota atual */
+  direct?: boolean;
+  /** Abrir direto nas perguntas */
+  help?: boolean;
+}
 
-export function Quiz({ info, classic, rewatch, answers: initial, direct: startDirect }: Props) {
-  const questions = useMemo(() => buildQuestions(!!rewatch, classic), [rewatch, classic]);
-  // Quem volta da tela do resultado cai na última pergunta, com as respostas de antes
+export function Quiz({ info, classic, rewatch, answers: initial, direct: editing, help }: Props) {
+  const prev = films.find(info);
+  const prevRated = isRated(prev) ? prev : null;
+  // Revi: guarda a nota anterior. Começa ligado quando o filme já tinha nota.
+  const [rw, setRw] = useState<RatedFilm | null>(rewatch);
+  const [where, setWhere] = useState<Where | undefined>(rewatch ? undefined : prev?.w);
+  const questions = useMemo(() => buildQuestions(!!rw, classic), [rw, classic]);
+  const [direct, setDirect] = useState(!help && !initial);
   const [step, setStep] = useState(initial ? Math.max(0, initial.length - 1) : 0);
   const [answers, setAnswers] = useState<number[]>(initial || []);
   const [picked, setPicked] = useState<number | null>(null);
@@ -25,58 +40,70 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
   const [rivals, setRivals] = useState<RatedFilm[]>([]);
   const [ri, setRi] = useState(0);
   const rival = rivals.length ? rivals[ri % rivals.length] : null;
-  // Última tela: onde a pessoa viu o filme (não mexe na nota)
-  const [asking, setAsking] = useState(false);
-  const pending = useRef(3);
+  const [note, setNote] = useState(() => (editing && prevRated ? prevRated.s : 0));
+  const [fromHelp, setFromHelp] = useState(false);
+  const [dir, setDir] = useState('');
   const stars = useRef(3);
   const finalAnswers = useRef<number[]>(initial || []);
   const locked = useRef(false);
-  // Nota escolhida direto nas estrelas ("Já sei minha nota"). Vindo de "Mudar nota", já começa na nota atual.
-  const [direct, setDirect] = useState(!!startDirect);
-  const [picked5, setPicked5] = useState(() => { const cur = films.find(info); return startDirect && isRated(cur) ? cur.s : 0; });
+  const leaving = useRef(false);
 
   // Enquanto a pessoa avalia, a sincronização não mexe nos dados
   useEffect(() => { cloud.setPaused(true); return () => cloud.setPaused(false); }, []);
-  useEffect(() => { nav.setProgress(asking || rival || direct ? 1 : step / questions.length); }, [step, rival, asking, direct, questions.length]);
-  // Voltar: da comparação para a última pergunta, de uma pergunta para a anterior, e da primeira para fora
+  useEffect(() => { nav.setProgress(direct ? null : rival ? 1 : step / questions.length); }, [direct, step, rival, questions.length]);
+  // A luz da sala acende junto com a nota
+  useEffect(() => {
+    const b = document.body.style;
+    b.setProperty('--glow', `rgba(242, 201, 127, ${(0.08 + note * 0.05).toFixed(3)})`);
+    return () => b.removeProperty('--glow');
+  }, [note]);
+  // Diretor (para o cabeçalho) e gêneros já carregando, para a comparação não demorar no fim
+  useEffect(() => {
+    if (info.id) void movieDetails(info.id).then((d) => setDir(d.director)).catch(() => null);
+  }, [info.id]);
+  // Voltar: da comparação para a última pergunta, de uma pergunta para a anterior, da primeira para as estrelas
   useEffect(() => {
     nav.setBackHandler(() => {
-      if (asking) { setAsking(false); return true; }
-      if (direct && !startDirect) { setDirect(false); return true; }
+      if (leaving.current || direct) return false;
       if (rival) { setRivals([]); setRi(0); return true; }
       if (step > 0) { setStep(step - 1); return true; }
+      if (!help) { setDirect(true); return true; }
       return false;
     });
     return () => nav.setBackHandler(null);
-  }, [step, rival, asking, direct, startDirect]);
+  }, [direct, rival, step, help]);
 
-  /** Depois da nota calculada, só falta saber onde viu. */
-  const ask = (value: number) => { pending.current = value; setAsking(true); };
+  /** O X cancela tudo de uma vez. */
+  const cancel = () => { leaving.current = true; nav.back(); };
 
-  /** Grava a avaliação e vai para a tela do resultado. */
-  const finish = (value: number, where?: Where) => {
+  /** A nota calculada pelas perguntas volta para as estrelas. */
+  const land = (v: number) => { setNote(v); setFromHelp(true); setRivals([]); setRi(0); setDirect(true); };
+
+  /** Grava a avaliação e vai para Review e detalhes. */
+  const finish = () => {
+    if (!note) return;
     const old = films.find(info);
-    const keep = rewatch || old;
-    const entry: RatedFilm = { t: info.t, s: value, c: classic, ts: Date.now(), d: (!rewatch && old?.d) || today() };
+    const keep = rw || old;
+    const entry: RatedFilm = { t: info.t, s: note, c: classic, ts: Date.now(), d: (!rw && old?.d) || today() };
     if (keep?.note) entry.note = keep.note;
     if (info.id) { entry.id = info.id; if (info.y) entry.y = info.y; if (info.o) entry.o = info.o; if (info.img) entry.img = info.img; }
-    if (rewatch) { entry.p = rewatch.s; entry.n = (rewatch.n || 1) + 1; }
+    if (rw) { entry.p = rw.s; entry.n = (rw.n || 1) + 1; }
     else if (old?.n) { entry.p = old.p; entry.n = old.n; }
     if (where) entry.w = where;
     if (where === 'cine') {
       // Corrigindo a nota de quem já tinha ingresso: mantém o ingresso. Senão, já começa com o último cinema usado.
-      if (!rewatch && old?.w === 'cine' && old.tk) entry.tk = old.tk;
+      if (!rw && old?.w === 'cine' && old.tk) entry.tk = old.tk;
       else { const c = lastCinema(); if (c) entry.tk = { cine: c }; }
     }
     const replaced = films.putRated(entry);
-    nav.replace({ k: 'result', info, key: fkey(entry), base: value, classic, rewatch, replaced, answers: finalAnswers.current });
+    leaving.current = true;
+    nav.replace({ k: 'details', info, key: fkey(entry), base: note, classic, rewatch: rw, replaced, answers: fromHelp ? finalAnswers.current : [] });
   };
 
   const choose = (i: number, after: () => void) => {
     if (locked.current) return;
     locked.current = true;
     setPicked(i);
-    sfx.tap(step);
     setTimeout(() => { locked.current = false; setPicked(null); after(); }, 260);
   };
 
@@ -87,7 +114,7 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
     finalAnswers.current = next;
     const value = computeStars(questions, next);
     stars.current = value;
-    void findRivals(value).then((list) => { if (list.length) { setRivals(list); setRi(0); } else ask(value); });
+    void findRivals(value).then((list) => { if (list.length) { setRivals(list); setRi(0); } else land(value); });
   });
 
   /**
@@ -116,8 +143,6 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
     const ranked = top.map((h, i) => ({ h, sc: base(h) + shared(i) * 3 })).sort((a, b) => b.sc - a.sc).map((x) => x.h);
     return ranked.concat(near.slice(6));
   };
-  // Já deixa os gêneros deste filme carregando, para a comparação não demorar no fim
-  useEffect(() => { if (info.id) void movieDetails(info.id).catch(() => null); }, [info.id]);
 
   const compare = (i: number) => choose(i, () => {
     if (!rival) return;
@@ -125,93 +150,84 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: startDi
     if (i === 0 && v <= rival.s) v = clamp(rival.s + 0.5);
     if (i === 1) v = rival.s;
     if (i === 2 && v >= rival.s) v = clamp(rival.s - 0.5);
-    ask(v);
+    land(v);
   });
 
-  /** Confirmar a nota escolhida nas estrelas. Em "Mudar nota", não pergunta de novo onde viu. */
-  const confirmDirect = () => {
-    if (!picked5) return;
-    finalAnswers.current = [];
-    sfx.tap();
-    if (startDirect) finish(picked5, films.find(info)?.w);
-    else ask(picked5);
-  };
+  const openHelp = () => { setDirect(false); setStep(0); setAnswers([]); };
 
-  if (direct && !asking) {
+  if (direct) {
+    const sub = [info.y, dir].filter(Boolean).join(' · ');
     return (
-      <div key="direct" className="screen">
-        <div className="q">{startDirect ? 'Qual a nota agora?' : 'Qual a sua nota?'}</div>
-        <p className="sub">Toque ou arraste nas estrelas. A metade de uma estrela vale meia.</p>
-        <div className="dpick">
-          <StarPicker value={picked5} onChange={setPicked5} />
-          <div className={`dnum${picked5 ? '' : ' none'}`} id="dnum">{picked5 ? fmt(picked5) : '–'}</div>
-          <div className="label">{picked5 ? LABELS[picked5] : '\u00a0'}</div>
-          <div className="adj">
-            <button id="dminus" aria-label="Diminuir meia estrela" disabled={!picked5 || picked5 <= 0.5} onClick={() => { setPicked5(clamp(picked5 - 0.5)); sfx.tick(false); }}>−</button>
-            <button id="dplus" aria-label="Aumentar meia estrela" disabled={picked5 >= 5} onClick={() => { setPicked5(clamp((picked5 || 0) + 0.5)); sfx.tick(true); }}>+</button>
-          </div>
+      <div key="direct" className="screen nota2">
+        <div className="nhead">
+          <span className="nposter"><Poster img={info.img} title={info.t} size="w92" /></span>
+          <div className="ntit"><b>{info.t}</b>{sub && <small>{sub}</small>}</div>
+          <button type="button" className="x2" aria-label="Cancelar e fechar" onClick={cancel}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
         </div>
-        <button className="cta" id="dok" disabled={!picked5} onClick={confirmDirect}>Confirmar</button>
-        <button className="helpme" id="helpme" onClick={() => { setDirect(false); setStep(0); }}>Me ajuda a decidir</button>
-      </div>
-    );
-  }
-
-  const WHERE: [Where | undefined, string][] = [['cine', 'No cinema'], ['casa', 'Em casa'], ['outro', 'Em outro lugar']];
-  if (asking) {
-    return (
-      <div key="where" className="screen">
-        <div className="q">Onde você viu?</div>
-        <p className="sub">Não muda a nota. Fica guardado com o filme.</p>
-        <div className="opts">
-          {WHERE.map(([w, label], i) => (
-            <button key={label} className={`opt${picked === i ? ' on' : ''}`} data-w={w} onClick={() => choose(i, () => finish(pending.current, w))}>{label}</button>
-          ))}
-          <button className="opt" style={{ background: 'none', color: 'var(--muted)', textAlign: 'center' }} onClick={() => choose(3, () => finish(pending.current))}>Pular</button>
+        <div className="nbig" aria-live="polite">
+          <div className={`nnum${note ? '' : ' none'}`} id="dnum">{note ? fmt(note) : '–'}</div>
+          <div className="nword">{note ? LABELS[note] : 'Toque nas estrelas'}</div>
         </div>
+        <StarPicker value={note} onChange={(v) => { setNote(v); setFromHelp(false); }} />
+        <p className="nhint">Toque na metade da estrela para meia nota</p>
+        <div className="nchips">
+          <button type="button" className={`nchip${where === 'cine' ? ' on' : ''}`} aria-pressed={where === 'cine'} onClick={() => setWhere(where === 'cine' ? undefined : 'cine')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 0 0-6V6H3z" /></svg>No cinema
+          </button>
+          {prevRated && !editing && (
+            <button type="button" className={`nchip${rw ? ' on' : ''}`} aria-pressed={!!rw} onClick={() => { setRw(rw ? null : prevRated); setAnswers([]); setStep(0); }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></svg>Revi
+            </button>
+          )}
+        </div>
+        <div className="grow" />
+        <Button block id="dok" disabled={!note} onClick={finish}>Continuar</Button>
+        <button type="button" className="nhelp" id="helpme" onClick={openHelp}>Na dúvida? <span>Me ajuda a decidir</span></button>
       </div>
     );
   }
 
   if (rival) {
-    const card = (f: FilmInfo, i: number, id: string) => (
-      <button className={`cmpc${picked === i ? ' on' : ''}`} id={id} onClick={() => compare(i)}>
-        <span className="cmpp">{f.img ? <Poster img={f.img} title={f.t} size="w342" /> : <span className="cmpn">{f.t}</span>}</span>
-        <b>{f.t || 'Este filme'}</b>
-        {f.y && <small>{f.y}</small>}
+    const card = (f: FilmInfo, i: number, id: string, tag: string, side: 'l' | 'r') => (
+      <button type="button" className={`duelc ${side}${picked === i ? ' on' : ''}`} id={id} aria-label={`${f.t} me marcou mais`} onClick={() => compare(i)}>
+        <span className="duelp"><Poster img={f.img} title={f.t} size="w342" /></span>
+        <span className="dueltag">{tag}</span>
       </button>
     );
     return (
-      <div key="cmp" className="screen">
-        <div className="q">Qual te marcou mais?</div>
-        <p className="sub">Se tivesse que escolher um para guardar na memória.</p>
-        <div className="cmp" key={fkey(rival)}>
-          {card(info, 0, 'cmpme')}
-          {card(rival, 2, 'cmpthem')}
+      <div key="cmp" className="screen ask2">
+        <div className="qlbl">Última pergunta</div>
+        <h1 className="q2">Qual te marcou mais?</h1>
+        <div className="duel" key={fkey(rival)}>
+          {card(info, 0, 'cmpme', 'Hoje', 'l')}
+          <span className="duelor" aria-hidden="true">ou</span>
+          {card(rival, 2, 'cmpthem', `Sua nota ★ ${fmt(rival.s)}`, 'r')}
         </div>
-        <div className="cmpb">
-          <button className={picked === 1 ? 'on' : ''} id="cmptie" onClick={() => compare(1)}>Empate</button>
-          <button className={picked === 3 ? 'on' : ''} id="cmpskip" onClick={() => compare(3)}>Não dá pra comparar</button>
+        <p className="duelhint">Toque no pôster. A nota sai sozinha no final.</p>
+        <div className="duelb">
+          <button type="button" className={`btn btn-sec${picked === 1 ? ' on' : ''}`} id="cmptie" onClick={() => compare(1)}>Empate</button>
+          <button type="button" className={`btn btn-sec${picked === 3 ? ' on' : ''}`} id="cmpskip" onClick={() => compare(3)}>Não dá pra comparar</button>
         </div>
-        {rivals.length > 1 && (
-          <button className="helpme" id="cmpswap" onClick={() => { sfx.tap(); setRi(ri + 1); }}>Trocar filme</button>
-        )}
+        {rivals.length > 1 && <button type="button" className="nknow" id="cmpswap" onClick={() => setRi(ri + 1)}>Trocar filme</button>}
+        <button type="button" className="nknow" onClick={() => { setRivals([]); setDirect(true); }}>Já sei minha nota</button>
       </div>
     );
   }
 
   const Q = questions[step];
   return (
-    <div key={step} className="screen">
-      <div className="q">{Q.q}</div>
-      <p className="sub">{Q.s || ' '}</p>
+    <div key={step} className="screen ask2">
+      <div className="qlbl">Pergunta {step + 1} de {questions.length}</div>
+      <h1 className="q2">{Q.q}</h1>
+      {Q.s && <p className="sub">{Q.s}</p>}
       <div className="opts">
         {Q.o.map((o, i) => (
-          <button key={o} className={`opt${(picked ?? answers[step]) === i ? ' on' : ''}`} onClick={() => answer(i)}>{o}</button>
+          <button type="button" key={o} className={`opt${(picked ?? answers[step]) === i ? ' on' : ''}`} onClick={() => answer(i)}>{o}</button>
         ))}
       </div>
-      {step === 0 && <button className="know" id="know" onClick={() => { sfx.tap(); setDirect(true); }}>Já sei minha nota</button>}
+      <button type="button" className="nknow" id="know" onClick={() => setDirect(true)}>Já sei minha nota</button>
     </div>
   );
 }
-
