@@ -1,23 +1,38 @@
-// Página do filme: dados gerais, notas de fora com o trailer, a minha nota em resumo e a nota dos amigos.
+// Página do filme (redesign v2): Avaliar em destaque, três atalhos com ícones, sinopse, aviso de streaming,
+// a nota da galera em gráfico (com o rosto de cada amigo), trechos das reviews e o cartão de Elenco e equipe.
 // Serve para qualquer filme, esteja ou não na lista de quem está olhando.
 import { useEffect, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { useArmed, useAsync } from "../components/hooks";
-import { PlayIcon, SendIcon, ShareIcon } from "../components/icons";
+import { BookmarkIcon, PlayIcon, SendIcon, ShareIcon, StarIcon } from "../components/icons";
 import { Poster } from "../components/Poster";
 import { Stars } from "../components/Stars";
 import { WhenRow } from "../components/WhenRow";
-import { movieDetails, movieRatings, posterUrl } from "../lib/api";
+import { movieCredits, movieDetails, movieRatings, posterUrl } from "../lib/api";
 import { refresh, useRefresh } from "../lib/refresh";
 import { preloadCard } from "../lib/share";
 import { sfx } from "../lib/sfx";
 import { cloud, useCloud } from "../lib/cloud";
 import { posterColor, setTint } from "../lib/color";
 import { films, fkey, isRated, toInfo, useFilms } from "../lib/films";
-import { duration, fd, fmt, LABELS, pname } from "../lib/format";
+import { duration, fd, fmt, LABELS, nFriends } from "../lib/format";
 import { looksClassic } from "../lib/quiz";
-import type { FilmInfo, MovieDetails } from "../lib/types";
+import type { Film, FilmInfo, FriendRating, MovieDetails } from "../lib/types";
 import { nav } from "../nav";
+import "../styles/v2-filme.css";
+
+const EyeIcon = () => (
+  <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+const PenIcon = () => (
+  <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13.5 6.5l4 4" /></svg>
+);
+const BellIcon = () => (
+  <svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" /><path d="M10 21h4" /></svg>
+);
+
+/** Nota pequena: uma estrela e o número, "★ 4,5". */
+const star = (s: number) => "★ " + fmt(s);
 
 export function FilmPage({ info: raw }: { info: FilmInfo }) {
   const info = toInfo(raw);
@@ -42,11 +57,12 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   );
   const hasFriends = !!account.user && account.friends.list.length > 0;
   const crowd = useAsync(
-    () => (hasFriends ? cloud.filmRatings(key) : Promise.resolve([])),
+    () => (hasFriends ? cloud.filmRatings(key) : Promise.resolve([] as FriendRating[])),
     [key, hasFriends, tick],
     true,
   );
   const [backdropReady, setBackdropReady] = useState(false);
+  const [moreText, setMoreText] = useState(false);
   const [armed, press] = useArmed();
 
   // Fundo da página na cor do pôster; volta ao normal ao sair
@@ -77,14 +93,21 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
     img.src = posterUrl(details.backdrop, "w780");
   }, [details?.backdrop]);
 
-  const sub = [info.o && info.o !== info.t ? info.o : "", info.y]
+  const meta = [
+    info.y,
+    details?.runtime ? duration(details.runtime) : "",
+    details?.genres[0] || "",
+  ]
     .filter(Boolean)
     .join(" · ");
   const canRec = hasFriends && !!film && film.st !== "want";
-  const startQuiz = () =>
-    nav.startQuiz(info, { classic: looksClassic(info.y) });
-  const markSeen = () => {
-    films.setStatus(info, "seen");
+  const classic = looksClassic(info.y);
+  const startQuiz = () => nav.startQuiz(info, { classic });
+  const rateAgain = () => rated && nav.startQuiz(info, { classic, rewatch: rated });
+  const toggle = (st: "seen" | "want") => {
+    sfx.tap();
+    if (film && film.st === st) films.remove(film);
+    else films.setStatus(info, st);
   };
   const remove = () => {
     if (press() && film) {
@@ -92,130 +115,26 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
       nav.back();
     }
   };
-  const recButton = (label: string) => (
-    <button id="arec" onClick={() => nav.open({ k: "recommend", info })}>
-      <SendIcon />
-      {label}
+
+  const trailer = details?.trailer ? (
+    <a
+      className="play"
+      id="trl"
+      href={`https://www.youtube.com/watch?v=${details.trailer}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <PlayIcon />
+      Trailer
+    </a>
+  ) : (
+    <button className="play" id="trl" disabled>
+      <PlayIcon />
+      Trailer
     </button>
   );
 
-  let mine: JSX.Element;
-  if (rated) {
-    const chips = [
-      rated.c ? "Clássico" : "",
-      rated.w === "cine" ? "No cinema" : rated.w === "casa" ? "Em casa" : "",
-      (rated.n || 0) > 1
-        ? `↻ ${rated.n}ª vez${rated.p ? " · antes ★ " + fmt(rated.p) : ""}`
-        : "",
-      rated.d ? "Visto em " + fd(rated.d) : "",
-    ].filter(Boolean);
-    mine = (
-      <>
-        <div className="myhead">
-          <h3>Minha nota</h3>
-          <button id="medit" onClick={() => nav.open({ k: "filmEdit", key })}>
-            Editar
-          </button>
-        </div>
-        <div className="rate">
-          <b>{fmt(rated.s)}</b>
-          <div>
-            <Stars value={rated.s} anim />
-            <span>{LABELS[rated.s]}</span>
-          </div>
-        </div>
-        {chips.length > 0 && (
-          <div className="chips">
-            {chips.map((c) => (
-              <span key={c}>{c}</span>
-            ))}
-          </div>
-        )}
-        {rated.w === "cine" && (
-          <button className="tkmini" id="tkb" onClick={() => nav.open({ k: "ticket", key })}>
-            <span>Ingresso</span>
-            <b>{rated.tk?.cine || "Visto no cinema"}</b>
-            <i>›</i>
-          </button>
-        )}
-        <div className="rowb">
-          <button
-            id="rved"
-            onClick={() =>
-              nav.open(
-                rated.note ? { k: "reviews", info } : { k: "editor", key },
-              )
-            }
-          >
-            {rated.note ? "Minha review" : "Escrever review"}
-          </button>
-          <button id="shr" onClick={() => nav.open({ k: "share", key })}>
-            <ShareIcon />
-            Compartilhar
-          </button>
-          {canRec && recButton("Indicar")}
-        </div>
-      </>
-    );
-  } else if (film?.st === "seen") {
-    mine = (
-      <>
-        <h3>Minha avaliação</h3>
-        <div className="state">Já vi</div>
-        <WhenRow film={film} />
-        <button className="cta" id="arate" onClick={startQuiz}>
-          Avaliar agora
-        </button>
-        {canRec && (
-          <div className="rowb">{recButton("Indicar para um amigo")}</div>
-        )}
-      </>
-    );
-  } else if (film?.st === "want") {
-    mine = (
-      <>
-        <h3>Na minha fila</h3>
-        <div className="state">Quero ver</div>
-        {film.by && <p className="byline">Indicado por {film.by}</p>}
-        <button className="cta" id="arate" onClick={startQuiz}>
-          Avaliar agora
-        </button>
-        <div className="two">
-          <button id="aseen" onClick={markSeen}>
-            Marcar como já vi
-          </button>
-        </div>
-      </>
-    );
-  } else {
-    mine = (
-      <>
-        <h3>Ainda não está nos seus filmes</h3>
-        <div className="three">
-          <button className="go" id="arate" onClick={startQuiz}>
-            Avaliar
-          </button>
-          <button id="aseen" onClick={markSeen}>
-            Já vi
-          </button>
-          <button
-            id="awant"
-            onClick={() => {
-              films.setStatus(info, "want");
-            }}
-          >
-            Quero ver
-          </button>
-        </div>
-      </>
-    );
-  }
-
-  const facts = details
-    ? [duration(details.runtime), details.genres.join(", ")]
-        .filter(Boolean)
-        .join(" · ")
-    : "";
+  const stream = details?.providers.stream || [];
   const providers: [string, MovieDetails["providers"]["stream"]][] = details
     ? [
         ["Streaming", details.providers.stream],
@@ -224,9 +143,10 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
       ]
     : [];
   const anyProvider = providers.some(([, list]) => list.length > 0);
+  const friendRatings = crowd || [];
 
   return (
-    <div className="screen">
+    <div className="screen fp2">
       <div className={`hero${info.img ? "" : " noimg"}`}>
         {info.img && (
           <div
@@ -243,58 +163,119 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
           />
         )}
       </div>
-      <div className="fhead">
-        <Poster
-          img={info.img}
-          title=""
-          size="w342"
-          fallback={false}
-          className="fposter"
-        />
-        <div>
-          <h2>{info.t}</h2>
-          {sub && <p>{sub}</p>}
+      <div className="fhead2">
+        <div className="ft">
+          <h1>{info.t}</h1>
+          {info.o && info.o !== info.t && <p className="orig">{info.o}</p>}
+          {meta && <p>{meta}</p>}
+          {details?.director && (
+            <p className="dir">
+              Dirigido por <b>{details.director}</b>
+            </p>
+          )}
         </div>
+        <Poster img={info.img} title="" size="w342" fallback={false} className="fposter2" />
       </div>
-      {info.id ? <p className="facts">{facts}</p> : null}
-      <Scores id={info.id ?? undefined} trailer={details?.trailer} />
+      <Scores id={info.id ?? undefined} />
 
-      <LanternStats filmKey={key} mine={rated?.s} />
-      <div className="mybox">{mine}</div>
-
-      {hasFriends && crowd && (
-        <div id="crowd">
-          <h3 className="sec">
-            Nota da galera
-            {crowd.length > 0 && (
-              <a id="crall" onClick={() => nav.open({ k: "reviews", info })}>
-                Ver reviews
-              </a>
-            )}
-          </h3>
-          <div className="gal">
-            {crowd.length === 0 && (
-              <p className="none">Nenhum amigo avaliou esse filme ainda.</p>
-            )}
-            {crowd.map((r) => (
+      <div className="fact2">
+        <button className="avaliar" id="arate" onClick={rated ? rateAgain : startQuiz}>
+          <StarIcon />
+          {rated ? "Avaliar de novo" : "Avaliar"}
+        </button>
+        <div className="tri">
+          {rated ? (
+            <>
               <button
-                className="fr"
-                key={r.p.id}
+                id="rved"
                 onClick={() =>
-                  nav.open({ k: "reviews", info, focusId: r.p.id })
+                  nav.open(rated.note ? { k: "reviews", info } : { k: "editor", key })
                 }
               >
-                <Avatar p={r.p} />
-                <div>
-                  <b>{pname(r.p)}</b>
-                </div>
-                <Stars value={r.f.s} />
-                <i>›</i>
+                <PenIcon />
+                {rated.note ? "Sua review" : "Escrever"}
               </button>
-            ))}
+              <button id="shr" onClick={() => nav.open({ k: "share", key })}>
+                <ShareIcon />
+                Compartilhar
+              </button>
+            </>
+          ) : (
+            <>
+              <button id="awant" aria-pressed={film?.st === "want"} onClick={() => toggle("want")}>
+                <BookmarkIcon />
+                Quero ver
+              </button>
+              <button id="aseen" aria-pressed={film?.st === "seen"} onClick={() => toggle("seen")}>
+                <EyeIcon />
+                Já vi
+              </button>
+            </>
+          )}
+          {trailer}
+        </div>
+        {film?.st === "want" && film.by && <p className="byline2">Indicado por {film.by}</p>}
+      </div>
+
+      {rated && (
+        <div className="mybox mine2">
+          <div className="myhead">
+            <h3>Minha nota</h3>
+            <button id="medit" onClick={() => nav.open({ k: "filmEdit", key })}>
+              Editar
+            </button>
           </div>
+          <div className="rate">
+            <b>{fmt(rated.s)}</b>
+            <div>
+              <Stars value={rated.s} anim />
+              <span>{LABELS[rated.s]}</span>
+            </div>
+          </div>
+          <MyChips film={rated} />
+          {rated.w === "cine" && (
+            <button className="tkmini" id="tkb" onClick={() => nav.open({ k: "ticket", key })}>
+              <span>Ingresso</span>
+              <b>{rated.tk?.cine || "Visto no cinema"}</b>
+              <i>›</i>
+            </button>
+          )}
+          {canRec && (
+            <div className="rowb">
+              <button id="arec" onClick={() => nav.open({ k: "recommend", info })}>
+                <SendIcon />
+                Indicar
+              </button>
+            </div>
+          )}
         </div>
       )}
+      {!rated && film?.st === "seen" && (
+        <div className="mybox mine2">
+          <WhenRow film={film} />
+          {canRec && (
+            <div className="rowb">
+              <button id="arec" onClick={() => nav.open({ k: "recommend", info })}>
+                <SendIcon />
+                Indicar para um amigo
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {details?.overview && (
+        <p className={`sinopse${moreText ? "" : " cut"}`} onClick={() => setMoreText(true)}>
+          {details.overview}
+        </p>
+      )}
+      {details?.overview && !moreText && details.overview.length > 160 && (
+        <button className="mais" onClick={() => setMoreText(true)}>
+          Mais
+        </button>
+      )}
+
+      {details && stream.length === 0 && <StreamAlert filmKey={key} />}
 
       {detailsFailed && (
         <div className="offline" id="fpoff" role="status">
@@ -303,33 +284,18 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         </div>
       )}
 
-      {details && (
+      {hasFriends && crowd && <Galera crowd={friendRatings} info={info} />}
+      {(!hasFriends || (crowd && crowd.length === 0)) && (
+        <LanternStats filmKey={key} mine={rated?.s} />
+      )}
+      {hasFriends && crowd && <Disse crowd={friendRatings} info={info} />}
+
+      {info.id ? <CastCard info={info} /> : null}
+
+      {details && anyProvider && (
         <div className="about">
-          {(details.overview ||
-            details.director ||
-            details.cast.length > 0) && (
-            <>
-              <h3 className="sec">Sobre o filme</h3>
-              {details.overview && <p>{details.overview}</p>}
-              {details.director && <small>Direção: {details.director}</small>}
-              {details.cast.length > 0 && (
-                <small className="cast">
-                  Elenco: {details.cast.join(", ")}
-                </small>
-              )}
-              {info.id ? (
-                <button className="crbtn" id="crd" onClick={() => nav.push({ k: "credits", info })}>
-                  <span><b>Elenco e equipe</b><small>Quem fez esse filme acontecer</small></span>
-                  <i>›</i>
-                </button>
-              ) : null}
-            </>
-          )}
           <h3 className="sec">Onde assistir</h3>
           <div className="prov">
-            {!anyProvider && (
-              <small>Não achei esse filme em streaming no Brasil agora.</small>
-            )}
             {providers
               .filter(([, list]) => list.length > 0)
               .map(([label, list]) => (
@@ -352,11 +318,9 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
                   </div>
                 </div>
               ))}
-            {anyProvider && (
-              <small style={{ marginTop: 12 }}>
-                Disponibilidade no Brasil · dados da JustWatch
-              </small>
-            )}
+            <small style={{ marginTop: 12 }}>
+              Disponibilidade no Brasil · dados da JustWatch
+            </small>
           </div>
         </div>
       )}
@@ -372,11 +336,193 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
   );
 }
 
+/** Etiquetas da minha nota: clássico, onde vi, reassistido, data. */
+function MyChips({ film }: { film: Film }) {
+  const chips = [
+    film.c ? "Clássico" : "",
+    film.w === "cine" ? "No cinema" : film.w === "casa" ? "Em casa" : "",
+    (film.n || 0) > 1 ? `↻ ${film.n}ª vez${film.p ? " · antes ★ " + fmt(film.p) : ""}` : "",
+    film.d ? "Visto em " + fd(film.d) : "",
+  ].filter(Boolean);
+  if (!chips.length) return null;
+  return (
+    <div className="chips">
+      {chips.map((c) => (
+        <span key={c}>{c}</span>
+      ))}
+    </div>
+  );
+}
+
 /**
- * Notas de fora numa linha só: IMDb e Rotten Tomatoes, e o botão do trailer à direita.
- * O trailer fica aqui, discreto, para a "Minha nota" ser o destaque da página. Só aparece o que existir.
+ * Aviso de streaming: quando o filme ainda não está em nenhum streaming no Brasil.
+ * Por enquanto a escolha fica guardada só no aparelho; a notificação de verdade vem depois.
  */
-function Scores({ id, trailer }: { id?: number; trailer?: string | null }) {
+const ALERTS = "lant.avisoStreaming";
+const readAlerts = (): string[] => {
+  try {
+    const v = JSON.parse(localStorage.getItem(ALERTS) || "[]");
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+};
+function StreamAlert({ filmKey }: { filmKey: string }) {
+  const [on, setOn] = useState(() => readAlerts().includes(filmKey));
+  useEffect(() => setOn(readAlerts().includes(filmKey)), [filmKey]);
+  const flip = () => {
+    const next = !on;
+    const list = readAlerts().filter((k) => k !== filmKey);
+    if (next) list.push(filmKey);
+    try {
+      localStorage.setItem(ALERTS, JSON.stringify(list));
+    } catch {
+      /* ok */
+    }
+    sfx.tap();
+    setOn(next);
+  };
+  return (
+    <button
+      className="aviso"
+      id="aviso"
+      role="switch"
+      aria-checked={on}
+      aria-label="Avisar quando chegar no streaming"
+      onClick={flip}
+    >
+      <BellIcon />
+      <span className="tx">
+        Ainda não chegou no streaming.
+        <small>{on ? "Te aviso quando chegar." : "Quer que eu avise quando chegar?"}</small>
+      </span>
+      <span className="sw2" aria-hidden="true" />
+    </button>
+  );
+}
+
+/** Nota da galera: média dos amigos e um gráfico de 0,5 a 5 com o rosto de quem deu cada nota. */
+function Galera({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
+  const cols: FriendRating[][] = Array.from({ length: 10 }, () => []);
+  crowd.forEach((r) => {
+    const i = Math.min(9, Math.max(0, Math.round(r.f.s * 2) - 1));
+    cols[i].push(r);
+  });
+  const max = Math.max(1, ...cols.map((c) => c.length));
+  const avg = crowd.length ? Math.round((crowd.reduce((a, r) => a + r.f.s, 0) / crowd.length) * 10) / 10 : 0;
+  const label = cols
+    .map((c, i) => (c.length ? `${c.length} de ${fmt((i + 1) / 2)}` : ""))
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <section className="galera" id="crowd" aria-label="Nota da galera">
+      <div className="gh">
+        <div>
+          <h2>Nota da galera</h2>
+          <small>
+            {crowd.length ? `${nFriends(crowd.length)} ${crowd.length === 1 ? "viu" : "viram"}` : "Nenhum amigo avaliou ainda"}
+          </small>
+        </div>
+        {crowd.length > 0 && <b>{fmt(avg)}</b>}
+      </div>
+      {crowd.length > 0 && (
+        <>
+          <button
+            className="gchart"
+            aria-label={`Notas dos amigos: ${label}. Ver reviews`}
+            onClick={() => nav.open({ k: "reviews", info })}
+          >
+            {cols.map((c, i) => (
+              <span className="gcol" key={i}>
+                {c.length > 3 && <span className="gmore">+{c.length - 2}</span>}
+                {(c.length > 3 ? c.slice(0, 2) : c).map((r) => (
+                  <Avatar key={r.p.id} p={r.p} />
+                ))}
+                <span
+                  className={`gbar${c.length ? " on" : ""}`}
+                  style={{
+                    height: c.length ? 22 + (c.length / max) * 48 : 6,
+                    animationDelay: `${i * 35}ms`,
+                  }}
+                />
+              </span>
+            ))}
+          </button>
+          <div className="gaxis" aria-hidden="true">
+            <span>★ 0,5</span>
+            <span>★ 5</span>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+/** O que a galera disse: até dois trechos de review e o atalho para a tela de Reviews. */
+function Disse({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
+  const withText = crowd.filter((r) => r.f.note);
+  if (!withText.length) return null;
+  return (
+    <section className="disse" aria-label="O que os amigos disseram">
+      <div className="dh">
+        <h2>O que a galera disse</h2>
+        <button id="crall" onClick={() => nav.open({ k: "reviews", info })}>
+          {withText.length === 1 ? "Ver a review" : `Ver as ${withText.length} reviews`}
+        </button>
+      </div>
+      <div className="dsays">
+        {withText.slice(0, 2).map((r) => (
+          <button
+            className="dsay"
+            key={r.p.id}
+            onClick={() => nav.open({ k: "reviews", info, focusId: r.p.id })}
+          >
+            <span className="who">
+              <Avatar p={r.p} />
+              <span>{star(r.f.s)}</span>
+            </span>
+            <p>“{r.f.note}”</p>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const initials = (name: string) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+/** Cartão de Elenco e equipe: rostos sobrepostos de quem está no filme, levando para os créditos. */
+function CastCard({ info }: { info: FilmInfo }) {
+  const cast = useAsync(
+    () => (info.id ? movieCredits(info.id).then((c) => c.cast.slice(0, 4)).catch(() => []) : Promise.resolve([])),
+    [info.id],
+    true,
+  );
+  return (
+    <button className="ecard" id="crd" onClick={() => nav.push({ k: "credits", info })}>
+      {cast && cast.length > 0 && (
+        <span className="faces" aria-hidden="true">
+          {cast.map((p) =>
+            p.photo ? (
+              <img key={p.name} src={posterUrl(p.photo, "w185")} alt="" loading="lazy" />
+            ) : (
+              <span key={p.name}>{initials(p.name)}</span>
+            ),
+          )}
+        </span>
+      )}
+      <span className="tx">
+        <b>Elenco e equipe</b>
+        <small>Quem fez esse filme acontecer</small>
+      </span>
+      <span className="go" aria-hidden="true">›</span>
+    </button>
+  );
+}
+
+/** Notas de fora numa linha só: IMDb e Rotten Tomatoes. Só aparece o que existir. */
+function Scores({ id }: { id?: number }) {
   const tick = useRefresh();
   const ext = useAsync(
     () => (id ? movieRatings(id).catch(() => null) : Promise.resolve(null)),
@@ -428,27 +574,15 @@ function Scores({ id, trailer }: { id?: number; trailer?: string | null }) {
       </span>,
     );
   }
-  if (!items.length && !trailer) return null;
+  if (!items.length) return null;
   return (
     <div className="scores" id="scores">
       {items}
-      {trailer && (
-        <a
-          className="trl"
-          id="trl"
-          href={`https://www.youtube.com/watch?v=${trailer}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <PlayIcon />
-          Trailer
-        </a>
-      )}
     </div>
   );
 }
 
-/** Nota no Lanterninha, no estilo do Letterboxd: gráfico de quantas pessoas deram cada nota e a média em destaque. */
+/** Nota no Lanterninha (todo mundo): aparece quando ainda não há nota de amigos. */
 function LanternStats({ filmKey, mine }: { filmKey: string; mine?: number }) {
   const tick = useRefresh();
   const st = useAsync(() => cloud.filmStats(filmKey), [filmKey, mine, tick], true);

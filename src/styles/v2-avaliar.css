@@ -152,7 +152,7 @@
   font-size: 13px;
   color: var(--muted);
 }
-.frs {
+.frs2 {
   flex: none;
   width: 40px;
   height: 40px;
@@ -163,7 +163,7 @@
   align-items: center;
   justify-content: center;
 }
-.frs svg {
+.frs2 svg {
   width: 18px;
   height: 18px;
   fill: currentColor;

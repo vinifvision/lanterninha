@@ -26,7 +26,7 @@ export function Recommend({ info }: { info: FilmInfo }) {
     <Overlay>
       <OverlayHeader left={<button id="rx" onClick={() => nav.close()}>Cancelar</button>} title="Indicar" right={<button className="ok" id="rok" disabled={busy} onClick={() => void send()}>Enviar</button>} />
       <p className="count" style={{ marginBottom: 14 }}>{info.t}</p>
-      <div className="frs" style={{ marginBottom: 18 }}>
+      <div className="frs pick" style={{ marginBottom: 18 }}>
         {list.map((p) => <FriendRow key={p.id} p={p} selected={picked.includes(p.id!)} onClick={() => toggle(p.id!)} right={<span className="ck" />} />)}
       </div>
       <input type="text" id="rnote" maxLength={200} placeholder="Um recado (opcional)" value={note} onChange={(e) => setNote(e.target.value)} />

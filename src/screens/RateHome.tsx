@@ -18,7 +18,7 @@ function Row({ f, sub, onClick }: { f: FilmInfo; sub: string; onClick: () => voi
     <button type="button" className="frow" onClick={onClick}>
       <span className="frp"><Poster img={f.img} title={f.t} size="w92" /></span>
       <span className="frt"><b>{f.t}</b>{sub && <small>{sub}</small>}</span>
-      <span className="frs" aria-hidden="true"><svg viewBox="0 0 24 24"><path d={STAR_PATH} /></svg></span>
+      <span className="frs2" aria-hidden="true"><svg viewBox="0 0 24 24"><path d={STAR_PATH} /></svg></span>
     </button>
   );
 }
