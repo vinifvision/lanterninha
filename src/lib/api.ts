@@ -45,6 +45,21 @@ export function discover(list: DiscoverList, id?: number): Promise<SearchResult[
   return p;
 }
 
+export type Mood = 'chorar' | 'rir' | 'br' | 'curto';
+/** Explorar por clima (aba Buscar): listas do TMDB por gênero, país e duração. Guardadas enquanto o app está aberto. */
+export function moodFilms(m: Mood): Promise<SearchResult[]> {
+  const key = 'mood:' + m;
+  let p = discoverCache.get(key);
+  if (!p) {
+    p = fetch(`${API_BASE}api/discover?list=mood&m=${m}`)
+      .then((r) => { if (!r.ok) throw new Error('lista indisponível'); return r.json(); })
+      .then(cleanResults);
+    discoverCache.set(key, p);
+    p.catch(() => discoverCache.delete(key));
+  }
+  return p;
+}
+
 const detailsCache = new Map<number, Promise<MovieDetails>>();
 
 export function movieDetails(id: number): Promise<MovieDetails> {

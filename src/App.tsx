@@ -33,6 +33,7 @@ import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
 import { Diary } from "./screens/Diary";
 import { Profile } from "./screens/Profile";
+import { Search } from "./screens/Search";
 import { Quiz } from "./screens/Quiz";
 import { RateHome } from "./screens/RateHome";
 import { Result } from "./screens/Result";
@@ -43,7 +44,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { UpdateSheet } from "./components/UpdateSheet";
 import { PullRefresh } from "./components/PullRefresh";
 
-// Ordem da barra flutuante. "Buscar" e "Avaliar" mostram a mesma tela até a etapa 2 do redesign.
+// Ordem da barra flutuante.
 const TABS: [Tab, string][] = [
   ["home", "Início"],
   ["search", "Buscar"],
@@ -55,8 +56,9 @@ const TABS: [Tab, string][] = [
 function tabScreen(tab: Tab) {
   switch (tab) {
     case "rate":
-    case "search":
       return <RateHome />;
+    case "search":
+      return <Search />;
     case "home":
       return <Home />;
     case "lib":
@@ -209,7 +211,7 @@ export function App() {
         details: "det",
         result: "res",
       }[top.k]
-    : { rate: "rate", search: "home", home: "feed", lib: "lib", prof: "prof" }[tab];
+    : { rate: "rate", search: "search", home: "feed", lib: "lib", prof: "prof" }[tab];
   const alignTop = mode !== "home" && mode !== "q" && mode !== "res";
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend =

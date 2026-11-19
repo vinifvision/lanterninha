@@ -13,6 +13,7 @@ import "./styles/app.css";
 import './styles/v2-avaliar.css';
 import './styles/v2-voce.css';
 import './styles/v2-inicio.css';
+import './styles/v2-descobrir.css';
 
 cloud.init();
 setupNative();

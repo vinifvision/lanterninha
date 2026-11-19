@@ -509,6 +509,18 @@ export const cloud = {
     } catch { /* sem dados */ }
     return out;
   },
+  /** O que os amigos guardaram em "Quero ver" (para o aviso de match na fila). */
+  async friendsWant(): Promise<{ p: Profile; f: Film }[]> {
+    if (!sb || !user || !friends.list.length) return [];
+    try {
+      const ids = friends.list.map((f) => f.id!).filter((id) => UUID.test(id));
+      const { data, error } = await sb.from('films').select('user_id,data').in('user_id', ids).eq('data->>st', 'want').limit(500);
+      if (error) return [];
+      return (data || [])
+        .map((r) => ({ p: friends.list.find((f) => f.id === r.user_id), f: cleanFilm(r.data) }))
+        .filter((x): x is { p: Profile; f: Film } => !!x.p && x.f?.st === 'want');
+    } catch { return []; }
+  },
   /** As avaliações mais recentes dos amigos, da mais nova para a mais antiga. */
   async friendsActivity(limit = 30): Promise<FriendRating[]> {
     if (!sb || !user || !friends.list.length) return [];
