@@ -12,6 +12,7 @@ import "@fontsource/instrument-serif/400-italic.css";
 import "./styles/app.css";
 import './styles/v2-avaliar.css';
 import './styles/v2-voce.css';
+import './styles/v2-inicio.css';
 
 cloud.init();
 setupNative();
