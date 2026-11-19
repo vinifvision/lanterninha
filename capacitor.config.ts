@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   appId: 'app.lanterninha',
   appName: 'Lanterninha',
   webDir: 'dist',
-  backgroundColor: '#0a0a0c',
+  backgroundColor: '#0b0a0d',
   server: { url: 'https://lanterninha.vercel.app' },
   // Ícones claros na barra de status e nos botões do celular (o app é escuro)
   plugins: { SystemBars: { style: 'DARK' } },
