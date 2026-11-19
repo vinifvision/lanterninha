@@ -169,7 +169,7 @@ const TAB_TITLE: Record<Tab, string> = {
 const PULL_MODES = new Set(["feed", "lib", "diary", "prof", "film", "friend"]);
 
 export function App() {
-  const { tab, stack, overlays, progress } = useNav();
+  const { tab, stack, overlays, progress, from } = useNav();
   const soundOn = useSound();
   const account = useCloud();
   // Bolinhas nas abas: algo esperando a pessoa (indicação, convite de ingresso, pedido de amizade)
@@ -249,7 +249,7 @@ export function App() {
           <div className={`top${scrolled ? " solid" : ""}`}>
             <div className="topin">
               <button
-                className={`back${main ? " gone" : ""}`}
+                className={`back${main && !from ? " gone" : ""}`}
                 id="back"
                 aria-label="Voltar"
                 onClick={() => nav.back()}
@@ -262,7 +262,7 @@ export function App() {
                 <div className="bar" id="bar">
                   <i id="fill" style={{ width: `${(progress ?? 1) * 100}%` }} />
                 </div>
-              ) : main && tab === "rate" ? (
+              ) : main && (tab === "rate" || tab === "home") ? (
                 <div className="brand">
                   <img src="/logo.svg" alt="" width={30} height={30} />
                   Lanterninha
