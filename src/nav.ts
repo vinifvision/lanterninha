@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from 'react';
 import type { Film, FilmInfo, FriendRating, Profile, RatedFilm } from './lib/types';
 
-export type Tab = 'rate' | 'home' | 'lib' | 'prof';
+export type Tab = 'rate' | 'search' | 'home' | 'lib' | 'prof';
 
 export type Screen =
   | { k: 'film'; info: FilmInfo }

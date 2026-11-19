@@ -56,7 +56,7 @@ export async function makeCard(h: RatedFilm, story: boolean): Promise<Blob | nul
   const c = cv.getContext('2d'); if (!c) return null;
   const [poster, logo] = await Promise.all([h.img ? cached(proxiedPoster(h.img, 'w500'), true) : null, cached('/logo.svg')]);
 
-  c.fillStyle = '#0a0a0c'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#0b0a0d'; c.fillRect(0, 0, W, H);
   if (poster) { // fundo: o pôster bem desfocado (reduz e amplia; funciona em qualquer navegador)
     const t = document.createElement('canvas'); t.width = 18; t.height = 27;
     t.getContext('2d')?.drawImage(poster, 0, 0, 18, 27);
@@ -68,7 +68,7 @@ export async function makeCard(h: RatedFilm, story: boolean): Promise<Blob | nul
   g.addColorStop(0, 'rgba(10,10,12,.45)'); g.addColorStop(0.55, 'rgba(10,10,12,.78)'); g.addColorStop(1, 'rgba(10,10,12,.97)');
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   g = c.createRadialGradient(W * 0.3, 0, 0, W * 0.3, 0, W);
-  g.addColorStop(0, 'rgba(227,180,104,.20)'); g.addColorStop(1, 'rgba(227,180,104,0)');
+  g.addColorStop(0, 'rgba(242,201,127,.20)'); g.addColorStop(1, 'rgba(242,201,127,0)');
   c.fillStyle = g; c.fillRect(0, 0, W, H);
 
   const note = (h.note || '').trim(), fy = H - (story ? 190 : 120), top = story ? 150 : 70, avail = fy - 50 - top;
@@ -88,7 +88,7 @@ export async function makeCard(h: RatedFilm, story: boolean): Promise<Blob | nul
     y += ph + 70;
   }
   c.textAlign = 'center'; c.textBaseline = 'top';
-  c.fillStyle = '#f5f5f7'; c.font = `700 66px ${FONT}`;
+  c.fillStyle = '#f4eee3'; c.font = `700 66px ${FONT}`;
   titleLines.forEach((l) => { c.fillText(l, W / 2, y); y += 78; });
   if (sub) { c.fillStyle = '#a1a1a8'; c.font = `400 36px ${FONT}`; c.fillText(wrapText(c, sub, 900, 1)[0], W / 2, y + 6); y += 56; } else y += 10;
   y += 50;
@@ -98,11 +98,11 @@ export async function makeCard(h: RatedFilm, story: boolean): Promise<Blob | nul
     const x = sx + i * (sz + gap), f = Math.max(0, Math.min(1, h.s - i));
     c.save(); c.translate(x, y); c.scale(sz / 24, sz / 24);
     c.fillStyle = 'rgba(255,255,255,.16)'; c.fill(path);
-    if (f > 0) { c.beginPath(); c.rect(0, 0, 24 * f, 24); c.clip(); c.fillStyle = '#e3b468'; c.fill(path); }
+    if (f > 0) { c.beginPath(); c.rect(0, 0, 24 * f, 24); c.clip(); c.fillStyle = '#f2c97f'; c.fill(path); }
     c.restore();
   }
   y += sz + 26;
-  c.fillStyle = '#e3b468'; c.font = `600 44px ${FONT}`; c.fillText(fmt(h.s) + '  ·  ' + LABELS[h.s], W / 2, y); y += 52;
+  c.fillStyle = '#f2c97f'; c.font = `600 44px ${FONT}`; c.fillText(fmt(h.s) + '  ·  ' + LABELS[h.s], W / 2, y); y += 52;
   if (noteLines.length) { y += 44; c.fillStyle = '#e9e9ee'; c.font = `400 40px ${FONT}`; noteLines.forEach((l) => { c.fillText(l, W / 2, y); y += 58; }); }
 
   // assinatura
