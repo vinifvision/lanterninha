@@ -21,7 +21,7 @@ export function FilmEdit({ filmKey }: { filmKey: string }) {
     if (w === 'cine' && !film.tk) { const c = lastCinema(); if (c) film.tk = { cine: c }; }
     films.save();
   };
-  const redo = (rewatch: boolean) => { nav.close(); nav.startQuiz(film, { rewatch: rewatch ? film : null, classic: film.c }); };
+  const redo = (rewatch: boolean) => { nav.close(); nav.startQuiz(film, { rewatch: rewatch ? film : null, classic: film.c, help: !rewatch }); };
   const remove = () => { if (!press()) return; films.remove(film); nav.close(); nav.back(); };
 
   return (
