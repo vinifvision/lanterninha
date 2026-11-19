@@ -1,26 +1,26 @@
-// Prévia da imagem de compartilhar, em formato Post ou Story.
-// No app de celular: "Enviar" abre a tela de compartilhar do Android e "Salvar" grava na galeria.
+// Compartilhar (v2): prévia da imagem em três estilos (Pôster, Ingresso, Só a review).
+// No app de celular: "Enviar" abre a tela de compartilhar do Android (WhatsApp, Status, Instagram…) e "Salvar" grava na galeria.
 // No site: usa o compartilhar do navegador e o download.
 import { useEffect, useRef, useState } from 'react';
+import { SendIcon } from '../components/icons';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { isNativeApp } from '../lib/config';
 import { canNativeSave, canNativeShare, isCancel, saveNative, shareNative } from '../lib/nativeShare';
-import { cardFileName, makeCard } from '../lib/share';
-import { sfx } from '../lib/sfx';
+import { cardFileName, makeCard, type CardStyle } from '../lib/share';
 import { nav } from '../nav';
 
-type Fmt = 'post' | 'story';
 const OLD_APP = 'Atualize o app para a versão 1.2 para enviar e salvar a imagem.';
+const STYLES: [CardStyle, string][] = [['poster', 'Pôster'], ['ticket', 'Ingresso'], ['review', 'Só a review']];
 
 export function ShareSheet({ filmKey }: { filmKey: string }) {
   const found = useFilms().find((h) => fkey(h) === filmKey);
   const film = isRated(found) ? found : null;
-  const [fmt, setFmt] = useState<Fmt>('post');
+  const [style, setStyle] = useState<CardStyle>('poster');
   const [url, setUrl] = useState('');
   const [msg, setMsg] = useState('Gerando…');
   const [busy, setBusy] = useState(false);
-  // As duas imagens ficam guardadas: trocar Post/Story depois da primeira vez é na hora
-  const made = useRef<Partial<Record<Fmt, { blob: Blob; url: string }>>>({});
+  // As imagens ficam guardadas: voltar para um estilo já visto é na hora
+  const made = useRef<Partial<Record<CardStyle, { blob: Blob; url: string }>>>({});
   const urls = useRef<string[]>([]);
 
   useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), []);
@@ -28,32 +28,26 @@ export function ShareSheet({ filmKey }: { filmKey: string }) {
   useEffect(() => {
     if (!film) return;
     let alive = true;
-    const make = async (f: Fmt) => {
-      const have = made.current[f];
-      if (have) return have;
-      const blob = await makeCard(film, f === 'story');
-      if (!blob) throw new Error('vazio');
-      const u = URL.createObjectURL(blob);
-      urls.current.push(u);
-      return (made.current[f] = { blob, url: u });
-    };
-    if (!made.current[fmt]) setMsg('Gerando…');
-    make(fmt)
-      .then((m) => {
-        if (!alive) return;
-        setUrl(m.url);
-        setMsg('');
-        // a outra já fica pronta enquanto a pessoa olha esta
-        void make(fmt === 'post' ? 'story' : 'post').catch(() => null);
+    const have = made.current[style];
+    if (have) { setUrl(have.url); setMsg(''); return; }
+    setMsg('Gerando…');
+    makeCard(film, style)
+      .then((blob) => {
+        if (!blob) throw new Error('vazio');
+        const u = URL.createObjectURL(blob);
+        urls.current.push(u);
+        made.current[style] = { blob, url: u };
+        if (alive) { setUrl(u); setMsg(''); }
       })
       .catch(() => { if (alive) setMsg('Não consegui gerar a imagem.'); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fmt, filmKey]);
+  }, [style, filmKey]);
 
   if (!film) return null;
   const name = cardFileName(film.t);
-  const current = () => made.current[fmt]?.blob || null;
+  const current = () => made.current[style]?.blob || null;
+  const hasNote = !!film.note?.trim();
 
   const download = (blob: Blob) => {
     const a = document.createElement('a');
@@ -71,7 +65,6 @@ export function ShareSheet({ filmKey }: { filmKey: string }) {
     setBusy(true); setMsg('Salvando…');
     try {
       await saveNative(blob, name);
-      sfx.tap();
       setMsg('Salva na galeria, no álbum Lanterninha.');
     } catch {
       setMsg('Não consegui salvar na galeria. Tente de novo.');
@@ -98,20 +91,36 @@ export function ShareSheet({ filmKey }: { filmKey: string }) {
     setMsg('Este navegador não abre o compartilhar. A imagem foi baixada.');
   };
 
-  const ready = !!url && !msg.startsWith('Gerando');
+  const ready = !!url && msg !== 'Gerando…';
   return (
-    <div className="shr">
-      <button className="x" aria-label="Fechar" onClick={() => nav.close()}>✕</button>
-      <div className="pv" id="pv">{url && <img src={url} alt="Prévia" />}</div>
-      <div className="seg">
-        <button data-f="0" className={fmt === 'post' ? 'on' : ''} onClick={() => setFmt('post')}>Post</button>
-        <button data-f="1" className={fmt === 'story' ? 'on' : ''} onClick={() => setFmt('story')}>Story</button>
+    <div className="v2shr">
+      <div className="v2shrh">
+        <button className="v2round" aria-label="Voltar" onClick={() => nav.close()}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <b>Compartilhar</b>
+        <span style={{ width: 44 }} />
       </div>
-      <div className="row">
-        <button className="cta ghost2" id="sv" disabled={!ready || busy} onClick={() => void save()}>Salvar</button>
-        <button className="cta" id="sd" disabled={!ready || busy} onClick={() => void send()}>Enviar</button>
+
+      <div className={`v2shrpv${ready ? '' : ' wait'}`}>{url && <img src={url} alt={`Prévia da imagem de ${film.t}`} />}</div>
+
+      <div className="v2shrst" role="radiogroup" aria-label="Estilo da imagem">
+        {STYLES.map(([k, label]) => (
+          <button key={k} role="radio" aria-checked={style === k} className={style === k ? 'on' : ''}
+            disabled={k === 'review' && !hasNote} onClick={() => setStyle(k)}>{label}</button>
+        ))}
       </div>
-      <small id="shm" role="status">{msg}</small>
+      {!hasNote && <small className="v2shrhint">Escreva uma review para usar "Só a review".</small>}
+
+      <div className="v2shrgo">
+        <button disabled={!ready || busy} onClick={() => void send()}>
+          <span className="ic send"><SendIcon /></span>Enviar
+        </button>
+        <button disabled={!ready || busy} onClick={() => void save()}>
+          <span className="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg></span>Salvar
+        </button>
+      </div>
+      <small className="v2shrmsg" role="status">{msg}</small>
     </div>
   );
 }
