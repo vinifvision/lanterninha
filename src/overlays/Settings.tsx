@@ -5,7 +5,7 @@ import { Backup } from '../components/Backup';
 import { useArmed } from '../components/hooks';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { cloud, useCloud } from '../lib/cloud';
-import { sfx, useSound } from '../lib/sfx';
+import { SOUND_ENABLED, sfx, useSound } from '../lib/sfx';
 import { nav } from '../nav';
 import { resetLibraryView } from '../screens/Library';
 
@@ -42,10 +42,14 @@ export function Settings() {
         </>
       )}
 
-      <div className="sech"><h3>Avaliação</h3></div>
-      <button className={`sw${soundOn ? ' on' : ''}`} role="switch" aria-checked={soundOn} id="cfsnd" onClick={() => { sfx.toggle(); }}>
-        Sons ao avaliar<i />
-      </button>
+      {SOUND_ENABLED && (
+        <>
+          <div className="sech"><h3>Avaliação</h3></div>
+          <button className={`sw${soundOn ? ' on' : ''}`} role="switch" aria-checked={soundOn} id="cfsnd" onClick={() => { sfx.toggle(); }}>
+            Sons ao avaliar<i />
+          </button>
+        </>
+      )}
 
       {user && (
         <>

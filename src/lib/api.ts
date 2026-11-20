@@ -1,5 +1,5 @@
 // Conversa com as funções em /api (que por sua vez falam com o TMDB usando a chave guardada no servidor).
-import { API_BASE, IMG } from './config';
+import { API_BASE, IMG, SITE_URL } from './config';
 import { POSTER_PATH } from './format';
 import type { MovieDetails, SearchResult } from './types';
 
@@ -115,12 +115,18 @@ export function movieRatings(id: number): Promise<Ratings> {
   let p = ratingsCache.get(id);
   if (!p) {
     const n = (v: unknown, max: number) => (typeof v === 'number' && v >= 0 && v <= max ? v : null);
-    p = fetch(`${API_BASE}api/ratings?id=${id}`)
-      .then((r) => { if (!r.ok) throw new Error('notas indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
-      .then((d) => ({
-        imdbId: typeof d.imdbId === 'string' && /^tt\d{5,10}$/.test(d.imdbId) ? d.imdbId : '',
-        tmdb: n(d.tmdb, 10), imdb: n(d.imdb, 10), rt: n(d.rt, 100), mc: n(d.mc, 100),
-      }));
+    const get = (base: string) =>
+      fetch(`${base}api/ratings?id=${id}`)
+        .then((r) => { if (!r.ok) throw new Error('notas indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
+        .then((d): Ratings => ({
+          imdbId: typeof d.imdbId === 'string' && /^tt\d{5,10}$/.test(d.imdbId) ? d.imdbId : '',
+          tmdb: n(d.tmdb, 10), imdb: n(d.imdb, 10), rt: n(d.rt, 100), mc: n(d.mc, 100),
+        }));
+    // Nas prévias da Vercel a chave da OMDb pode não existir: sem IMDb e sem RT, pergunta ao site principal.
+    const local = API_BASE !== SITE_URL && location.origin + '/' !== SITE_URL;
+    p = get(API_BASE).then((r) =>
+      local && r.imdb == null && r.rt == null ? get(SITE_URL).catch(() => r) : r,
+    );
     ratingsCache.set(id, p);
     p.catch(() => ratingsCache.delete(id));
   }

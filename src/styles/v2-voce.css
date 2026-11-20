@@ -81,7 +81,7 @@
 .v2nums span {
   display: block;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 
@@ -123,7 +123,7 @@
   letter-spacing: 0;
 }
 .v2yh span {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 .v2bars {
@@ -176,7 +176,7 @@
 }
 .v2yg small {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 .v2yg b {
@@ -229,7 +229,7 @@
 .v2rec small {
   display: block;
   margin-top: 5px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--gold);
 }
@@ -395,7 +395,7 @@
 .v2day small {
   display: block;
   margin-top: 3px;
-  font-size: 11px;
+  font-size: 13px;
   color: #8a8378;
 }
 .v2dpos {
@@ -435,7 +435,7 @@
   flex: none;
 }
 .v2dtxt small {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;

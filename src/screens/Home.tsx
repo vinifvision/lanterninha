@@ -4,10 +4,13 @@ import { Avatar } from '../components/Avatar';
 import { useAsync } from '../components/hooks';
 import { useRefresh } from '../lib/refresh';
 import { Poster } from '../components/Poster';
+import { Stars } from '../components/Stars';
+import { StarPicker } from '../components/StarPicker';
+import { Button } from '../components/Button';
 import { discover, type DiscoverList } from '../lib/api';
 import { cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
-import { fmt, pname, STAR_PATH } from '../lib/format';
+import { fmt, pname } from '../lib/format';
 import type { Film, FilmInfo, FriendRating, Profile, SearchResult } from '../lib/types';
 import { nav } from '../nav';
 import { BookmarkIcon, ChestIcon, StarIcon } from '../components/icons';
@@ -308,17 +311,18 @@ function DiaryCard({ r }: { r: FriendRating }) {
   );
 }
 
-/** Palpite rápido: um toque nas estrelas já vale, e a nota de verdade aparece na hora. */
+/** Palpite rápido: tocar nas estrelas escolhe a nota (metade esquerda = meia; dá para trocar), e só "Chutar" envia. */
 function GuessCard({ r }: { r: FriendRating }) {
-  const [guess, setGuess] = useState(0);
+  const [pick, setPick] = useState(0);
+  const [sent, setSent] = useState(false);
   const [res, setRes] = useState<{ pts: number; saved: boolean } | null>(null);
   const name = pname(r.p);
-  const send = async (v: number) => {
-    if (guess) return;
-    setGuess(v);
+  const send = async () => {
+    if (!pick || sent) return;
+    setSent(true);
     sfx.tap();
-    const saved = await cloud.sendGuess(r.p.id!, fkey(r.f), v);
-    setRes({ pts: pointsFor(v, r.f.s), saved });
+    const saved = await cloud.sendGuess(r.p.id!, fkey(r.f), pick);
+    setRes({ pts: pointsFor(pick, r.f.s), saved });
   };
   return (
     <article className="v2guess">
@@ -328,14 +332,19 @@ function GuessCard({ r }: { r: FriendRating }) {
       </div>
       <small className="v2kick">Palpite</small>
       <p>{res ? `${VERDICT[res.pts]} A nota foi ★ ${fmt(r.f.s)}` : `Quanto você acha que ${name} deu?`}</p>
-      <div className="v2gstars">
-        {[1, 2, 3, 4, 5].map((v) => (
-          <button key={v} className={v <= guess ? 'on' : ''} disabled={!!guess} aria-label={`Palpite ${v} ${v === 1 ? 'estrela' : 'estrelas'}`} onClick={() => void send(v)}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={STAR_PATH} /></svg>
-          </button>
-        ))}
-        {res && <small className="v2gpts">{res.saved ? `+${res.pts} ${res.pts === 1 ? 'ponto' : 'pontos'}` : 'Não consegui salvar'}</small>}
+      <div className={`v2gstars${sent ? ' done' : ''}`}>
+        {sent ? <Stars value={pick} /> : <StarPicker value={pick} onChange={setPick} />}
+        {res ? (
+          <small className="v2gpts">{res.saved ? `+${res.pts} ${res.pts === 1 ? 'ponto' : 'pontos'}` : 'Não consegui salvar'}</small>
+        ) : pick ? (
+          <b className="v2gnum">{fmt(pick)}</b>
+        ) : (
+          <small className="v2ghint">Metade da estrela vale meia</small>
+        )}
       </div>
+      {!sent && (
+        <Button block className="v2gok" disabled={!pick} onClick={() => void send()}>Chutar</Button>
+      )}
     </article>
   );
 }

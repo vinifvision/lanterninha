@@ -1,7 +1,7 @@
 // A moldura do app: barra de cima, a tela atual, as abas e o que estiver aberto por cima.
 import { useEffect, useState } from "react";
 import { GearIcon, TabIcon } from "./components/icons";
-import { sfx, useSound } from "./lib/sfx";
+import { SOUND_ENABLED, sfx, useSound } from "./lib/sfx";
 import { pname } from "./lib/format";
 import {
   nav,
@@ -272,7 +272,7 @@ export function App() {
               ) : (
                 <b className="ttl">{title}</b>
               )}
-              {rating ? (
+              {rating && SOUND_ENABLED ? (
                 <button
                   className={`snd${soundOn ? " on" : ""}`}
                   id="snd"
