@@ -163,7 +163,7 @@
   padding: 0 10px;
   border-radius: 13px;
   background: rgba(11, 10, 13, 0.6);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -185,7 +185,7 @@
 .v2topt small {
   display: block;
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 13px;
   color: #c9c0b2;
 }
 .v2by {
@@ -306,11 +306,12 @@
   justify-content: space-between;
   margin-top: 24px;
 }
+/* Títulos das seções da busca: serifada, como as fileiras do Início */
 .v2sh h2,
 .v2sh2 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font: 400 25px/1.1 var(--serif);
+  color: var(--text);
 }
 .v2sh h2.big {
   font-size: 28px;
@@ -324,7 +325,7 @@
   border: 0;
   background: transparent;
   color: var(--muted);
-  font: 500 13px Inter, sans-serif;
+  font: 500 15px Inter, sans-serif;
 }
 .v2slist {
   margin-top: 6px;
@@ -379,7 +380,7 @@
 .v2srt small {
   display: block;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -464,12 +465,12 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.25;
   text-align: center;
 }
 .v2ppl small {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted);
 }
 .v2sgrid {
@@ -563,7 +564,7 @@
 }
 .v2shrhint {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 .v2shrgo {

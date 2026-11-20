@@ -1,5 +1,5 @@
 // Aba Buscar (v2): procurar filme, ver os recentes, explorar por clima (listas do TMDB por gênero e duração)
-// e "Quem você mais assiste" (os diretores que mais aparecem nos filmes que você viu).
+// e "Quem você mais assiste" (os diretores que mais aparecem nos filmes que você avaliou).
 import { useEffect, useState } from 'react';
 import { Poster } from '../components/Poster';
 import { useAsync } from '../components/hooks';
@@ -41,9 +41,9 @@ const FACES = ['#e6cf9a', '#e9a6a0', '#a9c4dc'];
 
 interface Person { n: string; photo: string; films: Film[] }
 let peopleCache: { key: string; p: Promise<Person[]> } | null = null;
-/** Diretores que mais aparecem nos filmes que você viu (até os 30 mais recentes). Guardado enquanto o app está aberto. */
-function topPeople(seen: Film[]): Promise<Person[]> {
-  const sample = seen.filter((h) => h.id).slice(0, 30);
+/** Diretores que mais aparecem nos filmes que você avaliou (até os 30 mais recentes). Guardado enquanto o app está aberto. */
+function topPeople(rated: Film[]): Promise<Person[]> {
+  const sample = rated.filter((h) => h.id).slice(0, 30);
   const key = sample.map(fkey).join(',');
   if (peopleCache?.key === key) return peopleCache.p;
   // A direção vem dos créditos do filme, com a foto de cada pessoa
@@ -94,8 +94,9 @@ export function Search() {
   }, [q, tries]);
 
   const mine = new Map(all.map((h) => [fkey(h), h] as const));
-  const seen = all.filter((h) => isRated(h) || h.st === 'seen');
-  const people = useAsync(() => topPeople(seen), [seen.length]);
+  // Só filmes com nota: marcar como visto não conta
+  const rated = all.filter(isRated);
+  const people = useAsync(() => topPeople(rated), [rated.length]);
   // Lista do clima: undefined carregando, 'err' quando falhou
   const moodList = useAsync(() => (pane?.mood ? moodFilms(pane.mood).then((l) => l.map(toInfo)).catch(() => 'err' as const) : Promise.resolve(null)), [pane?.mood || '', tries]);
   const paneFilms = pane?.films || (moodList === 'err' ? null : moodList);
@@ -189,7 +190,7 @@ export function Search() {
                       <button type="button" key={p.n} onClick={() => setPane({ title: p.n, films: p.films })}>
                         {p.photo ? <img src={posterUrl(p.photo, 'w185')} alt="" loading="lazy" /> : <i style={{ background: FACES[i % FACES.length] }}>{initials(p.n)}</i>}
                         <span>{p.n}</span>
-                        <small>{p.films.length} filmes seus</small>
+                        <small>{p.films.length} {p.films.length === 1 ? 'filme avaliado' : 'filmes avaliados'}</small>
                       </button>
                     ))}
                   </div>

@@ -49,8 +49,34 @@
 @keyframes fp2in {
   from { opacity: 0; transform: translateY(14px) scale(0.96); }
 }
+/* Notas de fora (IMDb e Rotten Tomatoes): pílulas discretas, número na fonte normal (Inter) */
 .fp2 .scores {
-  margin-top: 14px;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+.fp2 .sc {
+  height: 44px;
+  padding: 0 16px 0 12px;
+  gap: 9px;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: transform 0.15s, background 0.2s;
+}
+.fp2 a.sc:active {
+  opacity: 1;
+  transform: scale(0.96);
+  background: var(--card2);
+}
+.fp2 .sc b {
+  font: 600 17px/1 Inter, sans-serif;
+  letter-spacing: -0.2px;
+}
+.fp2 .sc .brand-imdb {
+  height: 22px;
+}
+.fp2 .sc .brand-rt {
+  height: 22px;
 }
 
 /* --- Avaliar + três atalhos --- */
@@ -101,7 +127,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font: 500 12px Inter, sans-serif;
+  font: 500 13px Inter, sans-serif;
   text-decoration: none;
   transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
 }
@@ -329,7 +355,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: #8a8378;
 }
 .gaxis span:last-child {
@@ -497,7 +523,7 @@
 }
 .rv2head small {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 .rv2head h2 {
@@ -551,7 +577,7 @@
 }
 .rv2 .who small {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 .rv2 .who small i {
