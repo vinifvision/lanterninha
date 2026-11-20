@@ -337,6 +337,91 @@
   stroke-linejoin: round;
   pointer-events: none;
 }
+
+/* Menu dos chips (Ano, Ordenar): abre abaixo do chip, com a cara do app */
+.v2cm {
+  position: relative;
+}
+.v2sel svg {
+  transition: transform 0.2s ease;
+}
+.v2sel.open {
+  background: var(--gold-soft);
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.v2sel.open svg {
+  transform: rotate(180deg);
+}
+.v2cmlist {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  min-width: 176px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: 18px;
+  background: rgba(30, 27, 33, 0.94);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.55);
+  transform-origin: top left;
+  animation: v2cmin 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.v2cmlist li {
+  animation: v2cmitem 0.24s ease both;
+}
+.v2cmlist button {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text);
+  font: 500 15px Inter, sans-serif;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.v2cmlist button:active {
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(0.98);
+}
+.v2cmlist button.on {
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-weight: 600;
+}
+.v2cmlist button svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes v2cmin {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+  }
+}
+@keyframes v2cmitem {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
 .v2dh {
   margin: 16px 0 0;
   font-family: var(--serif);
@@ -397,6 +482,13 @@
   margin-top: 3px;
   font-size: 13px;
   color: #8a8378;
+}
+/* Em "Maior nota" o dia vem com mês e ano ("nov 25") e precisa de mais espaço */
+.v2day.wide {
+  width: 46px;
+}
+.v2day.wide small {
+  white-space: nowrap;
 }
 .v2dpos {
   flex: none;
