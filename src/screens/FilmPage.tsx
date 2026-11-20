@@ -275,7 +275,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         </button>
       )}
 
-      {details && stream.length === 0 && <StreamAlert filmKey={key} />}
+      {details && stream.length === 0 && <StreamAlert />}
 
       {detailsFailed && (
         <div className="offline" id="fpoff" role="status">
@@ -354,50 +354,13 @@ function MyChips({ film }: { film: Film }) {
   );
 }
 
-/**
- * Aviso de streaming: quando o filme ainda não está em nenhum streaming no Brasil.
- * Por enquanto a escolha fica guardada só no aparelho; a notificação de verdade vem depois.
- */
-const ALERTS = "lant.avisoStreaming";
-const readAlerts = (): string[] => {
-  try {
-    const v = JSON.parse(localStorage.getItem(ALERTS) || "[]");
-    return Array.isArray(v) ? v : [];
-  } catch {
-    return [];
-  }
-};
-function StreamAlert({ filmKey }: { filmKey: string }) {
-  const [on, setOn] = useState(() => readAlerts().includes(filmKey));
-  useEffect(() => setOn(readAlerts().includes(filmKey)), [filmKey]);
-  const flip = () => {
-    const next = !on;
-    const list = readAlerts().filter((k) => k !== filmKey);
-    if (next) list.push(filmKey);
-    try {
-      localStorage.setItem(ALERTS, JSON.stringify(list));
-    } catch {
-      /* ok */
-    }
-    sfx.tap();
-    setOn(next);
-  };
+/** Aviso de streaming: quando o filme ainda não está em nenhum streaming no Brasil. Só informa (ainda não há notificação). */
+function StreamAlert() {
   return (
-    <button
-      className="aviso"
-      id="aviso"
-      role="switch"
-      aria-checked={on}
-      aria-label="Avisar quando chegar no streaming"
-      onClick={flip}
-    >
+    <div className="aviso" id="aviso" role="note">
       <BellIcon />
-      <span className="tx">
-        Ainda não chegou no streaming.
-        <small>{on ? "Te aviso quando chegar." : "Quer que eu avise quando chegar?"}</small>
-      </span>
-      <span className="sw2" aria-hidden="true" />
-    </button>
+      <span className="tx">Ainda não chegou no streaming.</span>
+    </div>
   );
 }
 

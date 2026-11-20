@@ -42,7 +42,8 @@ export function Result({ info, filmKey, rewatch }: Props) {
 
   if (!film) return null;
   const year = String(new Date().getFullYear());
-  const nYear = all.filter((h) => isRated(h) && h.d?.startsWith(year)).length;
+  // Conta igual ao Perfil: todos os vistos no ano, com ou sem nota
+  const nYear = all.filter((h) => h.st !== 'want' && h.d?.startsWith(year)).length;
   // Quem foi junto: quem eu marquei (menos quem disse que não foi) e quem me marcou
   const ids = [...new Set([...(film.tk?.with || []).filter((id) => sent[filmKey]?.[id] !== 'declined'), ...(withMe[filmKey] || [])])];
   const names = ids.map((id) => friends.list.find((p) => p.id === id)).filter(Boolean).map((p) => pname(p!));
