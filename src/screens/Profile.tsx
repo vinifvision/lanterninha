@@ -5,6 +5,7 @@ import { Banner } from "../components/Banner";
 import { FriendRow } from "../components/FriendRow";
 import { useAsync } from "../components/hooks";
 import { Poster } from "../components/Poster";
+import { movieDetails } from "../lib/api";
 import { useRefresh } from "../lib/refresh";
 import { TopFour } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
@@ -199,7 +200,6 @@ function AuthForm() {
 function Account() {
   const account = useCloud();
   const all = useFilms();
-  const user = account.user!;
   const pr = account.profile || EMPTY_PROFILE;
   // Todos os assistidos: os avaliados e os marcados como "Já vi" sem nota
   const watched = all.filter((h) => h.st !== "want");
@@ -223,7 +223,7 @@ function Account() {
       {pr.banner ? <Banner path={pr.banner} /> : <div className="pbanner v2nob" />}
       <div className="v2pfhead">
         <div className="v2pfrow">
-          <Avatar p={pr} fallback={user.email} />
+          <Avatar p={pr} />
           {account.extended && (
             <button className="v2pill" id="ped" onClick={() => nav.open({ k: "editProfile" })}>
               Editar perfil
@@ -306,8 +306,27 @@ function Account() {
   );
 }
 
-/** Seu ano: filmes por mês (o mês mais forte em dourado), a nota que você mais dá e a média. */
+/**
+ * Gênero do ano: o gênero (do TMDB) que mais aparece nos filmes vistos no ano.
+ * Olha até os 40 mais recentes; os detalhes ficam guardados enquanto o app está aberto.
+ */
+async function topGenre(films: Film[]): Promise<string> {
+  const ids = films.filter((h) => h.id).sort(byDiary).slice(0, 40).map((h) => h.id!);
+  const lists = await Promise.all(ids.map((id) => movieDetails(id).then((d) => d.genres).catch(() => [] as string[])));
+  const count = new Map<string, number>();
+  lists.forEach((gs) => gs.forEach((g) => count.set(g, (count.get(g) || 0) + 1)));
+  let best = "";
+  let n = 0;
+  count.forEach((c, g) => {
+    if (c > n) { best = g; n = c; }
+  });
+  return best;
+}
+
+/** Seu ano: filmes por mês (o mês mais forte em dourado), a nota que você mais dá e o gênero do ano. */
 function YearCard({ films, year }: { films: Film[]; year: string }) {
+  const ids = films.map((h) => h.id || "").join(",");
+  const genre = useAsync(() => topGenre(films), [ids], true);
   if (!films.length) return null;
   const per: number[] = Array(12).fill(0);
   films.forEach((h) => per[+h.d!.slice(5, 7) - 1]++);
@@ -324,9 +343,6 @@ function YearCard({ films, year }: { films: Film[]; year: string }) {
       mc = c;
     }
   });
-  const avg = rated.length
-    ? Math.round((rated.reduce((a, h) => a + h.s, 0) / rated.length) * 10) / 10
-    : 0;
   return (
     <section className="v2year" aria-label={`Seu ${year}`}>
       <div className="v2yh">
@@ -354,8 +370,8 @@ function YearCard({ films, year }: { films: Film[]; year: string }) {
           <b className="g">{mode ? "★ " + fmt(mode) : "–"}</b>
         </div>
         <div>
-          <small>Nota média</small>
-          <b className="s">{avg ? fmt(avg) : "–"}</b>
+          <small>Gênero do ano</small>
+          <b className="s">{genre || "–"}</b>
         </div>
       </div>
     </section>

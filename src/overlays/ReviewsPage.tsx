@@ -58,7 +58,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
         {rated ? (
           <>
             <div className="who">
-              <Avatar p={account.profile} fallback="V" />
+              <Avatar p={account.profile} />
               <div><b>Você</b><Meta f={rated} /></div>
               <button className={`pill${rated.note ? '' : ' gold'}`} id="rved" onClick={() => nav.open({ k: 'editor', key })}>
                 {rated.note ? 'Editar' : 'Escrever'}
@@ -72,7 +72,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
         ) : (
           <>
             <div className="who">
-              <Avatar p={account.profile} fallback="V" />
+              <Avatar p={account.profile} />
               <div><b>Você</b><small>{mine?.st ? STATE[mine.st] + ', sem nota' : 'ainda não avaliou'}</small></div>
               <button className="pill gold" id="rvgo" onClick={() => nav.startQuiz(info, { classic: looksClassic(info.y) })}>Avaliar</button>
             </div>
