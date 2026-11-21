@@ -84,13 +84,15 @@
 .psort button i { font-style: normal; color: var(--gold); margin-left: 2px; }
 .psort button:active { transform: scale(.96); }
 
-/* Grade: os que você já viu ficam acesos, os outros um pouco apagados */
-.pgrid .hp { animation: ckin .45s cubic-bezier(.2,.8,.2,1) both; }
-.pgrid .hp:not(.got) .ph img { filter: saturate(.75) brightness(.88); transition: filter .3s; }
+/* Grade: os que você já viu ficam acesos, os outros um pouco apagados.
+   Só os primeiros entram animados, e o "apagado" é uma película por cima (filtro em cada pôster pesa na rolagem). */
+.pgrid .hp.in { animation: ckin .45s cubic-bezier(.2,.8,.2,1) both; }
+.pgrid .hp:not(.got) .ph::after { content: ""; position: absolute; inset: 0; background: rgba(11,10,13,.2); pointer-events: none; }
+.pmore { height: 1px; }
 .pgrid .hp.got .ph { box-shadow: 0 0 0 1.5px rgba(242,201,127,.55); }
 .pgrid .soon {
   position: absolute; left: 6px; top: 6px; padding: 3px 7px; border-radius: 10px;
-  background: rgba(10,10,12,.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  background: rgba(10,10,12,.86);
   font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--text);
 }
 /* A galera: rostinhos dos amigos que viram.
@@ -101,9 +103,13 @@
 }
 .pfr {
   position: absolute; left: 6px; bottom: 6px; display: flex; align-items: center;
-  padding: 2px; border-radius: 14px; background: rgba(10,10,12,.72);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  padding: 2px; border-radius: 14px; background: rgba(10,10,12,.86);
 }
 .pfr .av { flex: none; width: 20px; height: 20px; font-size: 10px; border: 1.5px solid #0b0a0d; box-sizing: border-box; }
 .pfr .av + .av { margin-left: -7px; }
 .pfr em { padding: 0 5px 0 4px; font-style: normal; font-size: 11px; font-weight: 700; color: var(--text); }
+
+/* Os selos de nota (★, ✓) também desfocam o fundo; nesta grade, que pode ter centenas, vão sem desfoque */
+.pgrid .hp .mk { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(10,10,12,.86); }
+/* Selos acima da película dos não vistos */
+.pgrid .ph > i, .pgrid .ph > .pfr { z-index: 1; }
