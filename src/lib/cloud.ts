@@ -67,6 +67,8 @@ export function cleanProfile(p: unknown): Profile | null {
 // ---------- estado interno
 let sb: SupabaseClient | null = null;
 let user: CloudUser | null = null;
+/** Dados guardados na própria conta (user_metadata), ex.: qual tela de Novidades já foi vista */
+let accountMeta: Record<string, unknown> = {};
 let profile: Profile | null = null;
 let extended = false, social = false, banners = false;
 let friends: Friends = emptyFriends();
@@ -287,6 +289,7 @@ async function onAuth(sessionUser: { id: string; email?: string; user_metadata?:
   const first = !checked;
   checked = true;
   if ((u?.id || null) === (user?.id || null)) { if (first) emit(); return; }
+  accountMeta = sessionUser?.user_metadata || {};
   user = u; profile = null; friends = emptyFriends(); recs = []; social = false;
   tags = []; sent = {}; withMe = {}; tagsOk = false;
   if (!u || !sb) { sync = 'off'; emit(); return; }
@@ -398,13 +401,13 @@ export const cloud = {
     return 'Não deu certo agora. Tente de novo.';
   },
   /** Devolve '' se entrou, 'CONFIRM' se falta confirmar o e-mail, ou a mensagem de erro. */
-  async signUp(username: string, email: string, password: string): Promise<string> {
+  async signUp(username: string, email: string, password: string, extra: Record<string, unknown> = {}): Promise<string> {
     if (!sb) return 'Sem conexão com a conta agora.';
     try {
       const { data, error } = await sb.rpc('username_available', { name: username });
       if (!error && data === false) return 'Esse nome de usuário já existe.';
     } catch { /* segue: o banco barra nomes repetidos de qualquer jeito */ }
-    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { ...extra, username } } });
     if (error) return niceError(error);
     return data.session ? '' : 'CONFIRM';
   },
@@ -420,6 +423,14 @@ export const cloud = {
     if (!sb) return 'Sem conexão com a conta agora.';
     const { error } = await sb.auth.updateUser({ password });
     return error ? niceError(error) : '';
+  },
+  /** Dados guardados na conta (user_metadata) de quem está logado. */
+  accountData(): Record<string, unknown> { return accountMeta; },
+  /** Guarda dados na conta. O Supabase junta com o que já existe (não apaga o resto). */
+  saveAccountData(data: Record<string, unknown>) {
+    accountMeta = { ...accountMeta, ...data };
+    if (!sb || !user) return;
+    void sb.auth.updateUser({ data }).catch(() => undefined);
   },
   /** O app já abriu a tela de senha nova. */
   recoveryShown() { if (recovery) { recovery = false; emit(); } },

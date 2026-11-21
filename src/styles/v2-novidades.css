@@ -1,0 +1,292 @@
+/* Tela "Novidades" (versão nova): facho de projetor, poeira no ar e a lista entrando aos poucos */
+.ov.nv {
+  background: var(--bg);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  z-index: 9;
+  transition: opacity 0.38s ease, transform 0.38s ease;
+}
+.ov.nv.out {
+  opacity: 0;
+  transform: scale(1.03);
+}
+.ov.nv > div {
+  position: static;
+  max-width: none;
+  min-height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  animation: none;
+}
+
+/* Facho: luz quente descendo do alto, que acende devagar */
+.nv-beam {
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: 160%;
+  height: 75%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(251, 243, 226, 0.16), rgba(242, 201, 127, 0.05) 55%, transparent 75%);
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+  animation: nvBeam 1.4s 0.1s ease-out both, nvFlicker 5s 1.6s ease-in-out infinite;
+}
+@keyframes nvBeam {
+  from { opacity: 0; transform: translateX(-50%) scaleY(0.6); transform-origin: top; }
+}
+@keyframes nvFlicker {
+  0%, 100% { opacity: 1; }
+  48% { opacity: 0.88; }
+  52% { opacity: 0.97; }
+}
+.nv-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.nv-dust i {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--screen);
+  opacity: 0;
+  animation: nvDust 7s linear infinite;
+}
+@keyframes nvDust {
+  0% { opacity: 0; transform: translate(0, 0); }
+  20% { opacity: 0.45; }
+  80% { opacity: 0.25; }
+  100% { opacity: 0; transform: translate(18px, 60px); }
+}
+
+.nv-body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
+  padding: calc(36px + var(--sat)) 26px calc(28px + var(--sab));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.nv-logo {
+  position: relative;
+  animation: nvPop 0.7s 0.25s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.nv-logo::after {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 201, 127, 0.22), transparent 65%);
+  z-index: -1;
+}
+.nv-logo img {
+  display: block;
+  border-radius: 16px;
+}
+@keyframes nvPop {
+  from { opacity: 0; transform: scale(0.6) translateY(10px); }
+}
+.nv-v {
+  margin-top: 18px;
+  font: 600 12px Inter, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: in 0.5s 0.4s both;
+}
+.nv-body h1 {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.02;
+  animation: in 0.6s 0.48s both;
+}
+.nv-sub {
+  margin: 10px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  color: #c9c0b2;
+  animation: in 0.6s 0.56s both;
+}
+
+.nv-list {
+  list-style: none;
+  width: 100%;
+  margin: 28px 0 0;
+  padding: 6px;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  text-align: left;
+  animation: in 0.5s 0.62s both;
+}
+.nv-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  animation: nvRow 0.5s var(--d, 0s) cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.nv-list li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+@keyframes nvRow {
+  from { opacity: 0; transform: translateX(-14px); }
+}
+.nv-ic {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--card2);
+  color: var(--text);
+}
+.nv-ic svg {
+  width: 21px;
+  height: 21px;
+}
+.nv-ic.gold {
+  color: var(--gold);
+}
+.nv-tx {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.nv-tx b {
+  font: 600 15px Inter, sans-serif;
+}
+.nv-tx small {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.nv-go {
+  width: 100%;
+  margin-top: 24px;
+  animation: in 0.5s var(--d, 1s) both;
+}
+.nv-go .btn {
+  height: 56px;
+  font-size: 17px;
+  box-shadow: 0 10px 34px rgba(242, 201, 127, 0.25);
+}
+
+@media (max-height: 700px) {
+  .nv-body h1 { font-size: 34px; }
+  .nv-list { margin-top: 20px; }
+  .nv-list li { padding: 7px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-beam, .nv-dust i, .nv-logo, .nv-v, .nv-body h1, .nv-sub, .nv-list, .nv-list li, .nv-go { animation: none; }
+  .nv-dust { display: none; }
+}
+
+/* ---------- Aviso de APK novo (no visual v2; o que fica aqui vence o app.css) */
+.updwrap {
+  background: rgba(6, 6, 7, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.upd {
+  position: relative;
+  overflow: hidden;
+  padding: 30px 22px 14px;
+  margin-bottom: calc(10px + var(--sab));
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+.upd > * {
+  position: relative;
+}
+.upd .upd-beam {
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  width: 130%;
+  height: 230px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(251, 243, 226, 0.14), transparent 70%);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+  animation: nvBeam 1.2s 0.2s ease-out both;
+}
+.upd-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font: 600 12px Inter, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.upd-vs span {
+  padding: 5px 10px;
+  border-radius: 99px;
+}
+.upd-vs .old {
+  background: var(--card2);
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: rgba(168, 160, 148, 0.6);
+}
+.upd-vs .new {
+  background: rgba(251, 243, 226, 0.08);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(251, 243, 226, 0.16);
+  animation: nvPop 0.6s 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.upd-vs svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.upd b {
+  margin-top: 10px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.05;
+}
+.upd p {
+  margin: 10px 8px 20px;
+}
+.updgo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 54px;
+  padding: 0 18px;
+  border-radius: 99px;
+  font: 600 16px Inter, sans-serif;
+  box-shadow: 0 10px 30px rgba(242, 201, 127, 0.25);
+}
+.updgo svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (prefers-reduced-motion: reduce) {
+  .upd .upd-beam, .upd-vs .new { animation: none; }
+}

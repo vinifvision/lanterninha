@@ -27,6 +27,7 @@ export type Overlay =
   | { k: 'newPassword' }
   | { k: 'signup' }
   | { k: 'welcome' }
+  | { k: 'novidades' }
   | { k: 'ticket'; key: string }
   | { k: 'chestDeck' }
   | { k: 'filmEdit'; key: string }
