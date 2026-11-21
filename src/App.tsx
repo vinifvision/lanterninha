@@ -33,6 +33,7 @@ import { ChestDeck } from "./overlays/ChestDeck";
 import { FilmEdit } from "./overlays/FilmEdit";
 import { FilmPage } from "./screens/FilmPage";
 import { FriendPage } from "./screens/FriendPage";
+import { FullList } from "./screens/FullList";
 import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
 import { Diary } from "./screens/Diary";
@@ -79,6 +80,8 @@ function stackScreen(s: Screen, depth: number) {
       return <Credits key={`credits-${depth}`} info={s.info} />;
     case "chest":
       return <Chest key="chest" />;
+    case "list":
+      return <FullList key={`list-${depth}`} title={s.title} em={s.em} list={s.list} id={s.id} />;
     case "diary":
       return <Diary key="diary" />;
     case "guide":
@@ -225,6 +228,7 @@ export function App() {
         film: "film",
         credits: "credits",
         chest: "chest",
+        list: "feed",
         diary: "diary",
         guide: "guide",
         friend: "friend",
@@ -244,6 +248,8 @@ export function App() {
       ? "Baú da infância"
       : top.k === "diary"
       ? "Diário"
+      : top.k === "list"
+      ? [top.title, top.em].filter(Boolean).join(" ")
       : top.k === "film" || top.k === "credits"
         ? top.info.t
         : friend

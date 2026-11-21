@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Poster } from '../components/Poster';
 import { useAsync } from '../components/hooks';
-import { moodFilms, movieCredits, posterUrl, searchMovies, type Mood } from '../lib/api';
+import { moodPage, movieCredits, posterUrl, searchMovies, type Mood } from '../lib/api';
+import { ListEnd, usePages } from '../components/Paged';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, POSTER_PATH } from '../lib/format';
 import type { Film, FilmInfo, SearchResult } from '../lib/types';
@@ -97,9 +98,10 @@ export function Search() {
   // Só filmes com nota: marcar como visto não conta
   const rated = all.filter(isRated);
   const people = useAsync(() => topPeople(rated), [rated.length]);
-  // Lista do clima: undefined carregando, 'err' quando falhou
-  const moodList = useAsync(() => (pane?.mood ? moodFilms(pane.mood).then((l) => l.map(toInfo)).catch(() => 'err' as const) : Promise.resolve(null)), [pane?.mood || '', tries]);
-  const paneFilms = pane?.films || (moodList === 'err' ? null : moodList);
+  // Lista do clima: vai buscando as próximas páginas conforme a pessoa desce
+  const mood = pane?.mood;
+  const moods = usePages(mood ? (page) => moodPage(mood, page) : null, [mood || '']);
+  const paneFilms = pane?.films || (mood ? moods.items?.map(toInfo) : null) || null;
 
   const open = (f: FilmInfo) => {
     const next = [f, ...recent.filter((r) => fkey(r) !== fkey(f))].slice(0, 5);
@@ -159,8 +161,8 @@ export function Search() {
           {pane ? (
             <section className="v2pane" key={pane.title}>
               <div className="v2sh"><h2 className="serif big">{pane.title}</h2><button type="button" onClick={() => setPane(null)}>Fechar</button></div>
-              {moodList === 'err' && !pane.films ? (
-                <div className="v2err">Não consegui carregar essa lista.<button className="btn btn-sec" onClick={() => setTries(tries + 1)}>Tentar de novo</button></div>
+              {mood && !pane.films && moods.failed && !moods.items ? (
+                <div className="v2err">Não consegui carregar essa lista.<button className="btn btn-sec" onClick={moods.retry}>Tentar de novo</button></div>
               ) : !paneFilms ? <p className="rh2note">Carregando…</p> : paneFilms.length === 0 ? <p className="rh2note">Nada por aqui agora.</p> : (
                 <div className="v2sgrid">
                   {paneFilms.map((f) => (
@@ -170,6 +172,7 @@ export function Search() {
                   ))}
                 </div>
               )}
+              {mood && !pane.films && <ListEnd p={moods} />}
             </section>
           ) : (
             <>

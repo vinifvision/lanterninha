@@ -1,5 +1,5 @@
 // Aba Início (v2): "Pra você" diz o porquê de cada sugestão; "Amigos" é o diário da turma, com o Palpite.
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { useAsync } from '../components/hooks';
 import { useRefresh } from '../lib/refresh';
@@ -13,7 +13,9 @@ import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, pname } from '../lib/format';
 import type { Film, FilmInfo, FriendRating, Profile, SearchResult } from '../lib/types';
 import { nav } from '../nav';
-import { BookmarkIcon, ChestIcon, StarIcon } from '../components/icons';
+import { ChestIcon, StarIcon } from '../components/icons';
+import { MineBadge } from '../components/MineBadge';
+import { DiscoverGrid, ListTitle } from './FullList';
 import { chest, useChest } from '../lib/cloud';
 import { fd } from '../lib/format';
 import { sfx } from '../lib/sfx';
@@ -85,7 +87,7 @@ export function Home() {
           {account.tags.map((t) => <TagCard key={t.id} tag={t} />)}
           <Hero activity={activity} mine={mine} />
           {hasFriends && <Twin mine={all} />}
-          {liked && <DiscoverRow title={<>Porque você amou <em>{liked.t}</em></>} list="similar" id={liked.id} mine={mine} />}
+          {liked && <DiscoverRow title="Porque você amou" em={liked.t} list="similar" id={liked.id} mine={mine} />}
 
           <button className="tncard" id="tonight" onClick={() => nav.open({ k: 'tonight' })}>
             <span className="tnstrip" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map((i) => <i key={i} />)}</span>
@@ -129,8 +131,8 @@ export function Home() {
       )}
 
       {chip === 'amigos' && <FriendsPane activity={activity} friends={account.friends.list} loggedIn={!!account.user} />}
-      {chip === 'now' && <div className="v2pane" key="now"><DiscoverRow grid title="Em cartaz agora" list="now" mine={mine} /></div>}
-      {chip === 'classics' && <div className="v2pane" key="classics"><DiscoverRow grid title="Clássicos para conhecer" list="classics" mine={mine} /></div>}
+      {chip === 'now' && <div className="v2pane" key="now"><DiscoverGrid title="Em cartaz agora" list="now" mine={mine} /></div>}
+      {chip === 'classics' && <div className="v2pane" key="classics"><DiscoverGrid title="Clássicos para conhecer" list="classics" mine={mine} /></div>}
 
       <p className="credit">Listas de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a></p>
     </div>
@@ -349,35 +351,30 @@ function GuessCard({ r }: { r: FriendRating }) {
   );
 }
 
-/** Uma fileira de pôsteres que rola para o lado (ou uma grade, nos chips). Some se a lista vier vazia ou falhar. */
-function DiscoverRow({ title, list, id, mine, grid }: { title: ReactNode; list: DiscoverList; id?: number; mine: Map<string, Film>; grid?: boolean }) {
+/** Uma fileira de pôsteres que rola para o lado, com "Ver todos" no fim. Some se a lista vier vazia ou falhar. */
+function DiscoverRow({ title, em, list, id, mine }: { title: string; em?: string; list: DiscoverList; id?: number; mine: Map<string, Film> }) {
   const tick = useRefresh();
   const items = useAsync(() => discover(list, id), [list, id, tick], true);
   if (items && items.length === 0) return null;
+  const all = () => { sfx.tap(); nav.push({ k: 'list', title, em, list, id }); };
   return (
     <section className="hsec">
-      <div className="v2h"><h2>{title}</h2></div>
-      <div className={grid ? 'v2grid' : 'hrow'}>
+      <div className="v2h"><ListTitle title={title} em={em} /></div>
+      <div className="hrow">
         {!items && [0, 1, 2, 3].map((i) => <span className="hp sk" key={i}><span className="ph" /></span>)}
         {items?.map((m) => (
           <button className="hp" key={m.id} onClick={() => nav.openFilm(toFilm(m))}>
             <span className="ph"><Poster img={m.poster} title={m.title} /><MineBadge film={mine.get('m' + m.id)} /></span>
           </button>
         ))}
+        {items && (
+          <button className="hp more" onClick={all} aria-label={`Ver todos: ${em ? title + ' ' + em : title}`}>
+            <span className="ph"><i aria-hidden="true">›</i><b>Ver todos</b></span>
+          </button>
+        )}
       </div>
     </section>
   );
-}
-
-/**
- * Selo no canto do pôster, diferente para cada situação (o mesmo jeito do Meus filmes):
- * ★ nota quando avaliei, ✓ quando vi sem dar nota e marcador quando está em "Quero ver".
- */
-function MineBadge({ film }: { film?: Film }) {
-  if (!film) return null;
-  if (isRated(film)) return <i className="mk rated" aria-label={`Sua nota: ${fmt(film.s)}`}><StarIcon />{fmt(film.s)}</i>;
-  if (film.st === 'want') return <i className="mk want" aria-label="Na sua fila Quero ver"><BookmarkIcon /></i>;
-  return <i className="mk seen" aria-label="Já vi">✓</i>;
 }
 
 /** Atalho do Baú da infância. Logo depois de criar a conta, aparece uma vez como convite. */

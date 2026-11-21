@@ -1,6 +1,7 @@
 // Navegação do app: aba atual, pilha de telas abertas por cima dela e telas sobrepostas (overlays).
 import { useSyncExternalStore } from 'react';
 import type { Film, FilmInfo, FriendRating, Profile, RatedFilm } from './lib/types';
+import type { DiscoverList } from './lib/api';
 
 export type Tab = 'rate' | 'search' | 'home' | 'lib' | 'prof';
 
@@ -9,6 +10,7 @@ export type Screen =
   | { k: 'friend'; id: string }
   | { k: 'credits'; info: FilmInfo }
   | { k: 'chest' }
+  | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }
   | { k: 'diary' }
   | { k: 'guide' }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean; help?: boolean }
