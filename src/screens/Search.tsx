@@ -66,8 +66,11 @@ function topPeople(rated: Film[]): Promise<Person[]> {
 const initials = (n: string) => { const w = n.trim().split(/\s+/); return ((w[0]?.[0] || '') + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
 
 type Pane = { title: string; mood?: Mood; films?: FilmInfo[] };
-// O que a pessoa digitou e a lista aberta ficam guardados enquanto ela passeia pelo app.
+// O que a pessoa digitou fica guardado enquanto ela passeia pelo app.
+// A categoria aberta continua ao voltar da página de um filme, mas fecha quando a pessoa
+// vai para outra aba: ao voltar para a Buscar, aparecem as categorias de novo.
 const draft: { q: string; pane: Pane | null } = { q: '', pane: null };
+nav.subscribe(() => { if (nav.state.tab !== 'search') draft.pane = null; });
 
 export function Search() {
   const all = useFilms();
