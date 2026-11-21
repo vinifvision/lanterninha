@@ -25,11 +25,15 @@ export default {
       );
 
     const m = await r.json();
-    const director = ((m.credits && m.credits.crew) || [])
+    const directors = ((m.credits && m.credits.crew) || [])
       .filter((p) => p.job === "Director")
-      .map((p) => p.name)
       .slice(0, 2)
-      .join(", ");
+      .map((p) => ({ id: p.id, name: p.name }));
+    const director = directors.map((p) => p.name).join(", ");
+    // Produtoras (ex.: Marvel Studios, Neon), para abrir a página de cada uma
+    const companies = (m.production_companies || [])
+      .slice(0, 4)
+      .map((c) => ({ id: c.id, name: c.name, logo: c.logo_path || "" }));
 
     // Elenco principal e trailer (prefere o trailer em português)
     const cast = ((m.credits && m.credits.cast) || [])
@@ -86,6 +90,8 @@ export default {
         release: m.release_date || "",
         genres: (m.genres || []).map((g) => g.name).slice(0, 3),
         director,
+        directors,
+        companies,
         backdrop: m.backdrop_path || "",
         cast,
         trailer: pick ? pick.key : "",

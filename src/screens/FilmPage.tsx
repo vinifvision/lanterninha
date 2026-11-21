@@ -170,7 +170,17 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
           {meta && <p>{meta}</p>}
           {details?.director && (
             <p className="dir">
-              Dirigido por <b>{details.director}</b>
+              Dirigido por{" "}
+              {details.directors.length ? (
+                details.directors.map((d, i) => (
+                  <span key={d.id}>
+                    {i > 0 && ", "}
+                    <button onClick={() => nav.openPerson("person", d.id, d.name)}>{d.name}</button>
+                  </span>
+                ))
+              ) : (
+                <b>{details.director}</b>
+              )}
             </p>
           )}
         </div>
