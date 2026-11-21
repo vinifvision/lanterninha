@@ -60,6 +60,22 @@ export function moodFilms(m: Mood): Promise<SearchResult[]> {
   return p;
 }
 
+/** Série do filme (vinda do servidor): confere cada campo antes de usar. */
+function readCollection(raw: unknown): MovieDetails['collection'] {
+  const c = raw as { name?: unknown; parts?: unknown } | null;
+  if (!c || !Array.isArray(c.parts)) return null;
+  const parts = c.parts
+    .map((x) => x as { id?: unknown; title?: unknown; year?: unknown; poster?: unknown })
+    .filter((x) => typeof x.id === 'number' && typeof x.title === 'string')
+    .map((x) => ({
+      id: x.id as number,
+      t: x.title as string,
+      y: typeof x.year === 'string' ? x.year : '',
+      img: typeof x.poster === 'string' && POSTER_PATH.test(x.poster) ? x.poster : '',
+    }));
+  return parts.length > 1 ? { name: typeof c.name === 'string' ? c.name : '', parts } : null;
+}
+
 const detailsCache = new Map<number, Promise<MovieDetails>>();
 
 export function movieDetails(id: number): Promise<MovieDetails> {
@@ -78,12 +94,14 @@ export function movieDetails(id: number): Promise<MovieDetails> {
       return {
         overview: typeof m.overview === 'string' ? m.overview : '',
         runtime: typeof m.runtime === 'number' ? m.runtime : 0,
+        release: typeof m.release === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.release) ? m.release : '',
         genres: Array.isArray(m.genres) ? m.genres.filter((g): g is string => typeof g === 'string') : [],
         director: typeof m.director === 'string' ? m.director : '',
         backdrop: typeof m.backdrop === 'string' && POSTER_PATH.test(m.backdrop) ? m.backdrop : '',
         cast: Array.isArray(m.cast) ? m.cast.filter((g): g is string => typeof g === 'string').slice(0, 5) : [],
         trailer: typeof m.trailer === 'string' && /^[\w-]{6,20}$/.test(m.trailer) ? m.trailer : '',
         providers: { stream: people(pv.stream), rent: people(pv.rent), buy: people(pv.buy) },
+        collection: readCollection(m.collection),
       };
     })();
     detailsCache.set(id, p);

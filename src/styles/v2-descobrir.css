@@ -663,3 +663,220 @@
     opacity: 0;
   }
 }
+
+/* ---------- Sorteio (v2) ---------- */
+.v2tnh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.v2tnh b {
+  font-size: 16px;
+  font-weight: 600;
+}
+.v2tnt {
+  margin: 6px 0 20px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.v2tnl {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2tn .v2chips {
+  margin-bottom: 16px;
+}
+.v2tn .v2chips button {
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+.v2tn .v2chips button:disabled {
+  opacity: 0.5;
+}
+.v2tn .reel {
+  margin-top: 8px;
+}
+.v2tnempty {
+  margin: -6px 0 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+.v2tnveto {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2tnveto button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--gold);
+  font: 600 13px Inter, sans-serif;
+}
+
+/* Cartão do sorteado */
+.v2tncard {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: 22px 20px 18px;
+  border-radius: 28px;
+  background: var(--card);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  text-align: center;
+  animation: v2tnpop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes v2tnpop {
+  from { opacity: 0; transform: translateY(18px) scale(0.94); }
+}
+.v2tnclose {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 36px;
+  height: 36px;
+  background: var(--card2);
+}
+.v2tnclose svg {
+  width: 16px;
+  height: 16px;
+}
+.v2tncard > .v2kick {
+  margin: 4px 0 14px;
+}
+.v2tntitle {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.05;
+}
+.v2tnmeta {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.v2tnwhy {
+  margin: 10px 0 16px;
+  font-size: 14px;
+  color: var(--gold);
+}
+.v2tnseq {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--gold-soft);
+  box-shadow: inset 0 0 0 1px rgba(242, 201, 127, 0.3);
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.4;
+  animation: in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.v2tnseq b {
+  font-weight: 600;
+}
+.v2tnseq button {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font: 600 13px Inter, sans-serif;
+  text-align: left;
+}
+.v2tnrow {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.v2tnrow .btn {
+  flex: 1;
+  height: 44px;
+  padding: 0 8px;
+  font-size: 14px;
+}
+
+/* Duelo: dois pôsteres lado a lado, você toca no que quer */
+.v2tnduel {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.v2tnfighter {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  text-align: center;
+  animation: v2tnfight 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+  transition: transform 0.15s;
+}
+.v2tnfighter:active {
+  transform: scale(0.95);
+}
+.v2tnfighter img,
+.v2tnfighter > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--card2);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2tnfighter b {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.1;
+}
+.v2tnfighter small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.v2tnvs {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  border-radius: 20px;
+  background: var(--red);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: italic 400 20px var(--serif);
+  box-shadow: 0 0 0 4px var(--card);
+  animation: v2tnvs 0.4s 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes v2tnfight {
+  from { opacity: 0; transform: translateY(20px) rotate(-3deg); }
+}
+@keyframes v2tnvs {
+  from { opacity: 0; transform: scale(0.3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2tncard, .v2tnfighter, .v2tnvs, .v2tnseq { animation: none; }
+}

@@ -107,12 +107,16 @@ export interface FriendRating {
 export interface MovieDetails {
   overview: string;
   runtime: number;
+  /** Data de lançamento (AAAA-MM-DD), vazia se o TMDB não souber */
+  release: string;
   genres: string[];
   director: string;
   backdrop: string;
   cast: string[];
   trailer: string;
   providers: Record<'stream' | 'rent' | 'buy', { name: string; logo: string }[]>;
+  /** Série de filmes a que ele pertence, em ordem de lançamento (null se for avulso) */
+  collection: { name: string; parts: FilmInfo[] } | null;
 }
 
 export interface SearchResult {

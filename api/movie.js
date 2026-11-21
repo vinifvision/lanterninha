@@ -54,10 +54,36 @@ export default {
         .slice(0, 6)
         .map((x) => ({ name: x.provider_name, logo: x.logo_path || "" }));
 
+    // Se o filme faz parte de uma série (ex.: trilogia), busca os filmes dela em ordem de lançamento
+    let collection = null;
+    const col = m.belongs_to_collection;
+    if (col && col.id) {
+      const cr = await fetch(
+        "https://api.themoviedb.org/3/collection/" +
+          col.id +
+          "?language=pt-BR&api_key=" +
+          encodeURIComponent(key),
+      ).catch(() => null);
+      if (cr && cr.ok) {
+        const c = await cr.json();
+        const parts = (c.parts || [])
+          .filter((p) => p.release_date)
+          .sort((a, b) => a.release_date.localeCompare(b.release_date))
+          .map((p) => ({
+            id: p.id,
+            title: p.title || "",
+            year: p.release_date.slice(0, 4),
+            poster: p.poster_path || "",
+          }));
+        if (parts.length > 1) collection = { name: c.name || col.name || "", parts };
+      }
+    }
+
     return Response.json(
       {
         overview: m.overview || "",
         runtime: m.runtime || 0,
+        release: m.release_date || "",
         genres: (m.genres || []).map((g) => g.name).slice(0, 3),
         director,
         backdrop: m.backdrop_path || "",
@@ -68,6 +94,7 @@ export default {
           rent: list(br.rent),
           buy: list(br.buy),
         },
+        collection,
       },
       { headers: { "Cache-Control": "public, s-maxage=604800" } },
     );
