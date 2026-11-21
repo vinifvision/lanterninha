@@ -101,6 +101,14 @@ export function movieDetails(id: number): Promise<MovieDetails> {
         release: typeof m.release === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.release) ? m.release : '',
         genres: Array.isArray(m.genres) ? m.genres.filter((g): g is string => typeof g === 'string') : [],
         director: typeof m.director === 'string' ? m.director : '',
+        directors: (Array.isArray(m.directors) ? m.directors : [])
+          .map((x) => x as { id?: unknown; name?: unknown })
+          .filter((x) => Number.isInteger(x.id) && typeof x.name === 'string')
+          .map((x) => ({ id: x.id as number, name: (x.name as string).slice(0, 80) })),
+        companies: (Array.isArray(m.companies) ? m.companies : [])
+          .map((x) => x as { id?: unknown; name?: unknown; logo?: unknown })
+          .filter((x) => Number.isInteger(x.id) && typeof x.name === 'string')
+          .map((x) => ({ id: x.id as number, name: (x.name as string).slice(0, 80), logo: typeof x.logo === 'string' && POSTER_PATH.test(x.logo) ? x.logo : '' })),
         backdrop: typeof m.backdrop === 'string' && POSTER_PATH.test(m.backdrop) ? m.backdrop : '',
         cast: Array.isArray(m.cast) ? m.cast.filter((g): g is string => typeof g === 'string').slice(0, 5) : [],
         trailer: typeof m.trailer === 'string' && /^[\w-]{6,20}$/.test(m.trailer) ? m.trailer : '',
@@ -187,9 +195,9 @@ export function nearbyCinemas(lat: number, lon: number): Promise<Cinema[]> {
 }
 
 export interface Credits {
-  key: { name: string; photo: string; role: string }[];
-  cast: { name: string; character: string; photo: string }[];
-  depts: { name: string; people: { job: string; name: string }[] }[];
+  key: { id: number | null; name: string; photo: string; role: string }[];
+  cast: { id: number | null; name: string; character: string; photo: string }[];
+  depts: { name: string; people: { id: number | null; job: string; name: string }[] }[];
 }
 const creditsCache = new Map<number, Promise<Credits>>();
 
@@ -200,18 +208,70 @@ export function movieCredits(id: number): Promise<Credits> {
     const str = (v: unknown, max = 80) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
     const photo = (v: unknown) => (typeof v === 'string' && POSTER_PATH.test(v) ? v : '');
     const arr = (v: unknown) => (Array.isArray(v) ? v : []) as Record<string, unknown>[];
+    const pid = (v: unknown) => (Number.isInteger(v) && (v as number) > 0 ? (v as number) : null);
     p = fetch(`${API_BASE}api/credits?id=${id}`)
       .then((r) => { if (!r.ok) throw new Error('créditos indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
       .then((d) => ({
-        key: arr(d.key).map((x) => ({ name: str(x.name), photo: photo(x.photo), role: str(x.role) })).filter((x) => x.name).slice(0, 10),
-        cast: arr(d.cast).map((x) => ({ name: str(x.name), character: str(x.character, 100), photo: photo(x.photo) })).filter((x) => x.name).slice(0, 24),
+        key: arr(d.key).map((x) => ({ id: pid(x.id), name: str(x.name), photo: photo(x.photo), role: str(x.role) })).filter((x) => x.name).slice(0, 10),
+        cast: arr(d.cast).map((x) => ({ id: pid(x.id), name: str(x.name), character: str(x.character, 100), photo: photo(x.photo) })).filter((x) => x.name).slice(0, 24),
         depts: arr(d.depts).map((x) => ({
           name: str(x.name, 40),
-          people: arr(x.people).map((y) => ({ job: str(y.job, 60), name: str(y.name) })).filter((y) => y.name).slice(0, 14),
+          people: arr(x.people).map((y) => ({ id: pid(y.id), job: str(y.job, 60), name: str(y.name) })).filter((y) => y.name).slice(0, 14),
         })).filter((x) => x.name && x.people.length).slice(0, 12),
       }));
     creditsCache.set(id, p);
     p.catch(() => creditsCache.delete(id));
+  }
+  return p;
+}
+
+export type PersonKind = 'person' | 'company';
+/** Um filme na página de uma pessoa ou produtora. */
+export interface PersonFilm extends SearchResult {
+  /** Data de lançamento (AAAA-MM-DD), vazia se o TMDB não souber */
+  date: string;
+  /** Popularidade no TMDB, para ordenar por "Mais famosos" */
+  pop: number;
+  /** O que a pessoa fez nele: Atuação, Direção, Roteiro... (vazio nas produtoras) */
+  roles: string[];
+}
+export interface PersonPage {
+  name: string;
+  /** Foto da pessoa ou logo da produtora */
+  photo: string;
+  /** Pelo que ela é conhecida (ex.: Direção), ou "Produtora" */
+  known: string;
+  /** Quantos filmes existem ao todo (nas produtoras a lista vem cortada nos mais populares) */
+  total: number;
+  films: PersonFilm[];
+}
+const personCache = new Map<string, Promise<PersonPage>>();
+
+/** Todos os filmes de um diretor, ator, roteirista... ou de uma produtora. Tudo é conferido antes de usar. */
+export function personPage(kind: PersonKind, id: number): Promise<PersonPage> {
+  const key = kind + id;
+  let p = personCache.get(key);
+  if (!p) {
+    const str = (v: unknown, max = 80) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+    p = fetch(`${API_BASE}api/person?type=${kind}&id=${id}`)
+      .then((r) => { if (!r.ok) throw new Error('página indisponível'); return r.json() as Promise<Record<string, unknown>>; })
+      .then((d) => {
+        const raw = (Array.isArray(d.films) ? d.films : []) as Record<string, unknown>[];
+        const extra = new Map(raw.map((x) => [x.id, x] as const));
+        const films: PersonFilm[] = cleanResults({ results: raw }).map((f) => {
+          const x: Record<string, unknown> = extra.get(f.id) || {};
+          return {
+            ...f,
+            date: typeof x.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.date) ? x.date : '',
+            pop: typeof x.pop === 'number' && x.pop >= 0 ? x.pop : 0,
+            roles: (Array.isArray(x.roles) ? x.roles : []).filter((r): r is string => typeof r === 'string').map((r) => r.slice(0, 30)).slice(0, 6),
+          };
+        });
+        const total = Number.isInteger(d.total) ? Math.max(d.total as number, films.length) : films.length;
+        return { name: str(d.name), photo: typeof d.photo === 'string' && POSTER_PATH.test(d.photo) ? d.photo : '', known: str(d.known, 30), total, films };
+      });
+    personCache.set(key, p);
+    p.catch(() => personCache.delete(key));
   }
   return p;
 }

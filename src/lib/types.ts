@@ -111,6 +111,10 @@ export interface MovieDetails {
   release: string;
   genres: string[];
   director: string;
+  /** Diretores com o id do TMDB, para abrir a página de cada um */
+  directors: { id: number; name: string }[];
+  /** Produtoras (ex.: Marvel Studios, Neon) */
+  companies: { id: number; name: string; logo: string }[];
   backdrop: string;
   cast: string[];
   trailer: string;

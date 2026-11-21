@@ -55,19 +55,19 @@ export default {
       }
     }
 
-    const cast = (c.cast || []).slice(0, 24).map((p) => ({ name: p.name, character: p.character || '', photo: p.profile_path || '' }));
+    const cast = (c.cast || []).slice(0, 24).map((p) => ({ id: p.id, name: p.name, character: p.character || '', photo: p.profile_path || '' }));
 
     // Ficha técnica completa, por departamento
     const depts = DEPT_ORDER.map((d) => {
       const seen = new Set();
       const people = crew.filter((p) => p.department === d).filter((p) => {
         const k = p.id + '|' + p.job; if (seen.has(k)) return false; seen.add(k); return true;
-      }).slice(0, 14).map((p) => ({ job: JOBS[p.job] || p.job, name: p.name }));
+      }).slice(0, 14).map((p) => ({ id: p.id, job: JOBS[p.job] || p.job, name: p.name }));
       return { name: DEPTS[d], people };
     }).filter((d) => d.people.length);
 
     return Response.json({
-      key: keyPeople.slice(0, 10).map(({ name, photo, roles }) => ({ name, photo, role: roles.join(' e ') })),
+      key: keyPeople.slice(0, 10).map(({ id, name, photo, roles }) => ({ id, name, photo, role: roles.join(' e ') })),
       cast,
       depts,
     }, { headers: { 'Cache-Control': 'public, s-maxage=604800' } });

@@ -1,7 +1,7 @@
 // Navegação do app: aba atual, pilha de telas abertas por cima dela e telas sobrepostas (overlays).
 import { useSyncExternalStore } from 'react';
 import type { Film, FilmInfo, FriendRating, Profile, RatedFilm } from './lib/types';
-import type { DiscoverList } from './lib/api';
+import type { DiscoverList, PersonKind } from './lib/api';
 
 export type Tab = 'rate' | 'search' | 'home' | 'lib' | 'prof';
 
@@ -9,6 +9,7 @@ export type Screen =
   | { k: 'film'; info: FilmInfo }
   | { k: 'friend'; id: string }
   | { k: 'credits'; info: FilmInfo }
+  | { k: 'person'; kind: PersonKind; id: number; name: string; photo?: string }
   | { k: 'chest' }
   | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }
   | { k: 'diary' }
@@ -96,6 +97,8 @@ export const nav = {
     set({ overlays: [] });
     nav.push({ k: 'quiz', info, classic: opts.classic, rewatch: opts.rewatch || null, direct: opts.direct, help: opts.help });
   },
+  /** Página de um diretor, ator, roteirista... ou de uma produtora, com todos os filmes. */
+  openPerson(kind: PersonKind, id: number, name: string, photo?: string) { set({ overlays: [] }); nav.push({ k: 'person', kind, id, name, photo }); },
   openFilm(info: FilmInfo) { set({ overlays: [] }); nav.push({ k: 'film', info }); },
 };
 

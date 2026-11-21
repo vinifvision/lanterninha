@@ -30,6 +30,7 @@ import { ShareSheet } from "./overlays/ShareSheet";
 import { TicketSheet } from "./overlays/TicketSheet";
 import { Tonight } from "./overlays/Tonight";
 import { Credits } from "./screens/Credits";
+import { PersonPage } from "./screens/PersonPage";
 import { Chest } from "./screens/Chest";
 import { ChestDeck } from "./overlays/ChestDeck";
 import { FilmEdit } from "./overlays/FilmEdit";
@@ -80,6 +81,8 @@ function stackScreen(s: Screen, depth: number) {
       return <FilmPage key={`film-${depth}-${fkey(s.info)}`} info={s.info} />;
     case "credits":
       return <Credits key={`credits-${depth}`} info={s.info} />;
+    case "person":
+      return <PersonPage key={`person-${depth}-${s.kind}${s.id}`} kind={s.kind} id={s.id} name={s.name} photo={s.photo} />;
     case "chest":
       return <Chest key="chest" />;
     case "list":
@@ -183,7 +186,7 @@ const TAB_TITLE: Record<Tab, string> = {
 };
 
 /** Telas com "puxar para recarregar": Início, Quero ver, Diário, Perfil, página do filme e perfil do amigo. */
-const PULL_MODES = new Set(["feed", "lib", "diary", "prof", "film", "friend"]);
+const PULL_MODES = new Set(["feed", "lib", "diary", "prof", "film", "friend", "person"]);
 
 export function App() {
   const { tab, stack, overlays, progress, from } = useNav();
@@ -241,6 +244,7 @@ export function App() {
     ? {
         film: "film",
         credits: "credits",
+        person: "person",
         chest: "chest",
         list: "feed",
         diary: "diary",
@@ -266,6 +270,8 @@ export function App() {
       ? [top.title, top.em].filter(Boolean).join(" ")
       : top.k === "film" || top.k === "credits"
         ? top.info.t
+        : top.k === "person"
+        ? top.name
         : friend
           ? pname(friend)
           : ""

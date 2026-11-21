@@ -581,6 +581,26 @@ export const cloud = {
       return n > 0 && avg >= 0.5 && avg <= 5 ? { avg, n } : null;
     } catch { return null; }
   },
+  /** Quais amigos avaliaram cada um destes filmes (para as páginas de diretor, ator e produtora). */
+  async friendsSeen(keys: string[]): Promise<Map<string, Profile[]>> {
+    const out = new Map<string, Profile[]>();
+    if (!sb || !user || !friends.list.length || !keys.length) return out;
+    try {
+      const ids = friends.list.map((f) => f.id!).filter((id) => UUID.test(id));
+      // Em partes, para o endereço da consulta não ficar grande demais
+      for (let i = 0; i < keys.length; i += 100) {
+        const { data, error } = await sb.from('films').select('user_id,key,data').in('user_id', ids).in('key', keys.slice(i, i + 100));
+        if (error) return out;
+        for (const r of data || []) {
+          const p = friends.list.find((f) => f.id === r.user_id);
+          if (!p || !isRated(cleanFilm(r.data))) continue;
+          const k = r.key as string;
+          out.set(k, [...(out.get(k) || []), p]);
+        }
+      }
+    } catch { /* sem dados */ }
+    return out;
+  },
   /** O que cada amigo achou de um filme. */
   async filmRatings(key: string): Promise<FriendRating[]> {
     if (!sb || !user || !friends.list.length) return [];

@@ -2,15 +2,15 @@
 // que pode "rolar" sozinha como os créditos no fim de um filme.
 import { useEffect, useRef, useState } from 'react';
 import { useAsync } from '../components/hooks';
-import { movieCredits, posterUrl } from '../lib/api';
+import { movieCredits, movieDetails, posterUrl } from '../lib/api';
 import { posterColor, setTint } from '../lib/color';
 import type { FilmInfo } from '../lib/types';
-import { scroller } from '../nav';
+import { nav, scroller } from '../nav';
 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
 /** Foto de uma pessoa, ou as iniciais quando o TMDB não tem foto. */
-function Face({ photo, name, size }: { photo: string; name: string; size: 'w185' | 'h632' }) {
+export function Face({ photo, name, size }: { photo: string; name: string; size: 'w185' | 'h632' }) {
   const [broken, setBroken] = useState(false);
   if (!photo || broken) return <span className="face none">{initials(name)}</span>;
   return <img className="face" src={posterUrl(photo, size)} alt="" loading="lazy" onError={() => setBroken(true)} />;
@@ -18,7 +18,10 @@ function Face({ photo, name, size }: { photo: string; name: string; size: 'w185'
 
 export function Credits({ info }: { info: FilmInfo }) {
   const credits = useAsync(() => (info.id ? movieCredits(info.id).catch(() => null) : Promise.resolve(null)), [info.id]);
+  const companies = useAsync(() => (info.id ? movieDetails(info.id).then((d) => d.companies).catch(() => []) : Promise.resolve([])), [info.id]);
   const [rolling, setRolling] = useState(false);
+  /** Abre a página da pessoa (só quando o TMDB mandou o id dela). */
+  const open = (p: { id: number | null; name: string; photo?: string }) => { if (p.id) nav.openPerson('person', p.id, p.name, p.photo); };
   const roll = useRef<HTMLElement>(null);
 
   // Mesmo fundo colorido da página do filme
@@ -67,10 +70,10 @@ export function Credits({ info }: { info: FilmInfo }) {
           <div className="sech"><h3>Quem fez</h3></div>
           <div className="crkey">
             {credits.key.map((p, i) => (
-              <div className="ck" key={p.name + p.role} style={{ animationDelay: `${i * 60}ms` }}>
+              <button className="ck" key={p.name + p.role} style={{ animationDelay: `${i * 60}ms` }} disabled={!p.id} onClick={() => open(p)}>
                 <Face photo={p.photo} name={p.name} size="h632" />
                 <div><span>{p.role}</span><b>{p.name}</b></div>
-              </div>
+              </button>
             ))}
           </div>
         </section>
@@ -81,11 +84,25 @@ export function Credits({ info }: { info: FilmInfo }) {
           <div className="sech"><h3>Elenco</h3></div>
           <div className="crcast">
             {credits.cast.map((p) => (
-              <div className="cc" key={p.name + p.character}>
+              <button className="cc" key={p.name + p.character} disabled={!p.id} onClick={() => open(p)}>
                 <Face photo={p.photo} name={p.name} size="w185" />
                 <b>{p.name}</b>
                 {p.character && <small>{p.character}</small>}
-              </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {companies && companies.length > 0 && (
+        <section className="hsec">
+          <div className="sech"><h3>Produtoras</h3></div>
+          <div className="crstudios">
+            {companies.map((c) => (
+              <button key={c.id} onClick={() => nav.openPerson('company', c.id, c.name, c.logo)}>
+                {c.logo ? <img src={posterUrl(c.logo, 'w185')} alt={c.name} loading="lazy" /> : <b>{c.name}</b>}
+                {c.logo && <small>{c.name}</small>}
+              </button>
             ))}
           </div>
         </section>
@@ -100,7 +117,12 @@ export function Credits({ info }: { info: FilmInfo }) {
           {credits.depts.map((d) => (
             <div className="rd" key={d.name}>
               <h4>{d.name}</h4>
-              {d.people.map((p) => <div className="rp" key={p.job + p.name}><span>{p.job}</span><b>{p.name}</b></div>)}
+              {d.people.map((p) => (
+                <div className="rp" key={p.job + p.name}>
+                  <span>{p.job}</span>
+                  {p.id ? <button onClick={() => open(p)}>{p.name}</button> : <b>{p.name}</b>}
+                </div>
+              ))}
             </div>
           ))}
           <p className="fin">{info.t}</p>
