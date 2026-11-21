@@ -29,36 +29,40 @@ export async function searchMovies(q: string, signal?: AbortSignal): Promise<Sea
 }
 
 export type DiscoverList = 'now' | 'trending' | 'classics' | 'similar';
-const discoverCache = new Map<string, Promise<SearchResult[]>>();
-
-/** Listas da tela Início (em cartaz, em alta, clássicos, parecidos com um filme). Guardadas enquanto o app está aberto. */
-export function discover(list: DiscoverList, id?: number): Promise<SearchResult[]> {
-  const key = list + (id ? ':' + id : '');
-  let p = discoverCache.get(key);
-  if (!p) {
-    p = fetch(`${API_BASE}api/discover?list=${list}${id ? '&id=' + id : ''}`)
-      .then((r) => { if (!r.ok) throw new Error('lista indisponível'); return r.json(); })
-      .then(cleanResults);
-    discoverCache.set(key, p);
-    p.catch(() => discoverCache.delete(key));
-  }
-  return p;
-}
-
 export type Mood = 'chorar' | 'rir' | 'br' | 'curto';
-/** Explorar por clima (aba Buscar): listas do TMDB por gênero, país e duração. Guardadas enquanto o app está aberto. */
-export function moodFilms(m: Mood): Promise<SearchResult[]> {
-  const key = 'mood:' + m;
-  let p = discoverCache.get(key);
+
+/** Uma página de uma lista do TMDB: os filmes, o número dela e quantas páginas a lista tem. */
+export interface ListPage { results: SearchResult[]; page: number; totalPages: number }
+const pageCache = new Map<string, Promise<ListPage>>();
+
+/** Busca uma página de /api/discover. Guardada enquanto o app está aberto. */
+function listPage(query: string, page: number): Promise<ListPage> {
+  const key = query + '&page=' + page;
+  let p = pageCache.get(key);
   if (!p) {
-    p = fetch(`${API_BASE}api/discover?list=mood&m=${m}`)
+    p = fetch(`${API_BASE}api/discover?${key}`)
       .then((r) => { if (!r.ok) throw new Error('lista indisponível'); return r.json(); })
-      .then(cleanResults);
-    discoverCache.set(key, p);
-    p.catch(() => discoverCache.delete(key));
+      .then((d: { results?: unknown[]; page?: unknown; totalPages?: unknown }) => {
+        const n = Number.isInteger(d.page) ? (d.page as number) : page;
+        const total = Number.isInteger(d.totalPages) ? (d.totalPages as number) : n;
+        return { results: cleanResults(d), page: n, totalPages: Math.max(total, n) };
+      });
+    pageCache.set(key, p);
+    p.catch(() => pageCache.delete(key));
   }
   return p;
 }
+
+/** Uma página das listas da tela Início (em cartaz, em alta, clássicos, parecidos com um filme). */
+export const discoverPage = (list: DiscoverList, page: number, id?: number) =>
+  listPage(`list=${list}${id ? '&id=' + id : ''}`, page);
+
+/** Só a primeira página, para as fileiras e quem precisa de uma amostra. */
+export const discover = (list: DiscoverList, id?: number): Promise<SearchResult[]> =>
+  discoverPage(list, 1, id).then((p) => p.results);
+
+/** Explorar por clima (aba Buscar): uma página das listas do TMDB por gênero, país e duração. */
+export const moodPage = (m: Mood, page: number) => listPage(`list=mood&m=${m}`, page);
 
 /** Série do filme (vinda do servidor): confere cada campo antes de usar. */
 function readCollection(raw: unknown): MovieDetails['collection'] {
