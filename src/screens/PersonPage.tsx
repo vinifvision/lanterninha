@@ -1,7 +1,7 @@
 // Página de uma pessoa (diretor, ator, roteirista...) ou de uma produtora (ex.: Marvel, Neon):
 // todos os filmes dela, com os que você já viu marcados, quanto da obra você já viu,
 // a sua média para ela e quais amigos também viram cada filme.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { useAsync } from '../components/hooks';
 import { MineBadge } from '../components/MineBadge';
@@ -14,10 +14,12 @@ import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt } from '../lib/format';
 import { refresh, useRefresh } from '../lib/refresh';
 import type { Film, Profile } from '../lib/types';
-import { nav } from '../nav';
+import { nav, scroller } from '../nav';
 import { Face } from './Credits';
 
 type Sort = 'pop' | 'new';
+/** Quantos pôsteres desenhar de cada vez: com 300 de uma vez a rolagem fica pesada no celular. */
+const STEP = 36;
 const ALL = 'Tudo';
 const today = () => new Date().toISOString().slice(0, 10);
 /** Ainda não lançou (ou o TMDB não sabe quando): não conta no "quanto você viu". */
@@ -53,6 +55,21 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
     else list.sort((a, b) => (b.date || '9999').localeCompare(a.date || '9999'));
     return list;
   }, [inRole, unseen, sort, mine]);
+
+  // Desenha os pôsteres aos poucos, conforme a pessoa desce
+  const [limit, setLimit] = useState(STEP);
+  useEffect(() => setLimit(STEP), [current, unseen, sort]);
+  const end = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = end.current;
+    if (!el || limit >= shown.length) return;
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) setLimit((n) => n + STEP); }, {
+      root: scroller(),
+      rootMargin: '0px 0px 900px 0px',
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [limit, shown.length]);
 
   // Quanto da obra você já viu, e a sua média para ela
   const out = inRole.filter((f) => !upcoming(f, now));
@@ -123,14 +140,14 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
 
       <div className="v2grid pgrid">
         {data === undefined && [0, 1, 2, 3, 4, 5].map((i) => <span className="hp sk" key={i}><span className="ph" /></span>)}
-        {shown.map((f, i) => {
+        {shown.slice(0, limit).map((f, i) => {
           const h = mine.get('m' + f.id);
           const friends = crowd?.get('m' + f.id) || [];
           return (
             <button
-              className={`hp${seen(h) ? ' got' : ''}`}
+              className={`hp${seen(h) ? ' got' : ''}${i < 12 ? ' in' : ''}`}
               key={f.id}
-              style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
+              style={i < 12 ? { animationDelay: `${i * 35}ms` } : undefined}
               onClick={() => nav.openFilm({ id: f.id, t: f.title, y: f.year, o: f.original, img: f.poster })}
             >
               <span className="ph">
@@ -149,6 +166,7 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
           );
         })}
       </div>
+      {limit < shown.length && <div ref={end} className="pmore" />}
       <p className="credit">Filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a></p>
     </div>
   );
