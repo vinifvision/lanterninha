@@ -10,6 +10,7 @@ export type Screen =
   | { k: 'credits'; info: FilmInfo }
   | { k: 'chest' }
   | { k: 'diary' }
+  | { k: 'guide' }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean; help?: boolean }
   | { k: 'details'; info: FilmInfo; key: string; base: number; classic: boolean; rewatch: RatedFilm | null; replaced: Film | null; answers: number[] }
   | { k: 'result'; info: FilmInfo; key: string; base: number; classic: boolean; rewatch: RatedFilm | null; replaced: Film | null; answers: number[] };
@@ -23,6 +24,7 @@ export type Overlay =
   | { k: 'settings' }
   | { k: 'newPassword' }
   | { k: 'signup' }
+  | { k: 'welcome' }
   | { k: 'ticket'; key: string }
   | { k: 'chestDeck' }
   | { k: 'filmEdit'; key: string }

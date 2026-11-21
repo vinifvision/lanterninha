@@ -7,6 +7,7 @@ import { Overlay, OverlayHeader } from '../components/Overlay';
 import { cloud, useCloud } from '../lib/cloud';
 import { SOUND_ENABLED, sfx, useSound } from '../lib/sfx';
 import { nav } from '../nav';
+import { guide } from '../lib/guide';
 import { resetLibraryView } from '../screens/Library';
 
 const SYNC_TEXT = { ok: 'Tudo salvo na conta', busy: 'Sincronizando…', err: 'Sem conexão. Tento de novo depois.', off: 'Aguardando' };
@@ -58,6 +59,10 @@ export function Settings() {
           <button className="plain" id="snow" onClick={() => void cloud.syncNow()}>Sincronizar agora</button>
         </>
       )}
+
+      <div className="sech" style={{ marginTop: 30 }}><h3>Ajuda</h3></div>
+      <button className="plain" id="cfguide" onClick={guide.replay}>Rever o tutorial</button>
+      <p className="setnote">Mostra de novo, passo a passo, como dar uma nota.</p>
 
       <Backup />
       <p className="setnote">O backup guarda seus filmes em um arquivo, para o caso de você querer uma cópia fora da conta.</p>

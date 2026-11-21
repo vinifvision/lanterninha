@@ -11,6 +11,7 @@ import { isRated, useFilms } from "../lib/films";
 import { sfx } from "../lib/sfx";
 import type { Profile, TopItem } from "../lib/types";
 import { nav } from "../nav";
+import { guide } from "../lib/guide";
 import { photoToAvatar, PickTop } from "./EditProfile";
 
 type Step =
@@ -169,6 +170,8 @@ export function Signup() {
       setMsg({ t: "Criando sua conta…" });
       const r = await cloud.signUp(username, email.trim(), pw);
       setBusy(false);
+      // Conta nova: a primeira nota guiada aparece assim que a pessoa terminar (ou entrar, se precisar confirmar o e-mail)
+      if (r === "CONFIRM" || !r) guide.mark();
       if (r === "CONFIRM")
         return setMsg({
           t: "Conta criada. Confirme pelo e-mail que enviamos e depois entre.",

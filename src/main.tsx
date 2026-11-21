@@ -14,6 +14,7 @@ import './styles/v2-avaliar.css';
 import './styles/v2-voce.css';
 import './styles/v2-inicio.css';
 import './styles/v2-descobrir.css';
+import './styles/v2-boasvindas.css';
 
 cloud.init();
 setupNative();
