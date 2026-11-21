@@ -11,6 +11,8 @@ export interface CloudUser { id: string; email: string }
 export interface CloudState {
   /** O cliente do Supabase carregou */
   ready: boolean;
+  /** Já se sabe se há alguém logado (a sessão salva foi conferida) */
+  checked: boolean;
   user: CloudUser | null;
   profile: Profile | null;
   /** O banco já tem os campos de perfil (nome, bio, foto, top 4) */
@@ -72,6 +74,7 @@ let recs: Rec[] = [];
 let tags: CineTag[] = [], sent: CloudState['sent'] = {}, withMe: CloudState['withMe'] = {}, tagsOk = false;
 let sync: SyncState = 'off';
 let recovery = false, linkError = '';
+let checked = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let busy = false, again = false, lastPull = 0, paused = false;
 
@@ -82,10 +85,10 @@ let synced: Record<string, string> = lsGet('lantSynced', {});
 let owner: string | null = lsGet<string | null>('lantOwner', null);
 const keep = () => { lsSet('lantSynced', synced); lsSet('lantOwner', owner); };
 
-let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
+let snapshot: CloudState = { ready: false, checked, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
 const listeners = new Set<() => void>();
 function emit() {
-  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
+  snapshot = { ready: !!sb, checked, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
   listeners.forEach((l) => l());
 }
 const setSync = (s: SyncState) => { sync = s; emit(); };
@@ -281,7 +284,9 @@ let tagTimer: ReturnType<typeof setTimeout> | undefined;
 
 async function onAuth(sessionUser: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
   const u: CloudUser | null = sessionUser ? { id: sessionUser.id, email: sessionUser.email || '' } : null;
-  if ((u?.id || null) === (user?.id || null)) return;
+  const first = !checked;
+  checked = true;
+  if ((u?.id || null) === (user?.id || null)) { if (first) emit(); return; }
   user = u; profile = null; friends = emptyFriends(); recs = []; social = false;
   tags = []; sent = {}; withMe = {}; tagsOk = false;
   if (!u || !sb) { sync = 'off'; emit(); return; }

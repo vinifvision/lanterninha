@@ -19,6 +19,10 @@ import { ReviewEditor } from "./overlays/ReviewEditor";
 import { ReviewsPage } from "./overlays/ReviewsPage";
 import { NewPassword } from "./overlays/NewPassword";
 import { Signup } from "./overlays/Signup";
+import { Welcome } from "./overlays/Welcome";
+import { Guide } from "./screens/Guide";
+import { guide } from "./lib/guide";
+import { films as filmStore } from "./lib/films";
 import { Settings } from "./overlays/Settings";
 import { ShareSheet } from "./overlays/ShareSheet";
 import { TicketSheet } from "./overlays/TicketSheet";
@@ -77,6 +81,8 @@ function stackScreen(s: Screen, depth: number) {
       return <Chest key="chest" />;
     case "diary":
       return <Diary key="diary" />;
+    case "guide":
+      return <Guide key={`guide-${depth}`} />;
     case "friend":
       return <FriendPage key={`friend-${s.id}`} id={s.id} />;
     case "quiz":
@@ -144,6 +150,8 @@ function overlayView(o: OverlayState, i: number) {
       return <NewPassword key={i} />;
     case "signup":
       return <Signup key={i} />;
+    case "welcome":
+      return <Welcome key={i} />;
     case "ticket":
       return <TicketSheet key={i} filmKey={o.key} />;
     case "chestDeck":
@@ -196,9 +204,21 @@ export function App() {
       else nav.tab("prof");
     }
   }, [account.recovery, account.linkError, account.user]);
+  // Primeira vez no app, sem conta e sem filmes: tela de boas-vindas (uma vez só)
+  useEffect(() => {
+    if (!account.checked || account.user || filmStore.all.length || !guide.welcomeDue()) return;
+    guide.welcomeSeen();
+    nav.open({ k: "welcome" });
+  }, [account.checked, account.user]);
+  // Conta recém-criada: assim que a pessoa sai do cadastro, começa a primeira nota guiada
+  useEffect(() => {
+    if (!account.user || overlays.length || !guide.pending()) return;
+    guide.start();
+  }, [account.user, overlays.length]);
   const top = stack[stack.length - 1];
   const main = !top;
-  const rating = top?.k === "quiz" || top?.k === "details" || top?.k === "result";
+  const rating =
+    top?.k === "quiz" || top?.k === "details" || top?.k === "result" || top?.k === "guide";
   // Nome do "modo" da tela, usado pelo CSS para ajustar larguras e alinhamento
   const mode = top
     ? {
@@ -206,6 +226,7 @@ export function App() {
         credits: "credits",
         chest: "chest",
         diary: "diary",
+        guide: "guide",
         friend: "friend",
         quiz: "q",
         details: "det",
