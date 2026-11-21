@@ -16,6 +16,15 @@ export async function appBuild(): Promise<number | null> {
   } catch { return null; }
 }
 
+/** Nome da versão do APK instalado (o versionName, ex.: "1.2"). No site, devolve null. */
+export async function appVersion(): Promise<string | null> {
+  // Nos testes automáticos, a versão pode ser simulada aqui
+  const fake = (window as unknown as { __LANTERNINHA_TEST_VERSION__?: string }).__LANTERNINHA_TEST_VERSION__;
+  if (typeof fake === 'string') return fake;
+  if (!isNativeApp) return null;
+  try { return (await NativeApp.getInfo()).version || null; } catch { return null; }
+}
+
 export function setupNative() {
   if (!isNativeApp) return;
   document.documentElement.classList.add('native');

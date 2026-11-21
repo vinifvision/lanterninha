@@ -8,10 +8,13 @@ let noiseBuf: AudioBuffer | null = null;
 let on = true;
 try { on = localStorage.getItem('lantSom') !== '0'; } catch { /* mantém ligado */ }
 
+/** Sons desligados por enquanto (vão ser refeitos). A vibração continua. Para religar, mude para true. */
+export const SOUND_ENABLED = false;
+
 const listeners = new Set<() => void>();
 
 function audio(): AudioContext | null {
-  if (!on) return null;
+  if (!SOUND_ENABLED || !on) return null;
   try {
     const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return null;

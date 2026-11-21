@@ -1,5 +1,5 @@
 // Conversa com as funções em /api (que por sua vez falam com o TMDB usando a chave guardada no servidor).
-import { API_BASE, IMG } from './config';
+import { API_BASE, IMG, SITE_URL } from './config';
 import { POSTER_PATH } from './format';
 import type { MovieDetails, SearchResult } from './types';
 
@@ -29,20 +29,55 @@ export async function searchMovies(q: string, signal?: AbortSignal): Promise<Sea
 }
 
 export type DiscoverList = 'now' | 'trending' | 'classics' | 'similar';
-const discoverCache = new Map<string, Promise<SearchResult[]>>();
+export type Mood = 'chorar' | 'rir' | 'br' | 'curto';
 
-/** Listas da tela Início (em cartaz, em alta, clássicos, parecidos com um filme). Guardadas enquanto o app está aberto. */
-export function discover(list: DiscoverList, id?: number): Promise<SearchResult[]> {
-  const key = list + (id ? ':' + id : '');
-  let p = discoverCache.get(key);
+/** Uma página de uma lista do TMDB: os filmes, o número dela e quantas páginas a lista tem. */
+export interface ListPage { results: SearchResult[]; page: number; totalPages: number }
+const pageCache = new Map<string, Promise<ListPage>>();
+
+/** Busca uma página de /api/discover. Guardada enquanto o app está aberto. */
+function listPage(query: string, page: number): Promise<ListPage> {
+  const key = query + '&page=' + page;
+  let p = pageCache.get(key);
   if (!p) {
-    p = fetch(`${API_BASE}api/discover?list=${list}${id ? '&id=' + id : ''}`)
+    p = fetch(`${API_BASE}api/discover?${key}`)
       .then((r) => { if (!r.ok) throw new Error('lista indisponível'); return r.json(); })
-      .then(cleanResults);
-    discoverCache.set(key, p);
-    p.catch(() => discoverCache.delete(key));
+      .then((d: { results?: unknown[]; page?: unknown; totalPages?: unknown }) => {
+        const n = Number.isInteger(d.page) ? (d.page as number) : page;
+        const total = Number.isInteger(d.totalPages) ? (d.totalPages as number) : n;
+        return { results: cleanResults(d), page: n, totalPages: Math.max(total, n) };
+      });
+    pageCache.set(key, p);
+    p.catch(() => pageCache.delete(key));
   }
   return p;
+}
+
+/** Uma página das listas da tela Início (em cartaz, em alta, clássicos, parecidos com um filme). */
+export const discoverPage = (list: DiscoverList, page: number, id?: number) =>
+  listPage(`list=${list}${id ? '&id=' + id : ''}`, page);
+
+/** Só a primeira página, para as fileiras e quem precisa de uma amostra. */
+export const discover = (list: DiscoverList, id?: number): Promise<SearchResult[]> =>
+  discoverPage(list, 1, id).then((p) => p.results);
+
+/** Explorar por clima (aba Buscar): uma página das listas do TMDB por gênero, país e duração. */
+export const moodPage = (m: Mood, page: number) => listPage(`list=mood&m=${m}`, page);
+
+/** Série do filme (vinda do servidor): confere cada campo antes de usar. */
+function readCollection(raw: unknown): MovieDetails['collection'] {
+  const c = raw as { name?: unknown; parts?: unknown } | null;
+  if (!c || !Array.isArray(c.parts)) return null;
+  const parts = c.parts
+    .map((x) => x as { id?: unknown; title?: unknown; year?: unknown; poster?: unknown })
+    .filter((x) => typeof x.id === 'number' && typeof x.title === 'string')
+    .map((x) => ({
+      id: x.id as number,
+      t: x.title as string,
+      y: typeof x.year === 'string' ? x.year : '',
+      img: typeof x.poster === 'string' && POSTER_PATH.test(x.poster) ? x.poster : '',
+    }));
+  return parts.length > 1 ? { name: typeof c.name === 'string' ? c.name : '', parts } : null;
 }
 
 const detailsCache = new Map<number, Promise<MovieDetails>>();
@@ -63,12 +98,14 @@ export function movieDetails(id: number): Promise<MovieDetails> {
       return {
         overview: typeof m.overview === 'string' ? m.overview : '',
         runtime: typeof m.runtime === 'number' ? m.runtime : 0,
+        release: typeof m.release === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.release) ? m.release : '',
         genres: Array.isArray(m.genres) ? m.genres.filter((g): g is string => typeof g === 'string') : [],
         director: typeof m.director === 'string' ? m.director : '',
         backdrop: typeof m.backdrop === 'string' && POSTER_PATH.test(m.backdrop) ? m.backdrop : '',
         cast: Array.isArray(m.cast) ? m.cast.filter((g): g is string => typeof g === 'string').slice(0, 5) : [],
         trailer: typeof m.trailer === 'string' && /^[\w-]{6,20}$/.test(m.trailer) ? m.trailer : '',
         providers: { stream: people(pv.stream), rent: people(pv.rent), buy: people(pv.buy) },
+        collection: readCollection(m.collection),
       };
     })();
     detailsCache.set(id, p);
@@ -100,12 +137,18 @@ export function movieRatings(id: number): Promise<Ratings> {
   let p = ratingsCache.get(id);
   if (!p) {
     const n = (v: unknown, max: number) => (typeof v === 'number' && v >= 0 && v <= max ? v : null);
-    p = fetch(`${API_BASE}api/ratings?id=${id}`)
-      .then((r) => { if (!r.ok) throw new Error('notas indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
-      .then((d) => ({
-        imdbId: typeof d.imdbId === 'string' && /^tt\d{5,10}$/.test(d.imdbId) ? d.imdbId : '',
-        tmdb: n(d.tmdb, 10), imdb: n(d.imdb, 10), rt: n(d.rt, 100), mc: n(d.mc, 100),
-      }));
+    const get = (base: string) =>
+      fetch(`${base}api/ratings?id=${id}`)
+        .then((r) => { if (!r.ok) throw new Error('notas indisponíveis'); return r.json() as Promise<Record<string, unknown>>; })
+        .then((d): Ratings => ({
+          imdbId: typeof d.imdbId === 'string' && /^tt\d{5,10}$/.test(d.imdbId) ? d.imdbId : '',
+          tmdb: n(d.tmdb, 10), imdb: n(d.imdb, 10), rt: n(d.rt, 100), mc: n(d.mc, 100),
+        }));
+    // Nas prévias da Vercel a chave da OMDb pode não existir: sem IMDb e sem RT, pergunta ao site principal.
+    const local = API_BASE !== SITE_URL && location.origin + '/' !== SITE_URL;
+    p = get(API_BASE).then((r) =>
+      local && r.imdb == null && r.rt == null ? get(SITE_URL).catch(() => r) : r,
+    );
     ratingsCache.set(id, p);
     p.catch(() => ratingsCache.delete(id));
   }

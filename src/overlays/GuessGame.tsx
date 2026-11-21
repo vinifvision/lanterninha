@@ -10,8 +10,8 @@ import type { Profile, RatedFilm } from '../lib/types';
 import { nav } from '../nav';
 
 /** Nota exata vale 3, meia estrela de diferença vale 2, uma estrela vale 1. */
-const pointsFor = (guess: number, actual: number) => { const d = Math.abs(guess - actual); return d === 0 ? 3 : d <= 0.5 ? 2 : d <= 1 ? 1 : 0; };
-const VERDICT = ['Errou feio.', 'Passou perto.', 'Quase!', 'Na mosca!'];
+export const pointsFor = (guess: number, actual: number) => { const d = Math.abs(guess - actual); return d === 0 ? 3 : d <= 0.5 ? 2 : d <= 1 ? 1 : 0; };
+export const VERDICT = ['Errou feio.', 'Passou perto.', 'Quase!', 'Na mosca!'];
 
 export function GuessGame({ friend, films: pool }: { friend: Profile; films: RatedFilm[] }) {
   const [i, setI] = useState(0);

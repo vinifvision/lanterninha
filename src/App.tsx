@@ -1,7 +1,7 @@
 // A moldura do app: barra de cima, a tela atual, as abas e o que estiver aberto por cima.
 import { useEffect, useState } from "react";
-import { GearIcon, TAB_ICONS } from "./components/icons";
-import { sfx, useSound } from "./lib/sfx";
+import { GearIcon, TabIcon } from "./components/icons";
+import { SOUND_ENABLED, sfx, useSound } from "./lib/sfx";
 import { pname } from "./lib/format";
 import {
   nav,
@@ -19,6 +19,12 @@ import { ReviewEditor } from "./overlays/ReviewEditor";
 import { ReviewsPage } from "./overlays/ReviewsPage";
 import { NewPassword } from "./overlays/NewPassword";
 import { Signup } from "./overlays/Signup";
+import { Welcome } from "./overlays/Welcome";
+import { Novidades } from "./overlays/Novidades";
+import { novidades } from "./lib/novidades";
+import { Guide } from "./screens/Guide";
+import { guide } from "./lib/guide";
+import { films as filmStore } from "./lib/films";
 import { Settings } from "./overlays/Settings";
 import { ShareSheet } from "./overlays/ShareSheet";
 import { TicketSheet } from "./overlays/TicketSheet";
@@ -29,29 +35,37 @@ import { ChestDeck } from "./overlays/ChestDeck";
 import { FilmEdit } from "./overlays/FilmEdit";
 import { FilmPage } from "./screens/FilmPage";
 import { FriendPage } from "./screens/FriendPage";
+import { FullList } from "./screens/FullList";
 import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
+import { Diary } from "./screens/Diary";
 import { Profile } from "./screens/Profile";
+import { Search } from "./screens/Search";
 import { Quiz } from "./screens/Quiz";
 import { RateHome } from "./screens/RateHome";
 import { Result } from "./screens/Result";
+import { Details } from "./screens/Details";
 import { cloud, useCloud } from "./lib/cloud";
 import { fkey } from "./lib/films";
 import { Analytics } from "@vercel/analytics/react";
 import { UpdateSheet } from "./components/UpdateSheet";
 import { PullRefresh } from "./components/PullRefresh";
 
+// Ordem da barra flutuante.
 const TABS: [Tab, string][] = [
-  ["rate", "Avaliar"],
   ["home", "Início"],
-  ["lib", "Meus filmes"],
-  ["prof", "Perfil"],
+  ["search", "Buscar"],
+  ["rate", "Avaliar"],
+  ["lib", "Quero ver"],
+  ["prof", "Você"],
 ];
 
 function tabScreen(tab: Tab) {
   switch (tab) {
     case "rate":
       return <RateHome />;
+    case "search":
+      return <Search />;
     case "home":
       return <Home />;
     case "lib":
@@ -68,6 +82,12 @@ function stackScreen(s: Screen, depth: number) {
       return <Credits key={`credits-${depth}`} info={s.info} />;
     case "chest":
       return <Chest key="chest" />;
+    case "list":
+      return <FullList key={`list-${depth}`} title={s.title} em={s.em} list={s.list} id={s.id} />;
+    case "diary":
+      return <Diary key="diary" />;
+    case "guide":
+      return <Guide key={`guide-${depth}`} />;
     case "friend":
       return <FriendPage key={`friend-${s.id}`} id={s.id} />;
     case "quiz":
@@ -79,6 +99,20 @@ function stackScreen(s: Screen, depth: number) {
           rewatch={s.rewatch}
           answers={s.answers}
           direct={s.direct}
+          help={s.help}
+        />
+      );
+    case "details":
+      return (
+        <Details
+          key={`det-${depth}`}
+          info={s.info}
+          filmKey={s.key}
+          base={s.base}
+          classic={s.classic}
+          rewatch={s.rewatch}
+          replaced={s.replaced}
+          answers={s.answers}
         />
       );
     case "result":
@@ -121,6 +155,10 @@ function overlayView(o: OverlayState, i: number) {
       return <NewPassword key={i} />;
     case "signup":
       return <Signup key={i} />;
+    case "welcome":
+      return <Welcome key={i} />;
+    case "novidades":
+      return <Novidades key={i} />;
     case "ticket":
       return <TicketSheet key={i} filmKey={o.key} />;
     case "chestDeck":
@@ -138,21 +176,23 @@ function overlayView(o: OverlayState, i: number) {
 
 const TAB_TITLE: Record<Tab, string> = {
   rate: "",
+  search: "Buscar",
   home: "Início",
-  lib: "Meus filmes",
-  prof: "Perfil",
+  lib: "Quero ver",
+  prof: "Você",
 };
 
-/** Telas com "puxar para recarregar": Início, Meus filmes, Perfil, página do filme e perfil do amigo. */
-const PULL_MODES = new Set(["feed", "lib", "prof", "film", "friend"]);
+/** Telas com "puxar para recarregar": Início, Quero ver, Diário, Perfil, página do filme e perfil do amigo. */
+const PULL_MODES = new Set(["feed", "lib", "diary", "prof", "film", "friend"]);
 
 export function App() {
-  const { tab, stack, overlays, progress } = useNav();
+  const { tab, stack, overlays, progress, from } = useNav();
   const soundOn = useSound();
   const account = useCloud();
   // Bolinhas nas abas: algo esperando a pessoa (indicação, convite de ingresso, pedido de amizade)
   const badge: Record<Tab, boolean> = {
     rate: false,
+    search: false,
     home: account.tags.length > 0,
     lib: account.recs.length > 0,
     prof: account.friends.incoming.length > 0,
@@ -171,20 +211,46 @@ export function App() {
       else nav.tab("prof");
     }
   }, [account.recovery, account.linkError, account.user]);
+  // Primeira vez no app, sem conta e sem filmes: tela de boas-vindas (uma vez só)
+  useEffect(() => {
+    if (!account.checked || account.user || filmStore.all.length || !guide.welcomeDue()) return;
+    guide.welcomeSeen();
+    nav.open({ k: "welcome" });
+  }, [account.checked, account.user]);
+  // Versão nova: quem já tinha conta vê a tela de Novidades uma vez (no app e no site)
+  useEffect(() => {
+    if (!account.user || overlays.length || stack.length || guide.pending() || !novidades.due()) return;
+    const t = setTimeout(() => {
+      if (nav.state.overlays.length || !novidades.due()) return;
+      novidades.seen();
+      nav.open({ k: "novidades" });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [account.user, overlays.length, stack.length]);
+  // Conta recém-criada: assim que a pessoa sai do cadastro, começa a primeira nota guiada
+  useEffect(() => {
+    if (!account.user || overlays.length || !guide.pending()) return;
+    guide.start();
+  }, [account.user, overlays.length]);
   const top = stack[stack.length - 1];
   const main = !top;
-  const rating = top?.k === "quiz" || top?.k === "result";
+  const rating =
+    top?.k === "quiz" || top?.k === "details" || top?.k === "result" || top?.k === "guide";
   // Nome do "modo" da tela, usado pelo CSS para ajustar larguras e alinhamento
   const mode = top
     ? {
         film: "film",
         credits: "credits",
         chest: "chest",
+        list: "feed",
+        diary: "diary",
+        guide: "guide",
         friend: "friend",
         quiz: "q",
+        details: "det",
         result: "res",
       }[top.k]
-    : { rate: "home", home: "feed", lib: "lib", prof: "prof" }[tab];
+    : { rate: "rate", search: "search", home: "feed", lib: "lib", prof: "prof" }[tab];
   const alignTop = mode !== "home" && mode !== "q" && mode !== "res";
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend =
@@ -194,6 +260,10 @@ export function App() {
   const title = top
     ? top.k === "chest"
       ? "Baú da infância"
+      : top.k === "diary"
+      ? "Diário"
+      : top.k === "list"
+      ? [top.title, top.em].filter(Boolean).join(" ")
       : top.k === "film" || top.k === "credits"
         ? top.info.t
         : friend
@@ -222,7 +292,7 @@ export function App() {
           <div className={`top${scrolled ? " solid" : ""}`}>
             <div className="topin">
               <button
-                className={`back${main ? " gone" : ""}`}
+                className={`back${main && !from ? " gone" : ""}`}
                 id="back"
                 aria-label="Voltar"
                 onClick={() => nav.back()}
@@ -231,11 +301,11 @@ export function App() {
                   <path d="M15 5l-7 7 7 7" />
                 </svg>
               </button>
-              {top?.k === "quiz" ? (
+              {top?.k === "quiz" && progress !== null ? (
                 <div className="bar" id="bar">
                   <i id="fill" style={{ width: `${(progress ?? 1) * 100}%` }} />
                 </div>
-              ) : main && tab === "rate" ? (
+              ) : main && (tab === "rate" || tab === "home") ? (
                 <div className="brand">
                   <img src="/logo.svg" alt="" width={30} height={30} />
                   Lanterninha
@@ -243,7 +313,7 @@ export function App() {
               ) : (
                 <b className="ttl">{title}</b>
               )}
-              {rating ? (
+              {rating && SOUND_ENABLED ? (
                 <button
                   className={`snd${soundOn ? " on" : ""}`}
                   id="snd"
@@ -298,14 +368,13 @@ export function App() {
           {TABS.map(([k, label]) => (
             <button
               key={k}
-              className={`tab${tab === k ? " on" : ""}`}
+              className={`tab${tab === k ? " on" : ""}${k === "rate" ? " mid" : ""}`}
               data-v={k}
+              aria-label={label}
+              aria-current={tab === k ? "page" : undefined}
               onClick={() => pressTab(k)}
             >
-              <svg viewBox="0 0 24 24">
-                <path d={TAB_ICONS[k]} />
-              </svg>
-              {label}
+              <TabIcon tab={k} />
               {badge[k] && <i className="dot" />}
             </button>
           ))}

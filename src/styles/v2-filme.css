@@ -1,0 +1,669 @@
+/* ===== Redesign v2 · etapa 3: página do filme, reviews e créditos ===== */
+
+/* --- Cabeçalho: título à esquerda, pôster à direita --- */
+.fp2 .fhead2 {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: -120px;
+}
+.fhead2 .ft {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+.fhead2 h1 {
+  margin: 0;
+  font: 400 38px/0.98 var(--serif);
+  letter-spacing: -0.3px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.fhead2 p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #c9c0b2;
+}
+.fhead2 .orig {
+  margin-top: 6px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+}
+.fhead2 .dir b {
+  font-weight: 600;
+  color: var(--text);
+}
+.fposter2 {
+  flex: none;
+  width: 112px;
+  height: 168px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  animation: fp2in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes fp2in {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+}
+/* Notas de fora (IMDb e Rotten Tomatoes): pílulas discretas, número na fonte normal (Inter) */
+.fp2 .scores {
+  gap: 10px;
+  margin: 16px 0 0;
+}
+.fp2 .sc {
+  height: 44px;
+  padding: 0 16px 0 12px;
+  gap: 9px;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: transform 0.15s, background 0.2s;
+}
+.fp2 a.sc:active {
+  opacity: 1;
+  transform: scale(0.96);
+  background: var(--card2);
+}
+.fp2 .sc b {
+  font: 600 17px/1 Inter, sans-serif;
+  letter-spacing: -0.2px;
+}
+.fp2 .sc .brand-imdb {
+  height: 22px;
+}
+.fp2 .sc .brand-rt {
+  height: 22px;
+}
+
+/* --- Avaliar + três atalhos --- */
+.fact2 {
+  margin-top: 20px;
+}
+.fact2 .avaliar {
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--gold);
+  color: #1a1408;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font: 600 17px Inter, sans-serif;
+  box-shadow: 0 10px 30px rgba(242, 201, 127, 0.22);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.fact2 .avaliar:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 14px rgba(242, 201, 127, 0.18);
+}
+.fact2 .avaliar svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  stroke: none;
+}
+.tri {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.tri > button,
+.tri > a {
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font: 500 13px Inter, sans-serif;
+  text-decoration: none;
+  transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+}
+.tri > *:active {
+  transform: scale(0.95);
+}
+.tri svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.tri .play svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  stroke: none;
+}
+.tri [aria-pressed="true"] {
+  background: var(--card2);
+  box-shadow: inset 0 0 0 1px rgba(244, 238, 227, 0.22);
+}
+.tri [aria-pressed="true"] svg {
+  transform: scale(1.12);
+}
+.tri #awant[aria-pressed="true"] svg {
+  fill: currentColor;
+}
+.tri button:disabled {
+  opacity: 0.38;
+}
+.byline2 {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.fp2 .mine2 {
+  margin-top: 18px;
+}
+
+/* --- Sinopse --- */
+.sinopse {
+  margin: 22px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #c9c0b2;
+}
+.sinopse.cut {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mais {
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 500 15px Inter, sans-serif;
+}
+
+/* --- Aviso de streaming --- */
+.aviso {
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+}
+.aviso > svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.aviso .tx {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* --- Nota da galera --- */
+.galera {
+  margin-top: 28px;
+}
+.galera .gh {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.galera h2,
+.disse h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.galera .gh small {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.galera .gh > b {
+  font: 400 44px/1 var(--serif);
+  color: var(--gold);
+}
+.gchart {
+  margin-top: 16px;
+  width: 100%;
+  height: 150px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.gcol {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.gcol .av {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+  font-weight: 600;
+  box-shadow: 0 0 0 2px var(--bg);
+  animation: gface 0.45s 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.gcol .av img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.gcol .gmore {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+@keyframes gface {
+  from { opacity: 0; transform: translateY(8px) scale(0.7); }
+}
+.gbar {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  background: var(--card2);
+  transform-origin: bottom;
+  animation: gbar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.gbar.on {
+  background: var(--gold);
+}
+@keyframes gbar {
+  from { transform: scaleY(0); }
+}
+.gaxis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #8a8378;
+}
+.gaxis span:last-child {
+  color: var(--gold);
+}
+
+/* --- O que a galera disse --- */
+.disse {
+  margin-top: 28px;
+}
+.disse .dh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.disse .dh button {
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font: 500 13px Inter, sans-serif;
+}
+.dsays {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+.dsay {
+  flex: 1;
+  min-width: 0;
+  padding: 14px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  display: block;
+  transition: transform 0.15s;
+}
+.dsay:active {
+  transform: scale(0.97);
+}
+.dsay .who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dsay .av {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.dsay .av img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.dsay .who > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+}
+.dsay p {
+  margin: 10px 0 0;
+  font: italic 400 17px/1.2 var(--serif);
+  color: #ece4d6;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- Cartão de Elenco e equipe --- */
+.ecard {
+  margin-top: 28px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  font: inherit;
+  transition: transform 0.15s;
+}
+.ecard:active {
+  transform: scale(0.98);
+}
+.ecard .faces {
+  flex: none;
+  display: flex;
+  padding-right: 12px;
+}
+.ecard .faces > * {
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  margin-right: -12px;
+  border-radius: 20px;
+  border: 2.5px solid var(--card);
+  object-fit: cover;
+  background: var(--card2);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 13px Inter, sans-serif;
+}
+.ecard .tx {
+  flex: 1;
+  min-width: 0;
+}
+.ecard .tx b {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.ecard .tx small {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ecard .go {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  background: var(--card2);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* --- Tela de Reviews --- */
+.rv2head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.rv2head .rv2p,
+.rv2head .pfb {
+  flex: none;
+  width: 30px;
+  height: 45px;
+  border-radius: 6px;
+  object-fit: cover;
+  overflow: hidden;
+}
+.rv2head .pfb em {
+  display: none;
+}
+.rv2head small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rv2head h2 {
+  margin: 0;
+  font: 400 22px/1.05 var(--serif);
+}
+.rv2 {
+  margin-top: 12px;
+  padding: 18px 16px;
+  border-radius: 22px;
+  background: var(--card);
+  animation: rv2in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes rv2in {
+  from { opacity: 0; transform: translateY(10px); }
+}
+.rv2.me {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(160deg, #221d16, var(--card) 70%);
+  box-shadow: inset 0 0 0 1px rgba(242, 201, 127, 0.2);
+}
+.rv2.hl {
+  box-shadow: inset 0 0 0 1px rgba(244, 238, 227, 0.25);
+}
+.rv2 .who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rv2 .av {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.rv2 .av img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.rv2 .who > div:not(.av) {
+  flex: 1;
+  min-width: 0;
+}
+.rv2 .who b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.rv2 .who small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rv2 .who small i {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--gold);
+}
+.rv2 .pill {
+  flex: none;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card2);
+  color: var(--text);
+  font: 600 13px Inter, sans-serif;
+}
+.rv2 .pill.gold {
+  background: var(--gold);
+  color: #1a1408;
+}
+.rv2 .pill[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px rgba(244, 238, 227, 0.3);
+}
+.rv2 .acts2 {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.rv2 .txt {
+  margin: 14px 0 0;
+  font: 400 22px/1.22 var(--serif);
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.rv2 .hint {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.rv2 .rvlnk {
+  margin-top: 8px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 500 13px Inter, sans-serif;
+}
+.rv2sec {
+  margin-top: 22px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.rv2sec h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.rv2sec span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* --- Créditos: títulos e nomes na serifada --- */
+.credits .crhead h1 {
+  font: 400 40px/1 var(--serif);
+  letter-spacing: -0.2px;
+}
+.credits .sech h3 {
+  font: 400 28px/1.1 var(--serif);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+.credits .ck b {
+  font: 400 21px/1.05 var(--serif);
+}
+.credits .rollhead button.on {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Espaço entre "Nota da galera" vazia e a "Nota no Lanterninha" */
+.fp2 .galera + .lstats {
+  margin-top: 28px;
+}
+.galera .gh > div {
+  min-width: 0;
+}
+
+/* --- Indicar: selecionar amigos sem "pulo" --- */
+.frs.pick .fr {
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border: 0;
+  border-radius: 16px;
+  transition: background 0.25s ease, transform 0.15s ease;
+}
+.frs.pick .fr.sel {
+  padding: 10px 12px;
+  background: var(--gold-soft);
+}
+.frs.pick .fr:active {
+  transform: scale(0.98);
+}
+.frs.pick .fr .ck {
+  position: relative;
+  transition: border-color 0.2s, background 0.2s, transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.frs.pick .fr.sel .ck {
+  transform: scale(1.1);
+}
+.frs.pick .fr .ck::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid #1a1408;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 0.05s;
+}
+.frs.pick .fr.sel .ck::after {
+  transform: rotate(45deg) scale(1);
+}

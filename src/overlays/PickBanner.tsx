@@ -31,7 +31,7 @@ export function PickBanner({ current, onDone, onClose }: { current: string; onDo
         <OverlayHeader
           left={<button id="bx" onClick={film ? () => setFilm(null) : onClose}>Voltar</button>}
           title={film ? film.t : 'Banner'}
-          right={!film && current ? <button id="brm" style={{ color: '#ff5a52' }} onClick={() => onDone('')}>Remover</button> : <span style={{ width: 60 }} />}
+          right={!film && current ? <button id="brm" style={{ color: '#e8494f' }} onClick={() => onDone('')}>Remover</button> : <span style={{ width: 60 }} />}
         />
         {film ? <Scenes film={film} current={current} onDone={onDone} /> : (
           <>

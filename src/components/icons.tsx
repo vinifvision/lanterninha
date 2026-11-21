@@ -26,3 +26,20 @@ export const TAB_ICONS = {
   lib: 'M4 3h7v8H4zM13 3h7v8h-7zM4 13h7v8H4zM13 13h7v8h-7z',
   prof: 'M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z',
 } as const;
+
+const S = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
+/** Ícones da barra de abas flutuante (traço fino; o do meio é a estrela cheia). */
+export function TabIcon({ tab }: { tab: 'home' | 'search' | 'rate' | 'lib' | 'prof' }) {
+  switch (tab) {
+    case 'home':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" /></svg>;
+    case 'search':
+      return <svg viewBox="0 0 24 24" {...S}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
+    case 'rate':
+      return <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2 6.3 20.3l1.2-6.4L2.8 9.5l6.4-.8z" /></svg>;
+    case 'lib':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M6 3h12v18l-6-4-6 4z" /></svg>;
+    case 'prof':
+      return <svg viewBox="0 0 24 24" {...S}><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" /></svg>;
+  }
+}

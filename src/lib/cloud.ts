@@ -11,6 +11,8 @@ export interface CloudUser { id: string; email: string }
 export interface CloudState {
   /** O cliente do Supabase carregou */
   ready: boolean;
+  /** Já se sabe se há alguém logado (a sessão salva foi conferida) */
+  checked: boolean;
   user: CloudUser | null;
   profile: Profile | null;
   /** O banco já tem os campos de perfil (nome, bio, foto, top 4) */
@@ -65,6 +67,8 @@ export function cleanProfile(p: unknown): Profile | null {
 // ---------- estado interno
 let sb: SupabaseClient | null = null;
 let user: CloudUser | null = null;
+/** Dados guardados na própria conta (user_metadata), ex.: qual tela de Novidades já foi vista */
+let accountMeta: Record<string, unknown> = {};
 let profile: Profile | null = null;
 let extended = false, social = false, banners = false;
 let friends: Friends = emptyFriends();
@@ -72,6 +76,7 @@ let recs: Rec[] = [];
 let tags: CineTag[] = [], sent: CloudState['sent'] = {}, withMe: CloudState['withMe'] = {}, tagsOk = false;
 let sync: SyncState = 'off';
 let recovery = false, linkError = '';
+let checked = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let busy = false, again = false, lastPull = 0, paused = false;
 
@@ -82,10 +87,10 @@ let synced: Record<string, string> = lsGet('lantSynced', {});
 let owner: string | null = lsGet<string | null>('lantOwner', null);
 const keep = () => { lsSet('lantSynced', synced); lsSet('lantOwner', owner); };
 
-let snapshot: CloudState = { ready: false, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
+let snapshot: CloudState = { ready: false, checked, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
 const listeners = new Set<() => void>();
 function emit() {
-  snapshot = { ready: !!sb, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
+  snapshot = { ready: !!sb, checked, user, profile, extended, banners, social, friends, recs, tags, sent, withMe, sync, recovery, linkError };
   listeners.forEach((l) => l());
 }
 const setSync = (s: SyncState) => { sync = s; emit(); };
@@ -281,7 +286,10 @@ let tagTimer: ReturnType<typeof setTimeout> | undefined;
 
 async function onAuth(sessionUser: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
   const u: CloudUser | null = sessionUser ? { id: sessionUser.id, email: sessionUser.email || '' } : null;
-  if ((u?.id || null) === (user?.id || null)) return;
+  const first = !checked;
+  checked = true;
+  if ((u?.id || null) === (user?.id || null)) { if (first) emit(); return; }
+  accountMeta = sessionUser?.user_metadata || {};
   user = u; profile = null; friends = emptyFriends(); recs = []; social = false;
   tags = []; sent = {}; withMe = {}; tagsOk = false;
   if (!u || !sb) { sync = 'off'; emit(); return; }
@@ -393,13 +401,13 @@ export const cloud = {
     return 'Não deu certo agora. Tente de novo.';
   },
   /** Devolve '' se entrou, 'CONFIRM' se falta confirmar o e-mail, ou a mensagem de erro. */
-  async signUp(username: string, email: string, password: string): Promise<string> {
+  async signUp(username: string, email: string, password: string, extra: Record<string, unknown> = {}): Promise<string> {
     if (!sb) return 'Sem conexão com a conta agora.';
     try {
       const { data, error } = await sb.rpc('username_available', { name: username });
       if (!error && data === false) return 'Esse nome de usuário já existe.';
     } catch { /* segue: o banco barra nomes repetidos de qualquer jeito */ }
-    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { ...extra, username } } });
     if (error) return niceError(error);
     return data.session ? '' : 'CONFIRM';
   },
@@ -415,6 +423,14 @@ export const cloud = {
     if (!sb) return 'Sem conexão com a conta agora.';
     const { error } = await sb.auth.updateUser({ password });
     return error ? niceError(error) : '';
+  },
+  /** Dados guardados na conta (user_metadata) de quem está logado. */
+  accountData(): Record<string, unknown> { return accountMeta; },
+  /** Guarda dados na conta. O Supabase junta com o que já existe (não apaga o resto). */
+  saveAccountData(data: Record<string, unknown>) {
+    accountMeta = { ...accountMeta, ...data };
+    if (!sb || !user) return;
+    void sb.auth.updateUser({ data }).catch(() => undefined);
   },
   /** O app já abriu a tela de senha nova. */
   recoveryShown() { if (recovery) { recovery = false; emit(); } },
@@ -508,6 +524,18 @@ export const cloud = {
       if (!error) (data || []).forEach((r) => { const c = cleanFilm(r.data); if (c?.b) out.add(r.key as string); });
     } catch { /* sem dados */ }
     return out;
+  },
+  /** O que os amigos guardaram em "Quero ver" (para o aviso de match na fila). */
+  async friendsWant(): Promise<{ p: Profile; f: Film }[]> {
+    if (!sb || !user || !friends.list.length) return [];
+    try {
+      const ids = friends.list.map((f) => f.id!).filter((id) => UUID.test(id));
+      const { data, error } = await sb.from('films').select('user_id,data').in('user_id', ids).eq('data->>st', 'want').limit(500);
+      if (error) return [];
+      return (data || [])
+        .map((r) => ({ p: friends.list.find((f) => f.id === r.user_id), f: cleanFilm(r.data) }))
+        .filter((x): x is { p: Profile; f: Film } => !!x.p && x.f?.st === 'want');
+    } catch { return []; }
   },
   /** As avaliações mais recentes dos amigos, da mais nova para a mais antiga. */
   async friendsActivity(limit = 30): Promise<FriendRating[]> {

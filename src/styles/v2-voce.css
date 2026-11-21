@@ -1,0 +1,535 @@
+/* ===== Redesign v2 · etapa 4: Você (perfil e diário) ===== */
+
+/* Perfil */
+.v2pf .v2nob {
+  background: linear-gradient(160deg, #3a2a30, #1e1b21 55%, var(--bg));
+}
+.v2pfhead {
+  position: relative;
+  margin-top: -56px;
+}
+.v2pfrow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.v2pfrow .av {
+  width: 92px;
+  height: 92px;
+  font-size: 34px;
+  font-weight: 600;
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.v2pill {
+  height: 40px;
+  padding: 0 16px;
+  margin-bottom: 6px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--card2);
+  color: var(--text);
+  font: 600 13px Inter, sans-serif;
+}
+.v2pill:active {
+  transform: scale(0.96);
+}
+.v2pfname {
+  margin: 14px 0 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+.v2pfsub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2pf .v2bio {
+  margin: 12px 0 0;
+  font-size: 15px;
+}
+
+.v2nums {
+  margin-top: 18px;
+  display: flex;
+  border-radius: 18px;
+  background: var(--card);
+}
+.v2nums > button,
+.v2nums > div {
+  flex: 1;
+  padding: 12px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+}
+.v2nums > i {
+  width: 1px;
+  margin: 12px 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+.v2nums b {
+  display: block;
+  font: 600 20px Inter, sans-serif;
+}
+.v2nums span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.v2h {
+  margin: 26px 0 12px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.v2pf .t4 {
+  gap: 8px;
+  margin-bottom: 0;
+}
+.v2pf .t4 button.has {
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Seu ano */
+.v2year {
+  margin-top: 26px;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--card);
+}
+.v2yh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.v2yh h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.v2yh span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2bars {
+  margin-top: 16px;
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.v2bars > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.v2bars span {
+  display: block;
+  width: 100%;
+  border-radius: 4px;
+  background: #4a4350;
+  transform-origin: bottom;
+  animation: v2grow 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.v2bars span.on {
+  background: var(--gold);
+}
+.v2bars span.z {
+  background: var(--card2);
+}
+.v2bars small {
+  font-size: 10px;
+  color: #8a8378;
+}
+@keyframes v2grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+.v2yg {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.v2yg > div {
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--card2);
+}
+.v2yg small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2yg b {
+  display: block;
+  margin-top: 4px;
+}
+.v2yg b.g {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.v2yg b.s {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 22px;
+}
+
+/* Visto recentemente */
+.v2rec {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.v2rec button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  min-width: 0;
+}
+.v2rec button:active {
+  transform: scale(0.96);
+}
+.v2rpos {
+  display: block;
+  aspect-ratio: 2/3;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.v2rpos img,
+.v2dpos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.v2rec small {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+}
+
+/* Coleções */
+.v2links {
+  margin: 22px 0 8px;
+  border-radius: 22px;
+  background: var(--card);
+  overflow: hidden;
+}
+.v2links button {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: none;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: inherit;
+  text-align: left;
+}
+.v2links button:last-child {
+  border-bottom: 0;
+}
+.v2links span {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+}
+.v2lic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.v2lic svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.v2links em {
+  font-style: normal;
+  font-size: 14px;
+  color: var(--muted);
+}
+.v2links i {
+  font-style: normal;
+  font-size: 20px;
+  color: #6a645c;
+}
+
+/* Diário */
+.v2dflt {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.v2chip {
+  position: relative;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card2);
+  color: #d8cfc0;
+  font: 500 13px Inter, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.v2chip.on {
+  background: var(--gold-soft);
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.v2sel {
+  color: var(--text);
+  font-weight: 600;
+}
+.v2sel select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  padding: 0 18px 0 0;
+  margin-right: -18px;
+  height: 100%;
+  outline: none;
+}
+.v2sel select option {
+  color: #000;
+}
+.v2sel svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* Menu dos chips (Ano, Ordenar): abre abaixo do chip, com a cara do app */
+.v2cm {
+  position: relative;
+}
+.v2sel svg {
+  transition: transform 0.2s ease;
+}
+.v2sel.open {
+  background: var(--gold-soft);
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.v2sel.open svg {
+  transform: rotate(180deg);
+}
+.v2cmlist {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  min-width: 176px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: 18px;
+  background: rgba(30, 27, 33, 0.94);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.55);
+  transform-origin: top left;
+  animation: v2cmin 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.v2cmlist li {
+  animation: v2cmitem 0.24s ease both;
+}
+.v2cmlist button {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text);
+  font: 500 15px Inter, sans-serif;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.v2cmlist button:active {
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(0.98);
+}
+.v2cmlist button.on {
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-weight: 600;
+}
+.v2cmlist button svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes v2cmin {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+  }
+}
+@keyframes v2cmitem {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.v2dh {
+  margin: 16px 0 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.v2month {
+  margin-top: 22px;
+}
+.v2mh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.v2mh h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 26px;
+  color: var(--gold);
+  letter-spacing: 0;
+}
+.v2mh span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2drow {
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.v2drow:active {
+  opacity: 0.7;
+}
+.v2day {
+  flex: none;
+  width: 36px;
+  text-align: center;
+}
+.v2day b {
+  display: block;
+  font: 600 22px Inter, sans-serif;
+  line-height: 1;
+}
+.v2day small {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: #8a8378;
+}
+/* Em "Maior nota" o dia vem com mês e ano ("nov 25") e precisa de mais espaço */
+.v2day.wide {
+  width: 46px;
+}
+.v2day.wide small {
+  white-space: nowrap;
+}
+.v2dpos {
+  flex: none;
+  width: 44px;
+  height: 66px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.v2dpos .pfb em {
+  font-size: 8px;
+}
+.v2dtxt {
+  flex: 1;
+  min-width: 0;
+}
+.v2dtxt > b {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.05;
+}
+.v2dtxt > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+.v2dtxt em {
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gold);
+  flex: none;
+}
+.v2dtxt small {
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

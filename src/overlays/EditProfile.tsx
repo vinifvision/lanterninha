@@ -98,7 +98,7 @@ export function PickTop({ slot, top4, onDone, onClose }: { slot: number; top4: (
       <div>
         <OverlayHeader
           left={<button id="px" onClick={onClose}>Voltar</button>} title={`Favorito ${slot + 1}`}
-          right={top4[slot] ? <button id="prm" style={{ color: '#ff5a52' }} onClick={() => onDone(null)}>Remover</button> : <span style={{ width: 60 }} />}
+          right={top4[slot] ? <button id="prm" style={{ color: '#e8494f' }} onClick={() => onDone(null)}>Remover</button> : <span style={{ width: 60 }} />}
         />
         {list.length > 0
           ? <div className="grid">{list.map((h) => (
