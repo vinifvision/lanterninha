@@ -35,7 +35,8 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
   const [unseen, setUnseen] = useState(false);
   const now = today();
 
-  const films = data?.films || [];
+  // Memorizado: um [] novo a cada desenho fazia a busca dos amigos recomeçar sem parar e travava o app
+  const films = useMemo(() => data?.films || [], [data]);
   // Funções que a pessoa teve, da mais frequente para a menos (só aparecem se houver mais de uma)
   const roles = useMemo(() => {
     const n = new Map<string, number>();
