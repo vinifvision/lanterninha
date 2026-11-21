@@ -79,6 +79,11 @@
   height: 28px;
   font-size: 11px;
 }
+/* Busca da fila: mesmo respiro de 24px que o redesign usa entre seções,
+   seja abaixo do aviso de match ou direto abaixo do título */
+.v2qv .lq {
+  margin-top: 24px;
+}
 .v2match em {
   font-family: var(--serif);
   font-style: normal;
