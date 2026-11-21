@@ -87,27 +87,35 @@
 }
 
 /* Baralho: o pôster de cima e dois tortos por baixo */
+/* Tamanho do baralho: 2:3, acompanha a largura e a altura da tela.
+   A altura desconta o topo, o aviso de match, os botões e a barra de abas. */
 .v2deck {
+  --deck-max-h: calc(100vh - 424px - var(--sat, 0px) - var(--sab, 0px));
+  --deck-max-h: calc(100dvh - 424px - var(--sat, 0px) - var(--sab, 0px));
   position: relative;
-  width: 240px;
-  height: 376px;
-  margin: 22px auto 0;
+  width: min(72vw, 320px, calc(var(--deck-max-h) * 2 / 3));
+  min-width: 180px;
+  aspect-ratio: 2 / 3;
+  margin: 30px auto 0;
 }
 .v2deck::before {
   content: "";
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 420px;
-  height: 420px;
-  margin: -210px 0 0 -210px;
+  width: 175%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(242, 201, 127, 0.1), rgba(242, 201, 127, 0) 65%);
   pointer-events: none;
 }
 .v2card {
   position: absolute;
-  inset: 14px 0 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   border-radius: 22px;
   overflow: hidden;
   background: var(--card);
@@ -119,13 +127,23 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
+/* Pôster preso nas quatro bordas: preenche a moldura sem distorcer */
 .v2card img,
 .v2card .pfb {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  max-width: none;
+  margin: 0;
   object-fit: cover;
+  object-position: center;
   display: block;
   pointer-events: none;
+}
+.v2card span.pfb {
+  aspect-ratio: auto;
 }
 .v2card:not(.top) .v2topt {
   opacity: 0;
@@ -216,12 +234,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  margin: 8px 0 28px;
+  gap: clamp(20px, 7vw, 32px);
+  margin: clamp(32px, 5vh, 44px) 0 28px;
 }
 .v2deckbtns .btn {
+  flex: none;
+  min-width: 132px;
   height: 56px;
   border-radius: 28px;
+}
+.v2deckbtns .v2act {
+  flex: none;
 }
 .v2act {
   width: 56px;
