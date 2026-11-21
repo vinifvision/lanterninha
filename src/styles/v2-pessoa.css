@@ -93,12 +93,17 @@
   background: rgba(10,10,12,.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--text);
 }
-/* A galera: rostinhos dos amigos que viram */
+/* A galera: rostinhos dos amigos que viram.
+   O seletor longo vence a regra ".hp .ph > span" (feita para o pôster de reserva), que esticava a bolinha. */
+.hp .ph > .pfr {
+  height: auto; padding: 2px; text-align: left; font-size: inherit; color: inherit;
+  justify-content: flex-start;
+}
 .pfr {
   position: absolute; left: 6px; bottom: 6px; display: flex; align-items: center;
   padding: 2px; border-radius: 14px; background: rgba(10,10,12,.72);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
-.pfr .av { width: 20px; height: 20px; font-size: 10px; border: 1.5px solid #0b0a0d; }
+.pfr .av { flex: none; width: 20px; height: 20px; font-size: 10px; border: 1.5px solid #0b0a0d; box-sizing: border-box; }
 .pfr .av + .av { margin-left: -7px; }
 .pfr em { padding: 0 5px 0 4px; font-style: normal; font-size: 11px; font-weight: 700; color: var(--text); }
