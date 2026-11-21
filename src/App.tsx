@@ -20,6 +20,8 @@ import { ReviewsPage } from "./overlays/ReviewsPage";
 import { NewPassword } from "./overlays/NewPassword";
 import { Signup } from "./overlays/Signup";
 import { Welcome } from "./overlays/Welcome";
+import { Novidades } from "./overlays/Novidades";
+import { novidades } from "./lib/novidades";
 import { Guide } from "./screens/Guide";
 import { guide } from "./lib/guide";
 import { films as filmStore } from "./lib/films";
@@ -155,6 +157,8 @@ function overlayView(o: OverlayState, i: number) {
       return <Signup key={i} />;
     case "welcome":
       return <Welcome key={i} />;
+    case "novidades":
+      return <Novidades key={i} />;
     case "ticket":
       return <TicketSheet key={i} filmKey={o.key} />;
     case "chestDeck":
@@ -213,6 +217,16 @@ export function App() {
     guide.welcomeSeen();
     nav.open({ k: "welcome" });
   }, [account.checked, account.user]);
+  // Versão nova: quem já tinha conta vê a tela de Novidades uma vez (no app e no site)
+  useEffect(() => {
+    if (!account.user || overlays.length || stack.length || guide.pending() || !novidades.due()) return;
+    const t = setTimeout(() => {
+      if (nav.state.overlays.length || !novidades.due()) return;
+      novidades.seen();
+      nav.open({ k: "novidades" });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [account.user, overlays.length, stack.length]);
   // Conta recém-criada: assim que a pessoa sai do cadastro, começa a primeira nota guiada
   useEffect(() => {
     if (!account.user || overlays.length || !guide.pending()) return;

@@ -5,6 +5,7 @@ import { Backup } from '../components/Backup';
 import { useArmed } from '../components/hooks';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { cloud, useCloud } from '../lib/cloud';
+import { APP_VERSION } from '../lib/config';
 import { SOUND_ENABLED, sfx, useSound } from '../lib/sfx';
 import { nav } from '../nav';
 import { guide } from '../lib/guide';
@@ -77,6 +78,7 @@ export function Settings() {
       <div className="about-app">
         <img src="/logo.svg" alt="" width={44} height={44} />
         <b>Lanterninha</b>
+        <span>Versão {APP_VERSION}</span>
         <span>Criado por Vinícius Fernandes</span>
         <small>
           Dados e imagens de filmes: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>.
