@@ -38,6 +38,8 @@ import { FullList } from "./screens/FullList";
 import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
 import { Diary } from "./screens/Diary";
+import { Friends } from "./screens/Friends";
+import { MyReviews } from "./screens/MyReviews";
 import { Profile } from "./screens/Profile";
 import { Search } from "./screens/Search";
 import { Quiz } from "./screens/Quiz";
@@ -85,6 +87,10 @@ function stackScreen(s: Screen, depth: number) {
       return <FullList key={`list-${depth}`} title={s.title} em={s.em} list={s.list} id={s.id} />;
     case "diary":
       return <Diary key="diary" />;
+    case "myReviews":
+      return <MyReviews key="myReviews" />;
+    case "friends":
+      return <Friends key="friends" />;
     case "guide":
       return <Guide key={`guide-${depth}`} />;
     case "friend":
@@ -241,6 +247,8 @@ export function App() {
         person: "person",
         list: "feed",
         diary: "diary",
+        myReviews: "diary",
+        friends: "diary",
         guide: "guide",
         friend: "friend",
         quiz: "q",
@@ -257,6 +265,10 @@ export function App() {
   const title = top
     ? top.k === "diary"
       ? "Diário"
+      : top.k === "myReviews"
+      ? "Reviews"
+      : top.k === "friends"
+      ? "Amigos"
       : top.k === "list"
       ? [top.title, top.em].filter(Boolean).join(" ")
       : top.k === "film" || top.k === "credits"

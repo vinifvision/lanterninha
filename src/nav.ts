@@ -12,6 +12,8 @@ export type Screen =
   | { k: 'person'; kind: PersonKind; id: number; name: string; photo?: string }
   | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }
   | { k: 'diary' }
+  | { k: 'myReviews' }
+  | { k: 'friends' }
   | { k: 'guide' }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean; help?: boolean }
   | { k: 'details'; info: FilmInfo; key: string; base: number; classic: boolean; rewatch: RatedFilm | null; replaced: Film | null; answers: number[] }
