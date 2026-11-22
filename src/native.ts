@@ -9,11 +9,20 @@ export async function appBuild(): Promise<number | null> {
   // Nos testes automáticos, a versão pode ser simulada aqui
   const fake = (window as unknown as { __LANTERNINHA_TEST_BUILD__?: number }).__LANTERNINHA_TEST_BUILD__;
   if (typeof fake === 'number') return fake;
+  const dev = devApkBuild();
+  if (dev !== null) return dev;
   if (!isNativeApp) return null;
   try {
     const n = Number((await NativeApp.getInfo()).build);
     return Number.isFinite(n) ? n : null;
   } catch { return null; }
+}
+
+/** Só no npm run dev: abrir o site com ?apk=4 finge um APK com esse versionCode (para ver o aviso de atualização). */
+export function devApkBuild(): number | null {
+  if (!import.meta.env.DEV) return null;
+  const v = new URLSearchParams(location.search).get('apk');
+  return v && Number.isFinite(Number(v)) ? Number(v) : null;
 }
 
 /** Nome da versão do APK instalado (o versionName, ex.: "1.2"). No site, devolve null. */

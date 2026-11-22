@@ -5,7 +5,6 @@
 // O id fica guardado na conta (e no aparelho), então cada pessoa vê cada versão uma vez só.
 // Para não mostrar nada numa versão, deixe "itens" vazio.
 import { cloud } from './cloud';
-import { APP_VERSION } from './config';
 
 /** Desenhos disponíveis para os itens (ficam em src/overlays/Novidades.tsx). */
 export type NovIcone = 'visual' | 'baralho' | 'porque' | 'diario' | 'meia' | 'tempo' | 'semfim' | 'estrela';
@@ -13,7 +12,7 @@ export type NovIcone = 'visual' | 'baralho' | 'porque' | 'diario' | 'meia' | 'te
 export interface Novidade { icone: NovIcone; titulo: string; texto: string }
 
 export const NOVIDADES: { id: string; titulo: string; subtitulo?: string; botao: string; itens: Novidade[] } = {
-  id: APP_VERSION,
+  id: '2.0', // fixo: a 2.0.1 só troca a assinatura do APK, não tem novidades para mostrar
   titulo: 'O Lanterninha está de cara nova',
   subtitulo: 'Mais cinema, menos texto.',
   botao: 'Começar',

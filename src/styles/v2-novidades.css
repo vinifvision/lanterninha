@@ -289,6 +289,62 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Passo a passo da reinstalação (troca de assinatura do APK) */
+/* Não arrasta pro lado e, em tela pequena, rola por dentro em vez de cortar o topo */
+.upd {
+  max-height: calc(100dvh - 20px - var(--sab));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.upd-steps {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  counter-reset: updstep;
+  text-align: left;
+}
+.upd-steps li {
+  position: relative;
+  min-height: 28px;
+  margin: 0 0 12px;
+  padding-left: 40px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  counter-increment: updstep;
+  animation: nvPop 0.5s both;
+}
+.upd-steps li:nth-child(2) { animation-delay: 0.08s; }
+.upd-steps li:nth-child(3) { animation-delay: 0.16s; }
+.upd-steps li:nth-child(4) { animation-delay: 0.24s; }
+.upd-steps li:nth-child(5) { animation-delay: 0.32s; }
+.upd-steps li::before {
+  content: counter(updstep);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 99px;
+  background: var(--card2);
+  color: var(--text);
+  font: 600 13px Inter, sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+.upd-steps li.ok::before {
+  content: '✓';
+  background: var(--gold);
+  color: #1b1408;
+}
+.upd-steps li.warn { color: var(--text); }
+.upd-steps li.warn::before { content: '!'; background: rgba(242, 201, 127, 0.18); color: var(--gold); }
+.upd-steps em { color: var(--text); font-style: normal; }
+.upd-steps .updgo { margin-top: -2px; }
 @media (prefers-reduced-motion: reduce) {
-  .upd .upd-beam, .upd-vs .new { animation: none; }
+  .upd .upd-beam, .upd-vs .new, .upd-steps li { animation: none; }
 }
