@@ -164,13 +164,13 @@ export function movieRatings(id: number): Promise<Ratings> {
 }
 
 const childhoodCache = new Map<string, Promise<SearchResult[]>>();
-/** Filmes de sucesso de um período (para o Baú da infância). */
+/** Filmes de sucesso de um período (usado na avaliação guiada). */
 export function childhoodFilms(from: number, to: number): Promise<SearchResult[]> {
   const key = from + '-' + to;
   let p = childhoodCache.get(key);
   if (!p) {
     p = fetch(`${API_BASE}api/childhood?from=${from}&to=${to}`)
-      .then((r) => { if (!r.ok) throw new Error('baú indisponível'); return r.json(); })
+      .then((r) => { if (!r.ok) throw new Error('lista indisponível'); return r.json(); })
       .then(cleanResults);
     childhoodCache.set(key, p);
     p.catch(() => childhoodCache.delete(key));

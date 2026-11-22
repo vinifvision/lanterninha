@@ -15,7 +15,6 @@ import { fmt, MONTHS } from "../lib/format";
 import type { Film, Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
 import { Ticket } from "../components/Ticket";
-import { ChestIcon } from "../components/icons";
 
 const EMPTY_PROFILE = cleanProfile({}) as ProfileData;
 
@@ -203,7 +202,6 @@ function Account() {
   const pr = account.profile || EMPTY_PROFILE;
   // Todos os assistidos: os avaliados e os marcados como "Já vi" sem nota
   const watched = all.filter((h) => h.st !== "want");
-  const chestN = all.filter((h) => h.b).length;
   const year = String(new Date().getFullYear());
   const thisYear = watched.filter((h) => (h.d || "").startsWith(year));
   const recent = watched.filter((h) => h.d || h.ts).sort(byDiary).slice(0, 4);
@@ -283,11 +281,6 @@ function Account() {
         <button onClick={diary}>
           <span>Diário</span>
           <em>{watched.length}</em>
-          <i aria-hidden="true">›</i>
-        </button>
-        <button id="chprof" onClick={() => nav.push({ k: "chest" })}>
-          <span className="v2lic"><ChestIcon />Baú da infância</span>
-          <em>{chestN || ""}</em>
           <i aria-hidden="true">›</i>
         </button>
       </nav>

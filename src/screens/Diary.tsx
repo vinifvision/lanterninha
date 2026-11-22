@@ -55,7 +55,7 @@ export function Diary() {
     const m = MONTHS[+k.slice(5, 7) - 1];
     return year ? m : `${m} de ${k.slice(0, 4)}`;
   };
-  // O que aparece ao lado da nota: cinema (com quem), review, revisto, Baú
+  // O que aparece ao lado da nota: cinema (com quem), review, revisto
   const extra = (h: Film) => {
     const parts: string[] = [];
     if (h.w === 'cine') {
@@ -67,7 +67,6 @@ export function Diary() {
     }
     if (h.note) parts.push('Review');
     if ((h.n || 1) > 1) parts.push('Revi');
-    if (h.b) parts.push('Do Baú');
     return parts.join(' · ');
   };
   const empty = !watched.length

@@ -39,8 +39,6 @@ export interface Film {
   w?: Where;
   /** Ingresso (só quando viu no cinema) */
   tk?: Ticket;
-  /** Lembrado pelo Baú da infância */
-  b?: 1;
 }
 
 export type Where = 'cine' | 'casa' | 'outro';

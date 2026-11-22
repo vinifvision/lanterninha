@@ -31,8 +31,6 @@ import { TicketSheet } from "./overlays/TicketSheet";
 import { Tonight } from "./overlays/Tonight";
 import { Credits } from "./screens/Credits";
 import { PersonPage } from "./screens/PersonPage";
-import { Chest } from "./screens/Chest";
-import { ChestDeck } from "./overlays/ChestDeck";
 import { FilmEdit } from "./overlays/FilmEdit";
 import { FilmPage } from "./screens/FilmPage";
 import { FriendPage } from "./screens/FriendPage";
@@ -83,8 +81,6 @@ function stackScreen(s: Screen, depth: number) {
       return <Credits key={`credits-${depth}`} info={s.info} />;
     case "person":
       return <PersonPage key={`person-${depth}-${s.kind}${s.id}`} kind={s.kind} id={s.id} name={s.name} photo={s.photo} />;
-    case "chest":
-      return <Chest key="chest" />;
     case "list":
       return <FullList key={`list-${depth}`} title={s.title} em={s.em} list={s.list} id={s.id} />;
     case "diary":
@@ -164,8 +160,6 @@ function overlayView(o: OverlayState, i: number) {
       return <Novidades key={i} />;
     case "ticket":
       return <TicketSheet key={i} filmKey={o.key} />;
-    case "chestDeck":
-      return <ChestDeck key={i} />;
     case "filmEdit":
       return <FilmEdit key={i} filmKey={o.key} />;
     case "tonight":
@@ -245,7 +239,6 @@ export function App() {
         film: "film",
         credits: "credits",
         person: "person",
-        chest: "chest",
         list: "feed",
         diary: "diary",
         guide: "guide",
@@ -262,9 +255,7 @@ export function App() {
       ? account.friends.list.find((p) => p.id === top.id)
       : null;
   const title = top
-    ? top.k === "chest"
-      ? "Baú da infância"
-      : top.k === "diary"
+    ? top.k === "diary"
       ? "Diário"
       : top.k === "list"
       ? [top.title, top.em].filter(Boolean).join(" ")

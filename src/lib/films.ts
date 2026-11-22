@@ -25,7 +25,6 @@ export function cleanFilm(x: unknown): Film | null {
   if (typeof r.ts === 'number' && r.ts > 0) e.ts = Math.round(r.ts);
   if (typeof r.note === 'string' && r.note.trim()) e.note = r.note.trim().slice(0, 5000);
   if (r.w === 'cine' || r.w === 'casa' || r.w === 'outro') e.w = r.w;
-  if (r.b === 1 || r.b === true) e.b = 1;
   if (e.w === 'cine' && r.tk && typeof r.tk === 'object') {
     const t = r.tk as Record<string, unknown>, tk: Ticket = {};
     if (typeof t.cine === 'string' && t.cine.trim()) tk.cine = t.cine.trim().slice(0, 60);
@@ -113,19 +112,6 @@ export const films = {
     if (info.id) { e.id = info.id; if (info.y) e.y = info.y; if (info.o) e.o = info.o; if (info.img) e.img = info.img; }
     if (st === 'seen') e.d = cur?.d || today();
     if (st === 'want') { const b = by || cur?.by; if (b) e.by = b; }
-    hist = hist.filter((h) => h !== cur);
-    hist.unshift(e);
-    films.save();
-    return e;
-  },
-
-  /** Baú da infância: "já vi". Entra em Meus filmes sem nota e sem data (ninguém lembra o dia).
-   *  Se o filme já estava na lista, só ganha a marca do Baú. */
-  fromChest(info: FilmInfo): Film {
-    const cur = films.find(info);
-    if (cur && cur.st !== 'want') { cur.b = 1; films.save(); return cur; }
-    const e: Film = { t: info.t, st: 'seen', c: false, ts: Date.now(), b: 1 };
-    if (info.id) { e.id = info.id; if (info.y) e.y = info.y; if (info.o) e.o = info.o; if (info.img) e.img = info.img; }
     hist = hist.filter((h) => h !== cur);
     hist.unshift(e);
     films.save();

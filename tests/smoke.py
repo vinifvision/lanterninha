@@ -8,7 +8,7 @@ def check(name,cond,extra=''):
     if not cond: fails.append(name)
 async def main():
     async with async_playwright() as p:
-        b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])
+        b=await p.chromium.launch()
         ctx=await b.new_context(viewport={'width':390,'height':844},locale='pt-BR',geolocation={'latitude':-8.06,'longitude':-34.88},permissions=['geolocation'])
         await ctx.add_init_script(open(os.path.join(HERE,'mock.js')).read()+"\nwindow.__LANTERNINHA_TEST_CLIENT__=window.supabase.createClient();\nObject.defineProperty(navigator,'geolocation',{value:{getCurrentPosition:(ok)=>setTimeout(()=>ok({coords:{latitude:-8.06,longitude:-34.88}}),50)}});")
         pg=await ctx.new_page(); pg.set_default_timeout(8000); errs=[]
@@ -192,18 +192,6 @@ async def main():
         await pg.click('#tnadd'); await pg.wait_for_timeout(200); check('sugestão vai pra fila',any(x.startswith('Sugestão') and ':want' in x for x in await L()))
         await pg.click('#tngo'); await pg.wait_for_selector('.fhead'); check('popup abre a página do filme','Sugestão' in await pg.inner_text('.fhead h2'))
         await pg.click('#back'); await tab('lib')
-        await tab('home'); await pg.wait_for_selector('#chinvite'); await pg.click('#chopen'); await pg.wait_for_selector('#born')
-        await pg.select_option('#born','1998'); check('período da infância',('2002 a 2012' in await pg.inner_text('#stage')))
-        await pg.click('#chgo'); await pg.wait_for_selector('#chquick:not([disabled])'); await pg.click('#chquick'); await pg.wait_for_selector('#dkseen')
-        await pg.click('#dkseen'); await pg.wait_for_timeout(400); await pg.click('#dkseen'); await pg.wait_for_timeout(400); await pg.click('#dkno'); await pg.wait_for_timeout(400); await pg.click('#dkidk'); await pg.wait_for_timeout(400)
-        box=await pg.locator('.dcard.front').bounding_box(); await pg.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2); await pg.mouse.down()
-        for k in range(1,12): await pg.mouse.move(box['x']+box['width']/2+k*15,box['y']+box['height']/2+k*2)
-        await pg.wait_for_timeout(100); st_=await pg.inner_text('.dcard.front .stamp'); check('carimbo ao arrastar',st_.strip().lower()=='já vi' and float(await pg.evaluate("getComputedStyle(document.querySelector('.dcard.front .stamp')).opacity"))>0.5,st_); await pg.screenshot(path=os.path.join(HERE,'out-deck.png')); await pg.mouse.up(); await pg.wait_for_timeout(450)
-        check('arrastar marca já vi',len([x for x in await L() if x.startswith('Infância')])==3, str(await L()))
-        await pg.click('#dkx'); await pg.wait_for_timeout(300); pr=await pg.inner_text('#chprog'); check('progresso do baú','lembrou de 3 filmes' in pr, pr)
-        stg=(await pg.inner_text('#stage')).lower(); check('baú: lista atualizada','ainda no baú · 20' in stg, stg[stg.find('ainda'):stg.find('ainda')+30])
-        await pg.wait_for_timeout(500); await pg.screenshot(path=os.path.join(HERE,'out-bau.png'),full_page=True)
-        await pg.click('#back'); check('convite some depois de aberto',await pg.locator('#chinvite').count()==0 and await pg.locator('#chentry').count()==1)
         await tab('lib')
         # nota da galera + reviews
         await pg.click('.seg button[data-t=watched]'); await pg.wait_for_timeout(200); await pg.click('.fc >> nth=1'); await pg.wait_for_selector('#crowd .fr')

@@ -13,10 +13,9 @@ import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, pname } from '../lib/format';
 import type { Film, FilmInfo, FriendRating, Profile, SearchResult } from '../lib/types';
 import { nav } from '../nav';
-import { ChestIcon, StarIcon } from '../components/icons';
+import { StarIcon } from '../components/icons';
 import { MineBadge } from '../components/MineBadge';
 import { DiscoverGrid, ListTitle } from './FullList';
-import { chest, useChest } from '../lib/cloud';
 import { fd } from '../lib/format';
 import { sfx } from '../lib/sfx';
 import type { CineTag } from '../lib/types';
@@ -117,7 +116,6 @@ export function Home() {
             </section>
           )}
 
-          <ChestEntry />
           <DiscoverRow title="Em alta na semana" list="trending" mine={mine} />
 
           {!account.user && (
@@ -374,31 +372,6 @@ function DiscoverRow({ title, em, list, id, mine }: { title: string; em?: string
         )}
       </div>
     </section>
-  );
-}
-
-/** Atalho do Baú da infância. Logo depois de criar a conta, aparece uma vez como convite. */
-function ChestEntry() {
-  const data = useChest();
-  const { user } = useCloud();
-  const n = useFilms().filter((h) => h.b).length;
-  if (user && !data.born && !data.hint) {
-    return (
-      <div className="chinvite" id="chinvite">
-        <button className="chx" aria-label="Agora não" onClick={() => chest.dismissHint()}>✕</button>
-        <span className="chicon" aria-hidden="true" />
-        <b>Que tal abrir seu Baú?</b>
-        <small>Relembre os filmes que você viu quando era criança.</small>
-        <button className="cta" id="chopen" onClick={() => { chest.dismissHint(); nav.push({ k: 'chest' }); }}>Abrir o baú</button>
-      </div>
-    );
-  }
-  return (
-    <button className="chrow" id="chentry" onClick={() => nav.push({ k: 'chest' })}>
-      <ChestIcon />
-      <span><b>Baú da infância</b><small>{n ? `Você lembrou de ${n} ${n === 1 ? 'filme' : 'filmes'}` : 'Relembre os filmes de quando você era criança'}</small></span>
-      <i>›</i>
-    </button>
   );
 }
 

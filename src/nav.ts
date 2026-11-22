@@ -10,7 +10,6 @@ export type Screen =
   | { k: 'friend'; id: string }
   | { k: 'credits'; info: FilmInfo }
   | { k: 'person'; kind: PersonKind; id: number; name: string; photo?: string }
-  | { k: 'chest' }
   | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }
   | { k: 'diary' }
   | { k: 'guide' }
@@ -30,7 +29,6 @@ export type Overlay =
   | { k: 'welcome' }
   | { k: 'novidades' }
   | { k: 'ticket'; key: string }
-  | { k: 'chestDeck' }
   | { k: 'filmEdit'; key: string }
   | { k: 'tonight'; start?: 'queue' | 'taste' }
   | { k: 'recommend'; info: FilmInfo }
