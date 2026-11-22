@@ -1,20 +1,18 @@
-// Aba Você: entrar ou criar conta; depois, o perfil com Top 4, Seu ano, visto recentemente, amigos e placar.
+// Aba Você: entrar ou criar conta; depois, o perfil com Top 4, Seu ano, visto recentemente e os atalhos (Diário, Reviews, Amigos).
 import { useEffect, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
-import { FriendRow } from "../components/FriendRow";
 import { useAsync } from "../components/hooks";
 import { Poster } from "../components/Poster";
 import { movieDetails } from "../lib/api";
-import { useRefresh } from "../lib/refresh";
 import { TopFour } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
 import { fkey, isRated, useFilms } from "../lib/films";
 import { byDiary } from "./Diary";
+import { withReview } from "./MyReviews";
 import { fmt, MONTHS } from "../lib/format";
 import type { Film, Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
-import { Ticket } from "../components/Ticket";
 
 const EMPTY_PROFILE = cleanProfile({}) as ProfileData;
 
@@ -207,7 +205,8 @@ function Account() {
   const recent = watched.filter((h) => h.d || h.ts).sort(byDiary).slice(0, 4);
   const name =
     pr.display_name || (pr.username ? "@" + pr.username : "Minha conta");
-  const [err, setErr] = useState("");
+  const reviews = withReview(all).length;
+  const { friends } = account;
 
   const openTop = (i: number) => {
     const f = pr.top4[i];
@@ -216,6 +215,7 @@ function Account() {
     if (h) nav.openFilm(h);
   };
   const diary = () => nav.push({ k: "diary" });
+  const openFriends = () => nav.push({ k: "friends" });
   return (
     <div className="screen v2pf">
       {pr.banner ? <Banner path={pr.banner} /> : <div className="pbanner v2nob" />}
@@ -246,10 +246,10 @@ function Account() {
         {account.social && (
           <>
             <i aria-hidden="true" />
-            <div>
-              <b>{account.friends.list.length}</b>
-              <span>{account.friends.list.length === 1 ? "amigo" : "amigos"}</span>
-            </div>
+            <button type="button" id="pff" onClick={openFriends}>
+              <b>{friends.list.length}</b>
+              <span>{friends.list.length === 1 ? "amigo" : "amigos"}</span>
+            </button>
           </>
         )}
       </div>
@@ -283,18 +283,20 @@ function Account() {
           <em>{watched.length}</em>
           <i aria-hidden="true">›</i>
         </button>
+        <button onClick={() => nav.push({ k: "myReviews" })}>
+          <span>Reviews</span>
+          <em>{reviews}</em>
+          <i aria-hidden="true">›</i>
+        </button>
+        {account.social && (
+          <button id="pfa" onClick={openFriends}>
+            <span>Amigos</span>
+            {friends.incoming.length > 0 && <b className="v2dot" aria-label="Pedido de amizade novo" />}
+            <em>{friends.list.length}</em>
+            <i aria-hidden="true">›</i>
+          </button>
+        )}
       </nav>
-
-      <TicketDrawer />
-      {account.social && (
-        <>
-          <FriendsBlock onError={setErr} />
-          <Board />
-        </>
-      )}
-      <p className={`fmsg${err ? " bad" : ""}`} id="fm">
-        {err}
-      </p>
     </div>
   );
 }
@@ -366,129 +368,6 @@ function YearCard({ films, year }: { films: Film[]; year: string }) {
           <small>Gênero do ano</small>
           <b className="s">{genre || "–"}</b>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function FriendsBlock({ onError }: { onError: (t: string) => void }) {
-  const { friends } = useCloud();
-  const [busy, setBusy] = useState("");
-  const act = async (fn: (id: string) => Promise<string>, id: string) => {
-    setBusy(id);
-    const e = await fn(id);
-    setBusy("");
-    if (e) onError(e);
-  };
-  const empty = !friends.list.length && !friends.outgoing.length;
-  return (
-    <>
-      {friends.incoming.length > 0 && (
-        <>
-          <div className="sech">
-            <h3>Pedidos de amizade</h3>
-          </div>
-          <div className="frs">
-            {friends.incoming.map((p) => (
-              <FriendRow
-                key={p.id}
-                p={p}
-                right={
-                  <>
-                    <button
-                      className="mini"
-                      data-ok={p.id}
-                      disabled={busy === p.id}
-                      onClick={() => void act(cloud.acceptFriend, p.id!)}
-                    >
-                      Aceitar
-                    </button>
-                    <button
-                      className="mini no"
-                      data-no={p.id}
-                      disabled={busy === p.id}
-                      onClick={() => void act(cloud.removeFriend, p.id!)}
-                    >
-                      Recusar
-                    </button>
-                  </>
-                }
-              />
-            ))}
-          </div>
-        </>
-      )}
-      <div className="sech">
-        <h3>Amigos{friends.list.length ? " · " + friends.list.length : ""}</h3>
-        <button id="fadd" onClick={() => nav.open({ k: "addFriend" })}>
-          Adicionar
-        </button>
-      </div>
-      <div className="frs">
-        {empty && (
-          <p
-            className="tip"
-            style={{ color: "var(--muted)", fontSize: 14, margin: 0 }}
-          >
-            Ninguém por aqui ainda. Adicione um amigo pelo @ dele.
-          </p>
-        )}
-        {friends.list.map((p) => (
-          <FriendRow
-            key={p.id}
-            p={p}
-            right={<i>›</i>}
-            onClick={() => nav.push({ k: "friend", id: p.id! })}
-          />
-        ))}
-        {friends.outgoing.map((p) => (
-          <FriendRow key={p.id} p={p} right={<i>Pedido enviado</i>} />
-        ))}
-      </div>
-    </>
-  );
-}
-
-function Board() {
-  const tick = useRefresh();
-  const rows = useAsync(() => cloud.board(), [tick], true);
-  if (!rows || !rows.length) return <div id="board" />;
-  return (
-    <div id="board">
-      <div className="sech">
-        <h3>Placar do palpite</h3>
-      </div>
-      <div className="frs board">
-        {rows.map((r, k) => (
-          <FriendRow
-            key={r.p.id || k}
-            p={r.p}
-            left={<i className="pos">{k + 1}</i>}
-            name={r.me ? "Você" : undefined}
-            small={`${r.n} ${r.n === 1 ? "palpite" : "palpites"}`}
-            right={<span className="rt">{r.pts} pts</span>}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/** Gaveta de ingressos: os filmes vistos no cinema, como uma coleção de canhotos. */
-function TicketDrawer() {
-  const tickets = useFilms()
-    .filter((h) => h.w === "cine")
-    .sort((a, b) => (b.d || "").localeCompare(a.d || "") || (b.ts || 0) - (a.ts || 0));
-  if (!tickets.length) return null;
-  return (
-    <section className="drawer">
-      <div className="sech">
-        <h3>Ingressos · {tickets.length}</h3>
-      </div>
-      <div className="tkrowh">
-        {tickets.map((h) => (
-          <Ticket key={fkey(h)} film={h} torn onClick={() => nav.open({ k: "ticket", key: fkey(h) })} />
-        ))}
       </div>
     </section>
   );

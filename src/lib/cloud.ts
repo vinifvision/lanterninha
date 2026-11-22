@@ -35,7 +35,6 @@ export interface CloudState {
   /** O link do e-mail chegou vencido ou já usado */
   linkError: string;
 }
-export interface BoardRow { p: Profile; me: boolean; pts: number; n: number }
 
 const emptyFriends = (): Friends => ({ list: [], incoming: [], outgoing: [] });
 
@@ -644,21 +643,6 @@ export const cloud = {
   async sendGuess(target: string, key: string, guess: number): Promise<boolean> {
     if (!sb || !UUID.test(target)) return false;
     try { const { error } = await sb.from('guesses').insert({ target, film_key: key, guess }); return !error; } catch { return false; }
-  },
-  async board(): Promise<BoardRow[] | null> {
-    if (!sb || !user) return null;
-    try {
-      const { data, error } = await sb.from('guesses').select('guesser,pts');
-      if (error) return null;
-      const tot = new Map<string, { pts: number; n: number }>();
-      (data || []).forEach((r) => { const t = tot.get(r.guesser) || { pts: 0, n: 0 }; t.pts += Number(r.pts) || 0; t.n++; tot.set(r.guesser, t); });
-      const meId = user.id;
-      const people: Profile[] = [{ ...(profile || cleanProfile({})!), id: meId }, ...friends.list];
-      return people
-        .map((p) => ({ p, me: p.id === meId, pts: tot.get(p.id || '')?.pts || 0, n: tot.get(p.id || '')?.n || 0 }))
-        .filter((x) => x.n)
-        .sort((a, b) => b.pts - a.pts || a.n - b.n);
-    } catch { return null; }
   },
 };
 

@@ -2073,15 +2073,6 @@ body.tinted::after {
   font-size: 14px;
   margin-bottom: 18px;
 }
-.board .fr .rt {
-  font-size: 16px;
-}
-.board .fr i.pos {
-  width: 20px;
-  text-align: center;
-  font-weight: 700;
-  color: var(--text);
-}
 input.need {
   border-color: #e8494f !important;
   animation: shake 0.35s;
@@ -3685,14 +3676,6 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .tkfr button{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 5px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:none;color:var(--text);font:inherit;font-size:13px;transition:background .2s,border-color .2s}
 .tkfr button .av{width:26px;height:26px;font-size:11px}
 .tkfr button.on{background:rgba(242,201,127,.18);border-color:var(--gold)}
-/* Gaveta de ingressos no perfil */
-.drawer{margin:0 0 30px}
-.tkrowh{display:flex;gap:14px;overflow-x:auto;margin:0 -22px;padding:4px 22px 18px;scroll-snap-type:x mandatory;scrollbar-width:none}
-.tkrowh::-webkit-scrollbar{display:none}
-.tkrowh .ticket{flex:none;width:270px;scroll-snap-align:start;transition:transform .15s}
-.tkrowh .ticket:active{transform:scale(.97)}
-.tkrowh .tktitle{font-size:17px}
-@media (min-width:900px){.tkrowh{margin:0;padding:4px 0 18px}}
 
 /* ---------- Caixa "Minha nota": título com Editar, ingresso em linha e no máximo 3 botões */
 .myhead{display:flex;align-items:center;justify-content:space-between}
@@ -3726,25 +3709,8 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 .tkno{color:rgba(243,227,189,.45)}
 .tstub b{color:var(--gold)}
 .tstub small{color:rgba(243,227,189,.55)}
-/* Na gaveta: canhotos menores, levemente tortos, como uma pilha de ingressos guardados */
-.tkrowh{gap:10px;padding-top:8px}
-.tkrowh .ticket{width:232px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
-.tkrowh .ticket:nth-child(odd){transform:rotate(-1.5deg)}
-.tkrowh .ticket:nth-child(even){transform:rotate(1.2deg)}
-.tkrowh .ticket:active{transform:scale(.97)}
-.tkrowh .tmain{padding:12px 12px 11px 14px}
-.tkrowh .tktitle{font-size:15px;margin:4px 0 8px}
-.tkrowh .tmain span{font-size:12px}
-.tkrowh .tkwith{display:none}
-.tkrowh .tstub{width:66px}
-.tkrowh .tstub b{font-size:14px}
 .ticket{background:none;-webkit-appearance:none;appearance:none}
-.tkrowh .tk1{font-size:8.5px;letter-spacing:1px}
-.tkrowh .tkrow{flex-direction:column;gap:3px}
-.tkrowh .tkrow small{display:none}
-.tkrowh .tkrow span{font-size:12px}
-.tkrowh .tkrow>div+div span{color:rgba(243,227,189,.7)}
-.tk1 em{font-style:normal}.tkrowh .tk1 em{display:none}
+.tk1 em{font-style:normal}
 
 /* Cinemas perto de mim */
 .near{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:-4px 0 14px;padding:11px;border:1px dashed rgba(242,201,127,.45);border-radius:13px;background:none;color:var(--gold);font:inherit;font-size:14px;font-weight:600}
