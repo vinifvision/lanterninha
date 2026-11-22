@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
+import { StarPicker } from '../components/StarPicker';
 import { Stars } from '../components/Stars';
 import { cloud } from '../lib/cloud';
 import { fkey } from '../lib/films';
@@ -45,11 +46,6 @@ export function GuessGame({ friend, films: pool }: { friend: Profile; films: Rat
     if (saved) setTotal((t) => t + pts);
     setAnswer({ pts, saved });
   };
-  const onStars = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (locked) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    setVal(clamp(Math.ceil(((e.clientX - r.left) / r.width) * 10) / 2));
-  };
 
   return (
     <Overlay>
@@ -58,11 +54,11 @@ export function GuessGame({ friend, films: pool }: { friend: Profile; films: Rat
         <Poster img={h.img} title="" size="w342" fallback={false} className="poster" />
         <h2>{h.t}</h2>
         <p className="q2">Que nota {pname(friend)} deu?</p>
-        <span id="gst">{answer ? <Stars value={h.s} anim /> : <Stars value={val} onClick={onStars} />}</span>
+        <span id="gst">{answer ? <Stars value={h.s} anim /> : <StarPicker value={val} onChange={setVal} />}</span>
         <div className="num" id="gnum">{fmt(answer ? h.s : val)}</div>
         <div className="adj" style={{ margin: '14px 0 18px' }}>
           <button id="gm" aria-label="Menos" onClick={() => !locked && setVal(clamp(val - 0.5))}>−</button>
-          <small>toque nas estrelas<br />ou use − e +</small>
+          <small>arraste nas estrelas<br />ou use − e +</small>
           <button id="gp" aria-label="Mais" onClick={() => !locked && setVal(clamp(val + 0.5))}>+</button>
         </div>
         <div className={`res${answer ? ' g' + answer.pts : ''}`} id="gres">{answer ? `${VERDICT[answer.pts]} A nota foi ★ ${fmt(h.s)}` : ''}</div>
