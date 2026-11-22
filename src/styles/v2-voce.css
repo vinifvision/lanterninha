@@ -263,16 +263,6 @@
   font-size: 15px;
   font-weight: 500;
 }
-.v2lic {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.v2lic svg {
-  width: 20px;
-  height: 20px;
-  flex: none;
-}
 .v2links em {
   font-style: normal;
   font-size: 14px;

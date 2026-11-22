@@ -17,9 +17,6 @@ export const StarIcon = () => (
 export const BookmarkIcon = () => (
   <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" /></svg>
 );
-export const ChestIcon = () => (
-  <svg viewBox="0 0 24 24"><path d="M3 10h18v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9zM4 10V8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2M10 10v3h4v-3" /></svg>
-);
 export const TAB_ICONS = {
   rate: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   home: 'M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3z',

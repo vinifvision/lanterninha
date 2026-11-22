@@ -118,7 +118,7 @@ export const sfx = {
     noise(0.06, 0.08, 900, 0.21);
     buzz(10);
   },
-  /** Baú da infância: um cartão saindo (já vi sobe a nota, não vi desce, não lembro fica no meio). */
+  /** Um cartão saindo da pilha (já vi sobe a nota, não vi desce, não lembro fica no meio). */
   swipe(kind: 'seen' | 'no' | 'idk') {
     noise(0.08, 0.06, kind === 'idk' ? 1800 : 1200);
     if (kind === 'seen') { tone(659.25, 0.18, 0.06, 0.02); tone(987.77, 0.22, 0.05, 0.08); }
