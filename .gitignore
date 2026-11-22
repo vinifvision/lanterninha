@@ -12,3 +12,7 @@ android/app/src/main/assets/public
 tests/out-*.png
 tests/shot-*.png
 tests/sheet.png
+# Chave de assinatura do APK e senhas: NUNCA vão pro GitHub
+android/keystore.properties
+*.jks
+*.keystore

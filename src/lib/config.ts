@@ -12,7 +12,7 @@ export const SITE_URL = 'https://lanterninha.vercel.app/';
 export const IMG = 'https://image.tmdb.org/t/p/';
 
 /** Versão do Lanterninha (aparece nas Configurações, na tela de Novidades e no aviso de APK novo). */
-export const APP_VERSION = '2.0';
+export const APP_VERSION = '2.0.1';
 
 /** Versão mais nova do app de celular. Quando gerar um APK novo:
  *  1) aumente o versionCode (e o versionName) no android/app/build.gradle;
@@ -20,10 +20,13 @@ export const APP_VERSION = '2.0';
  *  3) mude estes números para os mesmos, no MESMO deploy do APK.
  *  Quem estiver com um APK mais velho vê o aviso para atualizar. */
 export const LATEST_APK = {
-  build: 4,
+  build: 5,
   name: APP_VERSION,
-  news: 'O app inteiro ganhou um visual novo, feito para parecer uma sala de cinema',
+  news: 'O app agora tem assinatura própria, mais segura',
 };
+/** Último APK assinado com a chave de debug (do PC). Quem está nele ou antes não consegue instalar
+ *  por cima do APK novo (a assinatura mudou): o aviso mostra o passo a passo para reinstalar. */
+export const LAST_DEBUG_APK = 4;
 /** "http" de propósito: um endereço diferente do app faz o celular abrir o navegador, que baixa o arquivo.
  *  (A Vercel passa sozinha para https.) */
 export const APK_URL = 'http://lanterninha.vercel.app/lanterninha.apk';
