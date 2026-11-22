@@ -8,6 +8,7 @@ export type Tab = 'rate' | 'search' | 'home' | 'lib' | 'prof';
 export type Screen =
   | { k: 'film'; info: FilmInfo }
   | { k: 'friend'; id: string }
+  | { k: 'friendFilms'; id: string; only?: 'unseen' }
   | { k: 'credits'; info: FilmInfo }
   | { k: 'person'; kind: PersonKind; id: number; name: string; photo?: string }
   | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }

@@ -34,6 +34,7 @@ import { PersonPage } from "./screens/PersonPage";
 import { FilmEdit } from "./overlays/FilmEdit";
 import { FilmPage } from "./screens/FilmPage";
 import { FriendPage } from "./screens/FriendPage";
+import { FriendFilms } from "./screens/FriendFilms";
 import { FullList } from "./screens/FullList";
 import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
@@ -95,6 +96,8 @@ function stackScreen(s: Screen, depth: number) {
       return <Guide key={`guide-${depth}`} />;
     case "friend":
       return <FriendPage key={`friend-${s.id}`} id={s.id} />;
+    case "friendFilms":
+      return <FriendFilms key={`friendFilms-${s.id}`} id={s.id} only={s.only} />;
     case "quiz":
       return (
         <Quiz
@@ -251,6 +254,7 @@ export function App() {
         friends: "diary",
         guide: "guide",
         friend: "friend",
+        friendFilms: "friend",
         quiz: "q",
         details: "det",
         result: "res",
@@ -259,7 +263,7 @@ export function App() {
   const alignTop = mode !== "home" && mode !== "q" && mode !== "res";
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend =
-    top?.k === "friend"
+    top?.k === "friend" || top?.k === "friendFilms"
       ? account.friends.list.find((p) => p.id === top.id)
       : null;
   const title = top
@@ -276,7 +280,7 @@ export function App() {
         : top.k === "person"
         ? top.name
         : friend
-          ? pname(friend)
+          ? top.k === "friendFilms" ? `Filmes de ${pname(friend)}` : pname(friend)
           : ""
     : TAB_TITLE[tab];
 
