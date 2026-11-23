@@ -1,6 +1,7 @@
 // Chip que abre um menu de opções com a cara do app (no lugar do <select> do sistema).
-// Abre logo abaixo do chip; fecha ao escolher, ao tocar fora ou com Esc.
-import { useEffect, useRef, useState } from 'react';
+// Abre logo abaixo do chip (alinhado pela direita se não couber); fecha ao escolher, ao tocar fora ou com Esc.
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { scroller } from '../nav';
 
 export type ChipOption<T extends string> = { value: T; label: string };
 
@@ -9,12 +10,24 @@ type Props<T extends string> = {
   value: T;
   options: ChipOption<T>[];
   onChange: (v: T) => void;
+  /** Texto do chip quando a primeira opção ("todas") está escolhida, ex.: "Nota" no lugar de "Todas as notas" */
+  chip?: string;
 };
 
-export function ChipMenu<T extends string>({ label, value, options, onChange }: Props<T>) {
+export function ChipMenu<T extends string>({ label, value, options, onChange, chip }: Props<T>) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLUListElement>(null);
+  const [end, setEnd] = useState(false); // o menu abre alinhado pela direita do chip
+
+  // Antes de desenhar: se o menu passar da borda direita da tela do app, alinha pela direita
+  useLayoutEffect(() => {
+    if (!open || !box.current || !menu.current) return;
+    const right = scroller()?.getBoundingClientRect().right ?? window.innerWidth;
+    setEnd(box.current.getBoundingClientRect().left + menu.current.offsetWidth > right - 12);
+  }, [open]);
   const current = options.find((o) => o.value === value) ?? options[0];
+  const text = chip && current === options[0] ? chip : current?.label;
 
   useEffect(() => {
     if (!open) return;
@@ -45,11 +58,11 @@ export function ChipMenu<T extends string>({ label, value, options, onChange }: 
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        {current?.label}
+        {text}
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {open && (
-        <ul className="v2cmlist" role="listbox" aria-label={label}>
+        <ul ref={menu} className={`v2cmlist${end ? ' end' : ''}`} role="listbox" aria-label={label} data-no-pull>
           {options.map((o, i) => {
             const on = o.value === value;
             return (

@@ -20,8 +20,17 @@ export function PullRefresh({ enabled }: { enabled: boolean }) {
     let y0 = -1;
     let d = 0;
     let armed = false;
+    /** O toque começou dentro de algo que rola sozinho (ex.: o menu dos chips)? Aí o arrasto é dele, não do recarregar. */
+    const inner = (t: EventTarget | null) => {
+      for (let n = t instanceof Element ? t : null; n && n !== el; n = n.parentElement) {
+        if (n.hasAttribute('data-no-pull')) return true;
+        const oy = getComputedStyle(n).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return true;
+      }
+      return false;
+    };
     const start = (e: TouchEvent) => {
-      y0 = !busy.current && el.scrollTop <= 0 && e.touches.length === 1 ? e.touches[0].clientY : -1;
+      y0 = !busy.current && el.scrollTop <= 0 && e.touches.length === 1 && !inner(e.target) ? e.touches[0].clientY : -1;
       d = 0;
       armed = false;
     };
