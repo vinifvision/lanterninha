@@ -277,6 +277,7 @@
 /* Diário */
 .v2dflt {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
 }
@@ -360,7 +361,14 @@
   backdrop-filter: blur(18px);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.55);
   transform-origin: top left;
+  overscroll-behavior: contain;
   animation: v2cmin 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+/* Chip perto da borda direita: o menu abre para a esquerda */
+.v2cmlist.end {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
 }
 .v2cmlist li {
   animation: v2cmitem 0.24s ease both;
@@ -591,4 +599,107 @@
   line-height: 1.3;
   color: #d8cfc0;
   quotes: "“" "”";
+}
+
+/* Diário: título com o botão de lista/grade */
+.v2dtop {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.v2dtop .v2dh {
+  margin: 0;
+}
+.v2dtop .v2round svg rect,
+.v2dtop .v2round svg path {
+  transition: opacity 0.2s ease;
+}
+
+/* Diário em grade: pôsteres separados por mês, com o dia num selinho */
+.v2dgrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 8px;
+  margin-top: 12px;
+}
+.v2dcell {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  min-width: 0;
+  animation: v2dcin 0.36s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  transition: transform 0.15s ease;
+}
+.v2dcell:active {
+  transform: scale(0.95);
+}
+.v2dcpos {
+  position: relative;
+  display: block;
+  aspect-ratio: 2/3;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.v2dcpos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.v2dcday {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  min-width: 26px;
+  padding: 3px 5px 2px;
+  border-radius: 8px;
+  background: rgba(14, 12, 16, 0.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  font-style: normal;
+  text-align: center;
+  line-height: 1;
+}
+.v2dcday b {
+  display: block;
+  font: 600 13px Inter, sans-serif;
+  color: var(--text);
+}
+.v2dcday small {
+  display: block;
+  margin-top: 2px;
+  font-size: 9px;
+  color: #b5ada0;
+  white-space: nowrap;
+}
+.v2dcnote {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.v2dcnote svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: #8a8378;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+@keyframes v2dcin {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
 }
