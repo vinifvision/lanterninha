@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Poster } from '../components/Poster';
 import { useAsync } from '../components/hooks';
-import { moodPage, movieCredits, posterUrl, searchMovies, type Mood } from '../lib/api';
+import { moodPage, movieCredits, posterUrl, searchPage, type Mood } from '../lib/api';
+import { MineBadge } from '../components/MineBadge';
 import { ListEnd, usePages } from '../components/Paged';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, POSTER_PATH } from '../lib/format';
@@ -76,26 +77,20 @@ export function Search() {
   const all = useFilms();
   const [q, setQ] = useState(draft.q);
   const [pane, setPane] = useState(draft.pane);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [searched, setSearched] = useState(false);
-  const [offline, setOffline] = useState(false);
-  const [tries, setTries] = useState(0);
+  // O texto que vale para a busca: só muda depois de uma pequena pausa na digitação
+  const [dq, setDq] = useState(draft.q.trim());
   const [recent, setRecent] = useState(loadRecent);
   draft.q = q; draft.pane = pane;
 
   // Busca enquanto digita, com uma pequena espera para não disparar a cada letra
   useEffect(() => {
-    const t0 = q.trim();
-    setSearched(false);
-    if (t0.length < 2) { setResults([]); setOffline(false); return; }
-    const ctl = new AbortController();
-    const t = setTimeout(() => {
-      searchMovies(t0, ctl.signal)
-        .then((l) => { setOffline(false); setResults(l.slice(0, 12)); setSearched(true); })
-        .catch(() => { if (!ctl.signal.aborted) { setResults([]); setOffline(true); } });
-    }, 320);
-    return () => { clearTimeout(t); ctl.abort(); };
-  }, [q, tries]);
+    const t = setTimeout(() => setDq(q.trim()), 320);
+    return () => clearTimeout(t);
+  }, [q]);
+  // Todos os resultados: vai buscando as próximas páginas conforme a pessoa desce
+  const found = usePages(dq.length >= 2 ? (page) => searchPage(dq, page) : null, [dq]);
+  const results: SearchResult[] = found.items || [];
+  const offline = found.failed && !found.items;
 
   const mine = new Map(all.map((h) => [fkey(h), h] as const));
   // Só filmes com nota: marcar como visto não conta
@@ -143,15 +138,18 @@ export function Search() {
       {offline && (
         <div className="offline" role="status">
           <span>Sem conexão. Confira a internet.</span>
-          <button onClick={() => setTries(tries + 1)}>Tentar de novo</button>
+          <button onClick={found.retry}>Tentar de novo</button>
         </div>
       )}
 
       {typing ? (
+        <>
         <div className="v2slist">
           {results.map((m) => row(toInfo(m), [m.year, m.original !== m.title ? m.original : ''].filter(Boolean).join(' · ')))}
-          {searched && !results.length && !offline && <p className="rh2msg">Não achei esse filme. Confira o nome.</p>}
+          {found.done && found.items?.length === 0 && <p className="rh2msg">Não achei esse filme. Confira o nome.</p>}
         </div>
+        {dq.length >= 2 && <ListEnd p={found} />}
+        </>
       ) : (
         <>
           {recent.length > 0 && (
@@ -171,6 +169,7 @@ export function Search() {
                   {paneFilms.map((f) => (
                     <button type="button" key={fkey(f)} onClick={() => open(f)} aria-label={f.t}>
                       <Poster img={f.img} title={f.t} size="w185" />
+                      <MineBadge film={mine.get(fkey(f))} />
                     </button>
                   ))}
                 </div>

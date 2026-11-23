@@ -508,6 +508,7 @@
   gap: 10px;
 }
 .v2sgrid button {
+  position: relative;
   padding: 0;
   border: 0;
   border-radius: 12px;
