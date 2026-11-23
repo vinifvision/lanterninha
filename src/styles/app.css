@@ -3088,7 +3088,8 @@ html.native {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.hp .mk {
+.hp .mk,
+.v2sgrid .mk {
   position: absolute;
   right: 6px;
   top: 6px;
@@ -3108,17 +3109,20 @@ html.native {
   gap: 3px;
 }
 /* Selos do pôster: ★ nota (avaliei), ✓ (vi sem nota) e marcador (Quero ver) */
-.hp .mk.rated {
+.hp .mk.rated,
+.v2sgrid .mk.rated {
   padding: 0 7px 0 6px;
   color: var(--gold);
   font-size: 12px;
 }
-.hp .mk svg {
+.hp .mk svg,
+.v2sgrid .mk svg {
   width: 11px;
   height: 11px;
   fill: currentColor;
 }
-.hp .mk.want svg {
+.hp .mk.want svg,
+.v2sgrid .mk.want svg {
   width: 12px;
   height: 12px;
 }

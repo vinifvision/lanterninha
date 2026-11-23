@@ -22,6 +22,30 @@ function cleanResults(data: { results?: unknown[] }): SearchResult[] {
     }));
 }
 
+/** Uma página de uma lista do TMDB: os filmes, o número dela e quantas páginas a lista tem. */
+export interface ListPage { results: SearchResult[]; page: number; totalPages: number }
+
+/** Uma página da busca por nome (aceita erro de digitação e título original). Guardada enquanto o app está aberto. */
+const searchCache = new Map<string, Promise<ListPage>>();
+export function searchPage(q: string, page: number): Promise<ListPage> {
+  const key = 'q=' + encodeURIComponent(q.trim().toLowerCase()) + '&page=' + page;
+  let p = searchCache.get(key);
+  if (!p) {
+    if (searchCache.size > 60) searchCache.clear();
+    p = fetch(`${API_BASE}api/search?${key}`)
+      .then((r) => { if (!r.ok) throw new Error('busca indisponível'); return r.json(); })
+      .then((d: { results?: unknown[]; page?: unknown; totalPages?: unknown }) => {
+        const n = Number.isInteger(d.page) ? (d.page as number) : page;
+        const total = Number.isInteger(d.totalPages) ? (d.totalPages as number) : n;
+        return { results: cleanResults(d), page: n, totalPages: Math.max(total, n) };
+      });
+    searchCache.set(key, p);
+    p.catch(() => searchCache.delete(key));
+  }
+  return p;
+}
+
+/** Só a primeira página da busca (usada onde não precisa rolar, como no Banner). */
 export async function searchMovies(q: string, signal?: AbortSignal): Promise<SearchResult[]> {
   const r = await fetch(`${API_BASE}api/search?q=${encodeURIComponent(q)}`, { signal });
   if (!r.ok) throw new Error('busca indisponível');
@@ -31,8 +55,6 @@ export async function searchMovies(q: string, signal?: AbortSignal): Promise<Sea
 export type DiscoverList = 'now' | 'trending' | 'classics' | 'similar';
 export type Mood = 'chorar' | 'rir' | 'br' | 'curto';
 
-/** Uma página de uma lista do TMDB: os filmes, o número dela e quantas páginas a lista tem. */
-export interface ListPage { results: SearchResult[]; page: number; totalPages: number }
 const pageCache = new Map<string, Promise<ListPage>>();
 
 /** Busca uma página de /api/discover. Guardada enquanto o app está aberto. */

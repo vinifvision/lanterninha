@@ -1,7 +1,8 @@
 // Aba Avaliar: "O que você viu?". Busca o filme ou toca numa sugestão; um toque já leva para a nota.
 import { useEffect, useRef, useState } from 'react';
 import { Poster } from '../components/Poster';
-import { searchMovies } from '../lib/api';
+import { searchPage } from '../lib/api';
+import { ListEnd, usePages } from '../components/Paged';
 import { films, isRated, toInfo, useFilms } from '../lib/films';
 import { STAR_PATH } from '../lib/format';
 import { looksClassic } from '../lib/quiz';
@@ -26,28 +27,22 @@ function Row({ f, sub, onClick }: { f: FilmInfo; sub: string; onClick: () => voi
 export function RateHome() {
   const all = useFilms();
   const [title, setTitle] = useState(draft.title);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [searched, setSearched] = useState(false);
-  // A busca falhou por falta de conexão (não é que o filme não exista)
-  const [offline, setOffline] = useState(false);
-  const [tries, setTries] = useState(0);
+  // O texto que vale para a busca: só muda depois de uma pequena pausa na digitação
+  const [dq, setDq] = useState(draft.title.trim());
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => { draft.title = title; }, [title]);
 
   // Busca enquanto digita, com uma pequena espera para não disparar a cada letra
   useEffect(() => {
-    const q = title.trim();
-    setSearched(false);
-    if (q.length < 2) { setResults([]); setOffline(false); return; }
-    const ctl = new AbortController();
-    const t = setTimeout(() => {
-      searchMovies(q, ctl.signal)
-        .then((list) => { setOffline(false); setResults(list.slice(0, 6)); setSearched(true); })
-        .catch(() => { if (!ctl.signal.aborted) { setResults([]); setOffline(true); } });
-    }, 320);
-    return () => { clearTimeout(t); ctl.abort(); };
-  }, [title, tries]);
+    const t = setTimeout(() => setDq(title.trim()), 320);
+    return () => clearTimeout(t);
+  }, [title]);
+  // Todos os resultados: vai buscando as próximas páginas conforme a pessoa desce
+  const found = usePages(dq.length >= 2 ? (page) => searchPage(dq, page) : null, [dq]);
+  const results: SearchResult[] = found.items || [];
+  // A busca falhou por falta de conexão (não é que o filme não exista)
+  const offline = found.failed && !found.items;
 
   /** Começa a avaliar. Filme já avaliado vira revisão; filme antigo entra como clássico. */
   const rate = (f: FilmInfo) => {
@@ -81,7 +76,7 @@ export function RateHome() {
       {offline && (
         <div className="offline" id="rhoff" role="status">
           <span>Sem conexão. Confira a internet.</span>
-          <button onClick={() => setTries(tries + 1)}>Tentar de novo</button>
+          <button onClick={found.retry}>Tentar de novo</button>
         </div>
       )}
 
@@ -94,7 +89,8 @@ export function RateHome() {
                 onClick={() => rate({ id: m.id, t: m.title, y: m.year, o: m.original, img: m.poster })} />
             ))}
           </div>
-          {searched && !results.length && !offline && <p className="rh2msg">Não achei esse filme. Confira o nome.</p>}
+          {found.done && found.items?.length === 0 && <p className="rh2msg">Não achei esse filme. Confira o nome.</p>}
+          {dq.length >= 2 && <ListEnd p={found} />}
         </>
       ) : tips.length > 0 ? (
         <>
