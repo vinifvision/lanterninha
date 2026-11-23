@@ -116,9 +116,9 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
               <div><b>{pname(r.p)}</b><Meta f={r.f} /></div>
             </div>
             {r.f.note ? <SpoilerText text={r.f.note} hide={!!r.f.sp && !seen} /> : <p className="hint">Só deu a nota.</p>}
-            {r.f.note && likes && (
+            {r.f.note && likes && r.p.id && (
               <div className="rvfoot">
-                <LikeButton n={(likes[r.p.id] || []).length} on={(likes[r.p.id] || []).includes(me)} onClick={() => toggleLike(r.p.id)} />
+                <LikeButton n={(likes[r.p.id] || []).length} on={(likes[r.p.id] || []).includes(me)} onClick={() => toggleLike(r.p.id!)} />
               </div>
             )}
           </article>
