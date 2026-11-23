@@ -1,5 +1,4 @@
 // Todos os filmes que um amigo avaliou, em grade. Abre pelo "N filmes" do perfil dele ou pelo "Ver os N".
-import { useState } from 'react';
 import { useAsync } from '../components/hooks';
 import { Poster } from '../components/Poster';
 import { cloud, useCloud } from '../lib/cloud';
@@ -7,7 +6,7 @@ import { fkey, useFilms } from '../lib/films';
 import { fmt, pname } from '../lib/format';
 import { useRefresh } from '../lib/refresh';
 import type { RatedFilm } from '../lib/types';
-import { nav } from '../nav';
+import { nav, useKept } from '../nav';
 import { unseenBy } from './FriendPage';
 
 type Show = 'all' | 'unseen';
@@ -18,7 +17,7 @@ export function FriendFilms({ id, only }: { id: string; only?: 'unseen' }) {
   const mine = useFilms();
   const tick = useRefresh();
   const films = useAsync<RatedFilm[] | null>(() => cloud.friendFilms(id), [id, tick], true);
-  const [show, setShow] = useState<Show>(only || 'all');
+  const [show, setShow] = useKept<Show>('show', only || 'all');
 
   if (!p) return <div className="screen"><p className="empty">Essa pessoa não está mais na sua lista de amigos.</p></div>;
   const name = pname(p);

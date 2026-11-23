@@ -7,7 +7,7 @@ import { useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, MONTHS, pname } from '../lib/format';
 import type { Film } from '../lib/types';
-import { nav } from '../nav';
+import { nav, useKept } from '../nav';
 
 /** Ordem do diário: o visto mais recente primeiro. */
 export const byDiary = (a: Film, b: Film) => (b.d || '').localeCompare(a.d || '') || (b.ts || 0) - (a.ts || 0);
@@ -21,7 +21,7 @@ const fold = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').t
 type Sort = 'recent' | 'nota';
 const WEEK = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const MON = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-// Os filtros ficam guardados enquanto a pessoa passeia pelo app. O ano não: sempre abre em "Todos".
+// Os filtros ficam guardados enquanto a pessoa passeia pelo app. O ano só ao voltar de um filme: entrando de novo, abre em "Todos".
 const view = { cine: false, sort: 'recent' as Sort, q: '' };
 
 export function Diary() {
@@ -29,7 +29,7 @@ export function Diary() {
   const { friends } = useCloud();
   const watched = all.filter((h) => h.st !== 'want').sort(byDiary);
   const years = [...new Set(watched.map((h) => (h.d || '').slice(0, 4)).filter(Boolean))];
-  const [year, setYear] = useState('');
+  const [year, setYear] = useKept('year', ''); // lembra o ano ao voltar de um filme
   const [cine, setCine] = useState(view.cine);
   const [sort, setSort] = useState<Sort>(view.sort);
   const [q, setQ] = useState(view.q);

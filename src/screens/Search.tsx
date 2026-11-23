@@ -88,7 +88,7 @@ export function Search() {
     return () => clearTimeout(t);
   }, [q]);
   // Todos os resultados: vai buscando as próximas páginas conforme a pessoa desce
-  const found = usePages(dq.length >= 2 ? (page) => searchPage(dq, page) : null, [dq]);
+  const found = usePages(dq.length >= 2 ? (page) => searchPage(dq, page) : null, [dq], 'busca');
   const results: SearchResult[] = found.items || [];
   const offline = found.failed && !found.items;
 
@@ -98,7 +98,7 @@ export function Search() {
   const people = useAsync(() => topPeople(rated), [rated.length]);
   // Lista do clima: vai buscando as próximas páginas conforme a pessoa desce
   const mood = pane?.mood;
-  const moods = usePages(mood ? (page) => moodPage(mood, page) : null, [mood || '']);
+  const moods = usePages(mood ? (page) => moodPage(mood, page) : null, [mood || ''], 'clima');
   const paneFilms = pane?.films || (mood ? moods.items?.map(toInfo) : null) || null;
 
   const open = (f: FilmInfo) => {

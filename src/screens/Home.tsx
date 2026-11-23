@@ -12,7 +12,7 @@ import { cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, pname } from '../lib/format';
 import type { Film, FilmInfo, FriendRating, Profile, SearchResult } from '../lib/types';
-import { nav } from '../nav';
+import { nav, useKept } from '../nav';
 import { StarIcon } from '../components/icons';
 import { MineBadge } from '../components/MineBadge';
 import { useSeen } from '../components/Spoiler';
@@ -52,7 +52,7 @@ export function Home() {
   const account = useCloud();
   const hasFriends = !!account.user && account.friends.list.length > 0;
   const [activity, setActivity] = useState<FriendRating[] | null>(null);
-  const [chip, setChip] = useState<Chip>('pra');
+  const [chip, setChip] = useKept<Chip>('chip', 'pra');
   const tick = useRefresh();
 
   useEffect(() => {

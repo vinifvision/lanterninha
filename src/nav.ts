@@ -1,5 +1,5 @@
 // Navegação do app: aba atual, pilha de telas abertas por cima dela e telas sobrepostas (overlays).
-import { useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import type { Film, FilmInfo, FriendRating, Profile, RatedFilm } from './lib/types';
 import type { DiscoverList, PersonKind } from './lib/api';
 
@@ -59,21 +59,53 @@ const set = (patch: Partial<NavState>) => { state = { ...state, ...patch }; list
 export const scroller = () => document.getElementById('scroller');
 /** Posição da rolagem de cada tela que ficou para trás na pilha. */
 let scrolls: number[] = [];
-/** Rola depois que a tela nova for desenhada. */
+/** Cada pedido de rolagem ganha um número; um pedido novo cancela o anterior. */
+let scrollGen = 0;
+/**
+ * Rola depois que a tela nova for desenhada. Se o conteúdo ainda está chegando
+ * (a tela ainda não é alta o bastante), tenta de novo por até ~1 segundo.
+ */
 const scrollTo = (y: number) => {
-  const go = () => { const el = scroller(); if (el) el.scrollTop = y; };
+  const g = ++scrollGen;
+  let tries = 0;
+  const go = () => {
+    if (g !== scrollGen) return;
+    const el = scroller();
+    if (el) el.scrollTop = y;
+    if (y > 0 && (!el || Math.abs(el.scrollTop - y) > 1) && ++tries < 60) requestAnimationFrame(go);
+  };
   go(); requestAnimationFrame(go);
 };
+// Se a pessoa mexer na tela enquanto a posição volta, para de forçar a rolagem
+['touchstart', 'wheel'].forEach((ev) => window.addEventListener(ev, () => { scrollGen++; }, { passive: true }));
+
+/**
+ * Estado de cada tela que ficou para trás na pilha (aba escolhida, filtros, páginas já carregadas),
+ * para ela voltar do jeito que estava. A chave começa pela profundidade da tela na pilha (0 = a aba).
+ */
+const kept = new Map<string, unknown>();
+/** Esquece o estado das telas desta profundidade para cima. */
+const forget = (from: number) => { for (const k of [...kept.keys()]) if (Number(k.split('|')[0]) >= from) kept.delete(k); };
+
+/** Igual ao useState, mas a tela lembra o valor quando a pessoa abre outra por cima e volta. */
+export function useKept<T>(key: string, init: T | (() => T)) {
+  const [id] = useState(() => `${state.stack.length}|${key}`);
+  const pair = useState<T>(() => (kept.has(id) ? (kept.get(id) as T) : typeof init === 'function' ? (init as () => T)() : init));
+  kept.set(id, pair[0]);
+  return pair;
+}
+/** Diz se a tela já tem um valor guardado para esta chave (ex.: para não buscar a lista de novo). */
+export const isKept = (key: string) => kept.has(`${state.stack.length}|${key}`);
 
 export const nav = {
   get state() { return state; },
   subscribe(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; },
 
   /** Vai para uma aba, fechando qualquer tela aberta por cima. */
-  tab(tab: Tab, from?: Tab) { scrolls = []; set({ tab, stack: [], progress: null, from: from ?? null }); scrollTo(0); },
-  push(screen: Screen) { scrolls.push(scroller()?.scrollTop || 0); set({ stack: [...state.stack, screen] }); scrollTo(0); },
+  tab(tab: Tab, from?: Tab) { scrolls = []; kept.clear(); set({ tab, stack: [], progress: null, from: from ?? null }); scrollTo(0); },
+  push(screen: Screen) { scrolls.push(scroller()?.scrollTop || 0); forget(state.stack.length + 1); set({ stack: [...state.stack, screen] }); scrollTo(0); },
   /** Troca a tela do topo (ex.: da avaliação para o resultado). */
-  replace(screen: Screen) { set({ stack: [...state.stack.slice(0, -1), screen], progress: null }); scrollTo(0); },
+  replace(screen: Screen) { forget(state.stack.length); set({ stack: [...state.stack.slice(0, -1), screen], progress: null }); scrollTo(0); },
   setBackHandler(fn: (() => boolean) | null) { backHandler = fn; },
   setOverlayBackHandler(fn: (() => boolean) | null) { overlayBack = fn; },
   back() {
@@ -82,12 +114,13 @@ export const nav = {
     if (state.stack.length) {
       // Volta para o ponto da tela em que a pessoa estava antes de abrir esta
       const y = scrolls.pop() || 0;
+      forget(state.stack.length);
       set({ stack: state.stack.slice(0, -1), progress: null });
       scrollTo(y);
     } else if (state.from) nav.tab(state.from);
   },
   /** Fecha tudo que está aberto por cima da aba. */
-  home() { scrolls = []; set({ stack: [], overlays: [], progress: null }); },
+  home() { scrolls = []; forget(1); set({ stack: [], overlays: [], progress: null }); },
 
   open(overlay: Overlay) { set({ overlays: [...state.overlays, overlay] }); },
   close() { set({ overlays: state.overlays.slice(0, -1) }); },
