@@ -99,9 +99,16 @@ export function Diary() {
       </button>
     );
   };
-  // Na grade, o dia fica num selinho em cima do pôster, para continuar com cara de diário
-  const cell = (h: Film, i: number) => (
-    <button key={fkey(h)} className="v2dcell" style={{ animationDelay: `${Math.min(i, 16) * 22}ms` }} onClick={() => nav.openFilm(h)}>
+  // Na grade, o dia fica num selinho em cima do pôster, para continuar com cara de diário.
+  // Só os 16 primeiros da tela (contando todos os meses) entram com animação, para não pesar.
+  let shown = 0;
+  const cell = (h: Film) => {
+    const i = shown++;
+    return (
+    <button
+      key={fkey(h)} className={`v2dcell${i < 16 ? ' in' : ''}`}
+      style={i < 16 ? { animationDelay: `${i * 22}ms` } : undefined} onClick={() => nav.openFilm(h)}
+    >
       <span className="v2dcpos">
         <Poster img={h.img} title={h.t} />
         {h.d && <i className="v2dcday"><b>{+h.d.slice(8, 10)}</b><small>{dayNote(h.d)}</small></i>}
@@ -113,7 +120,8 @@ export function Diary() {
         )}
       </small>
     </button>
-  );
+    );
+  };
 
   return (
     <div className="screen v2diary">
