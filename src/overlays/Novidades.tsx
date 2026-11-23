@@ -29,6 +29,10 @@ function Icone({ k }: { k: NovIcone }) {
       );
     case 'tempo':
       return <svg viewBox="0 0 24 24" {...S}><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M10 2.5h4" /></svg>;
+    case 'curtir':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M12 20s-7.2-4.4-8.9-8.9C2 8 4 4.8 7.3 4.8c1.9 0 3.5 1 4.7 2.7 1.2-1.7 2.8-2.7 4.7-2.7C20 4.8 22 8 20.9 11.1 19.2 15.6 12 20 12 20z" /></svg>;
+    case 'spoiler':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /><path d="M4 20 20 4" /></svg>;
     case 'semfim':
       return <svg viewBox="0 0 24 24" {...S}><path d="M7 9a3 3 0 1 0 0 6c2.2 0 3.3-1.6 5-3s2.8-3 5-3a3 3 0 1 1 0 6c-2.2 0-3.3-1.6-5-3S9.2 9 7 9z" /></svg>;
     default:
@@ -67,7 +71,6 @@ export function Novidades() {
         <div className="nv-logo">
           <img src="/logo.svg" alt="" width={64} height={64} />
         </div>
-        <small className="nv-v">Versão {NOVIDADES.id}</small>
         <h1 id="nvt">{NOVIDADES.titulo}</h1>
         {NOVIDADES.subtitulo && <p className="nv-sub">{NOVIDADES.subtitulo}</p>}
         <ul className="nv-list">

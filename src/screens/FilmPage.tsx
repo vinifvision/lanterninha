@@ -6,6 +6,7 @@ import { Avatar } from "../components/Avatar";
 import { useArmed, useAsync } from "../components/hooks";
 import { BookmarkIcon, PlayIcon, SendIcon, ShareIcon, StarIcon } from "../components/icons";
 import { Poster } from "../components/Poster";
+import { useSeen } from "../components/Spoiler";
 import { Stars } from "../components/Stars";
 import { WhenRow } from "../components/WhenRow";
 import { movieCredits, movieDetails, movieRatings, posterUrl } from "../lib/api";
@@ -434,6 +435,7 @@ function Galera({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
 /** O que a galera disse: até dois trechos de review e o atalho para a tela de Reviews. */
 function Disse({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
   const withText = crowd.filter((r) => r.f.note);
+  const seen = useSeen(fkey(info));
   if (!withText.length) return null;
   return (
     <section className="disse" aria-label="O que os amigos disseram">
@@ -454,7 +456,7 @@ function Disse({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
               <Avatar p={r.p} />
               <span>{star(r.f.s)}</span>
             </span>
-            <p>“{r.f.note}”</p>
+            {r.f.sp && !seen ? <p className="spq">Review com spoiler · toque para ler</p> : <p>“{r.f.note}”</p>}
           </button>
         ))}
       </div>

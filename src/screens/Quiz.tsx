@@ -85,7 +85,7 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: editing
     const old = films.find(info);
     const keep = rw || old;
     const entry: RatedFilm = { t: info.t, s: note, c: classic, ts: Date.now(), d: (!rw && old?.d) || today() };
-    if (keep?.note) entry.note = keep.note;
+    if (keep?.note) { entry.note = keep.note; if (keep.sp) entry.sp = true; }
     if (info.id) { entry.id = info.id; if (info.y) entry.y = info.y; if (info.o) entry.o = info.o; if (info.img) entry.img = info.img; }
     if (rw) { entry.p = rw.s; entry.n = (rw.n || 1) + 1; }
     else if (old?.n) { entry.p = old.p; entry.n = old.n; }

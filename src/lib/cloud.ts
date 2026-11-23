@@ -644,6 +644,29 @@ export const cloud = {
     if (!sb || !UUID.test(target)) return false;
     try { const { error } = await sb.from('guesses').insert({ target, film_key: key, guess }); return !error; } catch { return false; }
   },
+
+  /** Curtidas das reviews de um filme: autor da review → ids de quem curtiu.
+   *  null = o banco ainda não tem a tabela (script supabase-curtidas.sql) ou deu erro: o botão some. */
+  async reviewLikes(key: string): Promise<Record<string, string[]> | null> {
+    if (!sb || !user) return null;
+    try {
+      const { data, error } = await sb.from('review_likes').select('author_id,user_id').eq('film_key', key);
+      if (error) return null;
+      const out: Record<string, string[]> = {};
+      (data || []).forEach((r) => { (out[r.author_id as string] ||= []).push(r.user_id as string); });
+      return out;
+    } catch { return null; }
+  },
+  /** Curte (on) ou descurte a review de um amigo. Devolve se deu certo. */
+  async likeReview(author: string, key: string, on: boolean): Promise<boolean> {
+    if (!sb || !user || !UUID.test(author)) return false;
+    try {
+      const { error } = on
+        ? await sb.from('review_likes').insert({ author_id: author, film_key: key })
+        : await sb.from('review_likes').delete().eq('author_id', author).eq('film_key', key).eq('user_id', user.id);
+      return !error || (on && error.code === '23505');
+    } catch { return false; }
+  },
 };
 
 /** Hook: estado da conta (usuário, perfil, amigos, indicações, sincronização). */

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
+import { SpoilerText } from '../components/Spoiler';
+import { LikeButton, likedBy } from '../components/LikeButton';
 import { cloud, useCloud } from '../lib/cloud';
 import { films, fkey, isRated, toInfo, useFilms } from '../lib/films';
 import { fd, fmt, pname, STATE } from '../lib/format';
@@ -17,7 +19,7 @@ const when = (f: Film) => [f.w === 'cine' ? 'viu no cinema' : '', f.d ? fd(f.d) 
 /** Nota pequena com o "quando" ao lado. */
 const Meta = ({ f }: { f: Film & { s: number } }) => {
   const w = when(f);
-  return <small><i>★ {fmt(f.s)}</i>{w && ' · ' + w}</small>;
+  return <small><i>★ {fmt(f.s)}</i>{w && ' · ' + w}{f.note && f.sp && <em className="sptag">spoiler</em>}</small>;
 };
 
 export function ReviewsPage({ info: raw, focusId, known }: Props) {
@@ -27,14 +29,29 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
   const { stack } = useNav();
   const mine = useFilms().find((e) => fkey(e) === key) || null;
   const rated = isRated(mine) ? mine : null;
+  /** Quem já viu o filme lê as reviews com spoiler direto; quem não viu, vê borrado. */
+  const seen = !!mine && mine.st !== 'want';
   const [friends, setFriends] = useState<FriendRating[]>(known ? [known] : []);
+  /** Curtidas: autor → quem curtiu (null enquanto carrega ou se o banco não tiver a tabela) */
+  const [likes, setLikes] = useState<Record<string, string[]> | null>(null);
+  const me = account.user?.id || '';
 
   useEffect(() => {
     if (!account.user) return;
     let alive = true;
     void cloud.filmRatings(key).then((rs) => { if (alive && rs.length) setFriends(rs); });
+    void cloud.reviewLikes(key).then((l) => { if (alive) setLikes(l); });
     return () => { alive = false; };
   }, [key, account.user]);
+
+  /** Curte ou descurte na hora; se o banco recusar, recarrega do jeito que está lá. */
+  const toggleLike = (author: string) => {
+    if (!likes || !me) return;
+    const has = (likes[author] || []).includes(me);
+    setLikes({ ...likes, [author]: has ? likes[author].filter((x) => x !== me) : [...(likes[author] || []), me] });
+    void cloud.likeReview(author, key, !has).then((ok) => { if (!ok) void cloud.reviewLikes(key).then(setLikes); });
+  };
+  const myLikes = likedBy(likes?.[me] || [], account.friends.list);
 
   const top = stack[stack.length - 1];
   const onFilmPage = top?.k === 'film' && fkey(top.info) === key;
@@ -67,6 +84,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
             {rated.note
               ? <p className="txt">{rated.note}</p>
               : <p className="hint">Você deu a nota, mas ainda não escreveu nada. Uma frase já basta.</p>}
+            {rated.note && myLikes && <p className="rvlikes"><b>♥</b> Curtida por {myLikes}</p>}
             {rated.note && <button className="rvlnk" id="rvsh" onClick={() => nav.open({ k: 'share', key })}>Compartilhar</button>}
           </>
         ) : (
@@ -97,7 +115,12 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
               <Avatar p={r.p} />
               <div><b>{pname(r.p)}</b><Meta f={r.f} /></div>
             </div>
-            {r.f.note ? <p className="txt">{r.f.note}</p> : <p className="hint">Só deu a nota.</p>}
+            {r.f.note ? <SpoilerText text={r.f.note} hide={!!r.f.sp && !seen} /> : <p className="hint">Só deu a nota.</p>}
+            {r.f.note && likes && r.p.id && (
+              <div className="rvfoot">
+                <LikeButton n={(likes[r.p.id] || []).length} on={(likes[r.p.id] || []).includes(me)} onClick={() => toggleLike(r.p.id!)} />
+              </div>
+            )}
           </article>
         ))}
         {!list.length && account.user && account.friends.list.length > 0 && <p className="empty" style={{ padding: '26px 10px' }}>Nenhum amigo avaliou esse filme ainda.</p>}
