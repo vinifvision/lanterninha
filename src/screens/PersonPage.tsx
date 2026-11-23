@@ -14,7 +14,7 @@ import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt } from '../lib/format';
 import { refresh, useRefresh } from '../lib/refresh';
 import type { Film, Profile } from '../lib/types';
-import { nav, scroller } from '../nav';
+import { nav, scroller, useKept } from '../nav';
 import { Face } from './Credits';
 
 type Sort = 'pop' | 'new';
@@ -32,9 +32,9 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
   const all = useFilms();
   const account = useCloud();
   const mine = useMemo(() => new Map(all.map((h) => [fkey(h), h] as const)), [all]);
-  const [role, setRole] = useState<string | null>(null);
-  const [sort, setSort] = useState<Sort>('pop');
-  const [unseen, setUnseen] = useState(false);
+  const [role, setRole] = useKept<string | null>('role', null);
+  const [sort, setSort] = useKept<Sort>('sort', 'pop');
+  const [unseen, setUnseen] = useKept('unseen', false);
   const now = today();
 
   // Memorizado: um [] novo a cada desenho fazia a busca dos amigos recomeçar sem parar e travava o app
@@ -57,8 +57,10 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
   }, [inRole, unseen, sort, mine]);
 
   // Desenha os pôsteres aos poucos, conforme a pessoa desce
-  const [limit, setLimit] = useState(STEP);
-  useEffect(() => setLimit(STEP), [current, unseen, sort]);
+  const [limit, setLimit] = useKept('limit', STEP);
+  // Trocar o filtro volta a desenhar poucos pôsteres (mas não ao voltar para a página)
+  const first = useRef(true);
+  useEffect(() => { if (first.current) { first.current = false; return; } setLimit(STEP); }, [current, unseen, sort]);
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = end.current;

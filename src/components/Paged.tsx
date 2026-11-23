@@ -1,7 +1,7 @@
 // Listas que crescem sozinhas: busca a próxima página quando a pessoa chega perto do fim
 // e nunca repete um filme que já está na tela.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { scroller } from '../nav';
+import { isKept, scroller, useKept } from '../nav';
 
 export interface Page<T> { results: T[]; page: number; totalPages: number }
 
@@ -23,8 +23,11 @@ interface State<T> { items: T[] | null; next: number; done: boolean; failed: boo
  * Carrega uma lista página por página. `load` recebe o número da página (a partir de 1);
  * com `load` nulo a lista fica vazia. Quando algo em `deps` muda, recomeça do zero.
  */
-export function usePages<T extends { id: number }>(load: ((page: number) => Promise<Page<T>>) | null, deps: unknown[]): Paged<T> {
-  const [st, setSt] = useState<State<T>>({ items: null, next: 1, done: !load, failed: false });
+export function usePages<T extends { id: number }>(load: ((page: number) => Promise<Page<T>>) | null, deps: unknown[], name = 'lista'): Paged<T> {
+  // Guardada: ao voltar para a tela, as páginas já carregadas continuam lá (e a rolagem consegue voltar ao ponto)
+  const key = `pages:${name}:${JSON.stringify(deps)}`;
+  const restored = useRef(isKept(key));
+  const [st, setSt] = useKept<State<T>>(key, { items: null, next: 1, done: !load, failed: false });
   const [loading, setLoading] = useState(false);
   const stRef = useRef(st);
   stRef.current = st;
@@ -54,6 +57,7 @@ export function usePages<T extends { id: number }>(load: ((page: number) => Prom
   }, []);
 
   useEffect(() => {
+    if (restored.current) { restored.current = false; return; } // voltou com a lista guardada: não busca de novo
     gen.current++;
     busy.current = false;
     setLoading(false);
