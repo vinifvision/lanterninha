@@ -92,7 +92,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
       )}
       <div id="rvl">
         {list.map((r, i) => (
-          <article className={`rv2${r.p.id === focusId ? ' hl' : ''}`} key={r.p.id} style={{ animationDelay: `${i * 50}ms` }}>
+          <article className={`rv2${r.p.id === focusId ? ' foco' : ''}`} key={r.p.id} style={{ animationDelay: `${i * 50}ms` }}>
             <div className="who">
               <Avatar p={r.p} />
               <div><b>{pname(r.p)}</b><Meta f={r.f} /></div>
