@@ -2431,6 +2431,89 @@ input.need {
   color: var(--gold) !important;
   opacity: 0.85;
 }
+/* Curtir review: coração dourado que pula ao acender */
+.rvfoot {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0 -6px;
+}
+.like {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card2);
+  color: var(--muted);
+  font: 600 13px Inter, sans-serif;
+  transition: background 0.25s, color 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+.like svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  transition: transform 0.15s;
+}
+.like:active svg {
+  transform: scale(0.82);
+}
+.like.on {
+  color: var(--gold);
+  background: rgba(242, 201, 127, 0.12);
+}
+.like.on svg {
+  fill: currentColor;
+}
+.like.pop svg {
+  animation: likepop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.like::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--gold);
+  opacity: 0;
+  pointer-events: none;
+}
+.like.pop::after {
+  animation: likering 0.55s ease-out;
+}
+.like span {
+  animation: likenum 0.3s ease-out;
+}
+@keyframes likepop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+@keyframes likering {
+  0% { opacity: 0.8; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(2.3); }
+}
+@keyframes likenum {
+  from { opacity: 0; transform: translateY(4px); }
+}
+.rvlikes {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rvlikes b {
+  color: var(--gold);
+  font-weight: 600;
+}
 .cnt {
   color: #8a8378;
   font-size: 12px;
