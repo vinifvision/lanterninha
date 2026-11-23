@@ -15,6 +15,7 @@ import type { Film, FilmInfo, FriendRating, Profile, SearchResult } from '../lib
 import { nav } from '../nav';
 import { StarIcon } from '../components/icons';
 import { MineBadge } from '../components/MineBadge';
+import { useSeen } from '../components/Spoiler';
 import { DiscoverGrid, ListTitle } from './FullList';
 import { fd } from '../lib/format';
 import { sfx } from '../lib/sfx';
@@ -292,6 +293,7 @@ function FriendsPane({ activity, friends, loggedIn }: { activity: FriendRating[]
 /** Uma entrada do diário da turma: quem viu, a nota e o começo da review. */
 function DiaryCard({ r }: { r: FriendRating }) {
   const when = ago(r.f);
+  const seen = useSeen(fkey(r.f));
   return (
     <article className="v2post">
       <div className="v2posth">
@@ -304,7 +306,7 @@ function DiaryCard({ r }: { r: FriendRating }) {
         <span className="v2postt">
           <b>{r.f.t}</b>
           <em>★ {fmt(r.f.s)}</em>
-          {r.f.note && <q>{r.f.note.split('\n')[0]}</q>}
+          {r.f.note && (r.f.sp && !seen ? <span className="spq">Review com spoiler · toque para ler</span> : <q>{r.f.note.split('\n')[0]}</q>)}
         </span>
       </button>
     </article>

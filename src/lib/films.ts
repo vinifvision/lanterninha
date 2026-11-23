@@ -24,6 +24,7 @@ export function cleanFilm(x: unknown): Film | null {
   if (typeof r.col === 'string' && /^#[0-9a-f]{6}$/.test(r.col)) e.col = r.col;
   if (typeof r.ts === 'number' && r.ts > 0) e.ts = Math.round(r.ts);
   if (typeof r.note === 'string' && r.note.trim()) e.note = r.note.trim().slice(0, 5000);
+  if (e.note && r.sp === true) e.sp = true;
   if (r.w === 'cine' || r.w === 'casa' || r.w === 'outro') e.w = r.w;
   if (e.w === 'cine' && r.tk && typeof r.tk === 'object') {
     const t = r.tk as Record<string, unknown>, tk: Ticket = {};

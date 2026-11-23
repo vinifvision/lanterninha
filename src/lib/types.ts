@@ -33,6 +33,8 @@ export interface Film {
   ts?: number;
   /** Review */
   note?: string;
+  /** A review tem spoiler */
+  sp?: boolean;
   /** Quem indicou (só na fila) */
   by?: string;
   /** Onde viu: cinema, em casa ou outro lugar */

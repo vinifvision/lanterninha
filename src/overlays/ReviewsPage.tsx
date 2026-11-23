@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
+import { SpoilerText } from '../components/Spoiler';
 import { cloud, useCloud } from '../lib/cloud';
 import { films, fkey, isRated, toInfo, useFilms } from '../lib/films';
 import { fd, fmt, pname, STATE } from '../lib/format';
@@ -17,7 +18,7 @@ const when = (f: Film) => [f.w === 'cine' ? 'viu no cinema' : '', f.d ? fd(f.d) 
 /** Nota pequena com o "quando" ao lado. */
 const Meta = ({ f }: { f: Film & { s: number } }) => {
   const w = when(f);
-  return <small><i>★ {fmt(f.s)}</i>{w && ' · ' + w}</small>;
+  return <small><i>★ {fmt(f.s)}</i>{w && ' · ' + w}{f.note && f.sp && <em className="sptag">spoiler</em>}</small>;
 };
 
 export function ReviewsPage({ info: raw, focusId, known }: Props) {
@@ -27,6 +28,8 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
   const { stack } = useNav();
   const mine = useFilms().find((e) => fkey(e) === key) || null;
   const rated = isRated(mine) ? mine : null;
+  /** Quem já viu o filme lê as reviews com spoiler direto; quem não viu, vê borrado. */
+  const seen = !!mine && mine.st !== 'want';
   const [friends, setFriends] = useState<FriendRating[]>(known ? [known] : []);
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
               <Avatar p={r.p} />
               <div><b>{pname(r.p)}</b><Meta f={r.f} /></div>
             </div>
-            {r.f.note ? <p className="txt">{r.f.note}</p> : <p className="hint">Só deu a nota.</p>}
+            {r.f.note ? <SpoilerText text={r.f.note} hide={!!r.f.sp && !seen} /> : <p className="hint">Só deu a nota.</p>}
           </article>
         ))}
         {!list.length && account.user && account.friends.list.length > 0 && <p className="empty" style={{ padding: '26px 10px' }}>Nenhum amigo avaliou esse filme ainda.</p>}

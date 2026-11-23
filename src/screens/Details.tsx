@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '../components/Button';
 import { Poster } from '../components/Poster';
 import { RatingChip } from '../components/RatingChip';
+import { SpoilerSwitch } from '../components/Spoiler';
 import { lastCinema, TicketEditor } from '../components/TicketEditor';
 import { WhenRow } from '../components/WhenRow';
 import { films, fkey, isRated, useFilms } from '../lib/films';
@@ -17,11 +18,13 @@ export function Details({ info, filmKey, base, classic, rewatch, replaced, answe
   const found = useFilms().find((h) => fkey(h) === filmKey);
   const film = isRated(found) ? found : null;
   const [text, setText] = useState(film?.note || '');
+  const [sp, setSp] = useState(!!film?.sp);
 
   const saveNote = () => {
     if (!film) return;
     const v = text.trim() || undefined;
-    if (film.note !== v) { film.note = v; films.save(); }
+    const s = v && sp ? true : undefined;
+    if (film.note !== v || film.sp !== s) { film.note = v; film.sp = s; films.save(); }
   };
   /** Mudar a nota: volta para as estrelas, já na nota salva. */
   const change = () => { saveNote(); nav.replace({ k: 'quiz', info, classic, rewatch: null, direct: true }); };
@@ -58,6 +61,7 @@ export function Details({ info, filmKey, base, classic, rewatch, replaced, answe
       <div className="revbox">
         <textarea id="rv2" maxLength={5000} placeholder="O que ficou com você depois dos créditos?" value={text} onChange={(e) => setText(e.target.value)} />
       </div>
+      {text.trim() && <SpoilerSwitch on={sp} onChange={setSp} />}
 
       <span className="lbl2">Onde você viu</span>
       <div className="wchips" role="radiogroup" aria-label="Onde você viu">
