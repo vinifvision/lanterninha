@@ -505,7 +505,7 @@
   background: linear-gradient(160deg, #221d16, var(--card) 70%);
   box-shadow: inset 0 0 0 1px rgba(242, 201, 127, 0.2);
 }
-.rv2.hl {
+.rv2.foco {
   box-shadow: inset 0 0 0 1px rgba(244, 238, 227, 0.25);
 }
 .rv2 .who {
