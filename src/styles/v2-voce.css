@@ -619,6 +619,9 @@
 
 /* Diário em grade: pôsteres separados por mês, com o dia num selinho */
 .v2dgrid {
+  /* Meses fora da tela não são desenhados até a pessoa chegar perto deles */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px 8px;
@@ -631,8 +634,11 @@
   color: inherit;
   text-align: left;
   min-width: 0;
-  animation: v2dcin 0.36s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
   transition: transform 0.15s ease;
+}
+/* Só os primeiros pôsteres entram com animação; o resto já aparece pronto */
+.v2dcell.in {
+  animation: v2dcin 0.36s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
 }
 .v2dcell:active {
   transform: scale(0.95);
@@ -659,9 +665,7 @@
   min-width: 26px;
   padding: 3px 5px 2px;
   border-radius: 8px;
-  background: rgba(14, 12, 16, 0.72);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: rgba(14, 12, 16, 0.82); /* sem desfoque de fundo: com muitos pôsteres ele deixa a rolagem lenta */
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   font-style: normal;
   text-align: center;
