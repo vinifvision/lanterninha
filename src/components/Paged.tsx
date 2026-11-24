@@ -102,7 +102,7 @@ export function ListEnd({ p }: { p: Paged<unknown> }) {
   if (failed) {
     return (
       <div className="v2end" role="status">
-        Não consegui carregar mais filmes.
+        Não consegui carregar mais.
         <button type="button" onClick={retry}>Tentar de novo</button>
       </div>
     );
@@ -110,7 +110,7 @@ export function ListEnd({ p }: { p: Paged<unknown> }) {
   if (done) return <p className="v2end fin">Você chegou ao fim da lista</p>;
   return (
     <div className="v2end" ref={ref}>
-      <span className="v2spin" role="status" aria-label="Carregando mais filmes" />
+      <span className="v2spin" role="status" aria-label="Carregando mais" />
     </div>
   );
 }

@@ -1,9 +1,9 @@
-// Aba Buscar (v2): procurar filme, ver os recentes, explorar por clima (listas do TMDB por gênero e duração)
+// Aba Buscar (v2): procurar filme, pessoa (ator, diretor...) ou produtora, ver os recentes, explorar por clima (listas do TMDB por gênero e duração)
 // e "Quem você mais assiste" (os diretores que mais aparecem nos filmes que você avaliou).
 import { useEffect, useState } from 'react';
 import { Poster } from '../components/Poster';
 import { useAsync } from '../components/hooks';
-import { moodPage, movieCredits, posterUrl, searchPage, type Mood } from '../lib/api';
+import { moodPage, movieCredits, posterUrl, searchNames, searchPage, type Mood, type NameHit, type PersonKind } from '../lib/api';
 import { MineBadge } from '../components/MineBadge';
 import { ListEnd, usePages } from '../components/Paged';
 import { fkey, isRated, useFilms } from '../lib/films';
@@ -67,20 +67,29 @@ function topPeople(rated: Film[]): Promise<Person[]> {
 const initials = (n: string) => { const w = n.trim().split(/\s+/); return ((w[0]?.[0] || '') + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
 
 type Pane = { title: string; mood?: Mood; films?: FilmInfo[] };
+type Tab = 'all' | 'movie' | 'person' | 'company';
+const TABS: { k: Tab; t: string }[] = [
+  { k: 'all', t: 'Tudo' }, { k: 'movie', t: 'Filmes' }, { k: 'person', t: 'Pessoas' }, { k: 'company', t: 'Produtoras' },
+];
+// Na aba "Tudo" só aparecem as pessoas e produtoras cujo nome bate bem com o que foi digitado
+const strongPeople = (l: NameHit[] | null) => (l || []).filter((h) => h.sim >= 0.8 && (h.photo || h.pop >= 1)).slice(0, 3);
+const strongCompanies = (l: NameHit[] | null) =>
+  (l || []).filter((h) => h.sim >= 0.85).sort((a, b) => Number(!!b.photo) - Number(!!a.photo)).slice(0, 2);
 // O que a pessoa digitou fica guardado enquanto ela passeia pelo app.
 // A categoria aberta continua ao voltar da página de um filme, mas fecha quando a pessoa
 // vai para outra aba: ao voltar para a Buscar, aparecem as categorias de novo.
-const draft: { q: string; pane: Pane | null } = { q: '', pane: null };
+const draft: { q: string; pane: Pane | null; tab: Tab } = { q: '', pane: null, tab: 'all' };
 nav.subscribe(() => { if (nav.state.tab !== 'search') draft.pane = null; });
 
 export function Search() {
   const all = useFilms();
   const [q, setQ] = useState(draft.q);
   const [pane, setPane] = useState(draft.pane);
+  const [tab, setTab] = useState(draft.tab);
   // O texto que vale para a busca: só muda depois de uma pequena pausa na digitação
   const [dq, setDq] = useState(draft.q.trim());
   const [recent, setRecent] = useState(loadRecent);
-  draft.q = q; draft.pane = pane;
+  draft.q = q; draft.pane = pane; draft.tab = tab;
 
   // Busca enquanto digita, com uma pequena espera para não disparar a cada letra
   useEffect(() => {
@@ -90,7 +99,10 @@ export function Search() {
   // Todos os resultados: vai buscando as próximas páginas conforme a pessoa desce
   const found = usePages(dq.length >= 2 ? (page) => searchPage(dq, page) : null, [dq], 'busca');
   const results: SearchResult[] = found.items || [];
-  const offline = found.failed && !found.items;
+  // Pessoas e produtoras: a primeira página já aparece no "Tudo"; nas abas próprias, carregam mais ao descer
+  const ppl = usePages(dq.length >= 2 ? (page) => searchNames('person', dq, page) : null, [dq], 'busca-pessoas');
+  const cos = usePages(dq.length >= 2 ? (page) => searchNames('company', dq, page) : null, [dq], 'busca-produtoras');
+  const offline = found.failed && !found.items && ppl.failed && !ppl.items;
 
   const mine = new Map(all.map((h) => [fkey(h), h] as const));
   // Só filmes com nota: marcar como visto não conta
@@ -121,7 +133,23 @@ export function Search() {
       {status(f)}
     </button>
   );
+  /** Linha de uma pessoa (foto redonda) ou produtora (logo em cartão claro). */
+  const nameRow = (kind: PersonKind, h: NameHit) => (
+    <button type="button" className="v2srow" key={kind + h.id} onClick={() => nav.openPerson(kind, h.id, h.name, h.photo || undefined)}>
+      <span className={kind === 'person' ? 'v2sface' : 'v2slogo'}>
+        {h.photo
+          ? <img src={posterUrl(h.photo, kind === 'person' ? 'w185' : 'w92')} alt="" loading="lazy" />
+          : <i>{kind === 'person' ? initials(h.name) : h.name.slice(0, 1).toUpperCase()}</i>}
+      </span>
+      <span className="v2srt"><b>{h.name}</b>{h.sub && <small>{h.sub}</small>}</span>
+      <span className="v2sgo" aria-hidden="true">›</span>
+    </button>
+  );
+  const filmRows = () => results.map((m) => row(toInfo(m), [m.year, m.original !== m.title ? m.original : ''].filter(Boolean).join(' · ')));
   const typing = q.trim().length >= 2;
+  const topPpl = strongPeople(ppl.items);
+  const topCos = strongCompanies(cos.items);
+  const nothingAll = found.done && found.items?.length === 0 && ppl.items?.length === 0 && cos.items?.length === 0;
 
   return (
     <div className="screen v2sr">
@@ -129,7 +157,7 @@ export function Search() {
       <div className="v2find">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
         <input
-          type="search" aria-label="Buscar filme" maxLength={80} value={q} placeholder="Nome do filme"
+          type="search" aria-label="Buscar filme, pessoa ou produtora" maxLength={80} value={q} placeholder="Filmes, pessoas, produtoras"
           autoComplete="off" autoCorrect="off" spellCheck={false} enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
         />
         {q && <button type="button" className="v2clr" aria-label="Apagar" onClick={() => setQ('')}>✕</button>}
@@ -144,11 +172,62 @@ export function Search() {
 
       {typing ? (
         <>
-        <div className="v2slist">
-          {results.map((m) => row(toInfo(m), [m.year, m.original !== m.title ? m.original : ''].filter(Boolean).join(' · ')))}
-          {found.done && found.items?.length === 0 && <p className="rh2msg">Não achei esse filme. Confira o nome.</p>}
+        <div className="chipsf v2stabs" role="tablist">
+          {TABS.map((t) => (
+            <button type="button" role="tab" key={t.k} aria-selected={tab === t.k} className={tab === t.k ? 'on' : ''} onClick={() => setTab(t.k)}>{t.t}</button>
+          ))}
         </div>
-        {dq.length >= 2 && <ListEnd p={found} />}
+
+        {tab === 'all' && (
+          <div className="v2stab" key="all">
+            {topPpl.length > 0 && (
+              <>
+                <div className="v2sh v2shs"><h2>Pessoas</h2>{(ppl.items?.length || 0) > topPpl.length && <button type="button" onClick={() => setTab('person')}>Ver todas</button>}</div>
+                <div className="v2slist">{topPpl.map((h) => nameRow('person', h))}</div>
+              </>
+            )}
+            {topCos.length > 0 && (
+              <>
+                <div className="v2sh v2shs"><h2>Produtoras</h2>{(cos.items?.length || 0) > topCos.length && <button type="button" onClick={() => setTab('company')}>Ver todas</button>}</div>
+                <div className="v2slist">{topCos.map((h) => nameRow('company', h))}</div>
+              </>
+            )}
+            {(topPpl.length > 0 || topCos.length > 0) && results.length > 0 && <div className="v2sh v2shs"><h2>Filmes</h2></div>}
+            <div className="v2slist">{filmRows()}</div>
+            {nothingAll && <p className="rh2msg">Não achei nada com esse nome. Confira se está escrito certo.</p>}
+            {dq.length >= 2 && <ListEnd p={found} />}
+          </div>
+        )}
+
+        {tab === 'movie' && (
+          <div className="v2stab" key="movie">
+            <div className="v2slist">
+              {filmRows()}
+              {found.done && found.items?.length === 0 && <p className="rh2msg">Não achei esse filme. Confira o nome.</p>}
+            </div>
+            {dq.length >= 2 && <ListEnd p={found} />}
+          </div>
+        )}
+
+        {tab === 'person' && (
+          <div className="v2stab" key="person">
+            <div className="v2slist">
+              {(ppl.items || []).map((h) => nameRow('person', h))}
+              {ppl.done && ppl.items?.length === 0 && <p className="rh2msg">Não achei ninguém com esse nome.</p>}
+            </div>
+            {dq.length >= 2 && <ListEnd p={ppl} />}
+          </div>
+        )}
+
+        {tab === 'company' && (
+          <div className="v2stab" key="company">
+            <div className="v2slist">
+              {(cos.items || []).map((h) => nameRow('company', h))}
+              {cos.done && cos.items?.length === 0 && <p className="rh2msg">Não achei nenhuma produtora com esse nome.</p>}
+            </div>
+            {dq.length >= 2 && <ListEnd p={cos} />}
+          </div>
+        )}
         </>
       ) : (
         <>

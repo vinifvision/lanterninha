@@ -2,6 +2,7 @@
 import { API_BASE, IMG, SITE_URL } from './config';
 import { POSTER_PATH } from './format';
 import type { MovieDetails, SearchResult } from './types';
+import type { Page } from '../components/Paged';
 
 export const posterUrl = (path: string, size: 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'h632' = 'w185') => IMG + size + path;
 /** Pôster servido pelo próprio site, para poder ser desenhado na imagem de compartilhar. */
@@ -44,6 +45,59 @@ export function searchPage(q: string, page: number): Promise<ListPage> {
   }
   return p;
 }
+
+/** Uma pessoa (ator, diretor...) ou produtora achada pela busca. */
+export interface NameHit {
+  id: number;
+  name: string;
+  /** Foto da pessoa ou logo da produtora */
+  photo: string;
+  /** Linha de baixo: "Direção · Pulp Fiction, Kill Bill" ou o país da produtora */
+  sub: string;
+  /** De 0 a 1: quanto o nome se parece com o que foi digitado */
+  sim: number;
+  /** Popularidade no TMDB (0 nas produtoras) */
+  pop: number;
+}
+
+/** Uma página da busca por pessoas ou produtoras (também aceita erro de digitação). */
+export function searchNames(kind: PersonKind, q: string, page: number): Promise<Page<NameHit>> {
+  const key = 'type=' + kind + '&q=' + encodeURIComponent(q.trim().toLowerCase()) + '&page=' + page;
+  let p = namesCache.get(key);
+  if (!p) {
+    if (namesCache.size > 60) namesCache.clear();
+    const str = (v: unknown, max = 80) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+    const num = (v: unknown) => (typeof v === 'number' && v >= 0 ? v : 0);
+    p = fetch(`${API_BASE}api/search?${key}`)
+      .then((r) => { if (!r.ok) throw new Error('busca indisponível'); return r.json(); })
+      .then((d: { results?: unknown[]; page?: unknown; totalPages?: unknown }) => {
+        const n = Number.isInteger(d.page) ? (d.page as number) : page;
+        const total = Number.isInteger(d.totalPages) ? (d.totalPages as number) : n;
+        const results = (Array.isArray(d.results) ? d.results : [])
+          .map((x) => x as Record<string, unknown>)
+          .filter((x) => x && Number.isInteger(x.id) && str(x.name))
+          .map((x): NameHit => {
+            const films = (Array.isArray(x.knownFor) ? x.knownFor : []).map((t) => str(t, 60)).filter(Boolean).slice(0, 2);
+            const sub = kind === 'company'
+              ? (str(x.country, 4) ? 'Produtora · ' + str(x.country, 4) : 'Produtora')
+              : [str(x.known, 30), films.join(', ')].filter(Boolean).join(' · ');
+            return {
+              id: x.id as number,
+              name: str(x.name),
+              photo: typeof x.photo === 'string' && POSTER_PATH.test(x.photo) ? x.photo : '',
+              sub,
+              sim: Math.min(1, num(x.sim)),
+              pop: num(x.pop),
+            };
+          });
+        return { results, page: n, totalPages: Math.max(total, n) };
+      });
+    namesCache.set(key, p);
+    p.catch(() => namesCache.delete(key));
+  }
+  return p;
+}
+const namesCache = new Map<string, Promise<Page<NameHit>>>();
 
 /** Só a primeira página da busca (usada onde não precisa rolar, como no Banner). */
 export async function searchMovies(q: string, signal?: AbortSignal): Promise<SearchResult[]> {
