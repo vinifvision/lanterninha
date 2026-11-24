@@ -89,6 +89,7 @@ export default {
         runtime: m.runtime || 0,
         release: m.release_date || "",
         genres: (m.genres || []).map((g) => g.name).slice(0, 3),
+        genreIds: (m.genres || []).map((g) => g.id),
         director,
         directors,
         companies,

@@ -19,6 +19,9 @@ function cleanResults(data: { results?: unknown[] }): SearchResult[] {
       original: typeof m.original === 'string' ? m.original : '',
       year: typeof m.year === 'string' && /^\d{4}$/.test(m.year) ? m.year : '',
       poster: typeof m.poster === 'string' && POSTER_PATH.test(m.poster) ? m.poster : '',
+      ...(typeof m.rating === 'number' ? { rating: m.rating } : {}),
+      ...(typeof m.votes === 'number' ? { votes: m.votes } : {}),
+      ...(Array.isArray(m.genres) ? { genres: m.genres.filter((g): g is number => Number.isInteger(g)) } : {}),
     }));
 }
 
@@ -122,6 +125,7 @@ export function movieDetails(id: number): Promise<MovieDetails> {
         runtime: typeof m.runtime === 'number' ? m.runtime : 0,
         release: typeof m.release === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.release) ? m.release : '',
         genres: Array.isArray(m.genres) ? m.genres.filter((g): g is string => typeof g === 'string') : [],
+        genreIds: Array.isArray(m.genreIds) ? m.genreIds.filter((g): g is number => Number.isInteger(g)) : [],
         director: typeof m.director === 'string' ? m.director : '',
         directors: (Array.isArray(m.directors) ? m.directors : [])
           .map((x) => x as { id?: unknown; name?: unknown })

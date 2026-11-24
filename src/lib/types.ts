@@ -110,6 +110,8 @@ export interface MovieDetails {
   /** Data de lançamento (AAAA-MM-DD), vazia se o TMDB não souber */
   release: string;
   genres: string[];
+  /** Ids de todos os gêneros no TMDB (para o "No meu estilo") */
+  genreIds: number[];
   director: string;
   /** Diretores com o id do TMDB, para abrir a página de cada um */
   directors: { id: number; name: string }[];
@@ -129,4 +131,10 @@ export interface SearchResult {
   original: string;
   year: string;
   poster: string;
+  /** Nota média no TMDB (0 a 10), quando a lista traz */
+  rating?: number;
+  /** Quantos votos essa nota tem no TMDB */
+  votes?: number;
+  /** Ids dos gêneros no TMDB */
+  genres?: number[];
 }
