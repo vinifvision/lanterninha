@@ -35,6 +35,19 @@ function Icone({ k }: { k: NovIcone }) {
       return <svg viewBox="0 0 24 24" {...S}><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /><path d="M4 20 20 4" /></svg>;
     case 'semfim':
       return <svg viewBox="0 0 24 24" {...S}><path d="M7 9a3 3 0 1 0 0 6c2.2 0 3.3-1.6 5-3s2.8-3 5-3a3 3 0 1 1 0 6c-2.2 0-3.3-1.6-5-3S9.2 9 7 9z" /></svg>;
+    case 'pessoas':
+      return <svg viewBox="0 0 24 24" {...S}><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5" /><circle cx="17" cy="9" r="2.6" /><path d="M17.5 14.5c2.3.3 3.7 1.9 4 4.5" /></svg>;
+    case 'javi':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" /><path d="M9.3 12.2l1.9 1.9 3.6-3.8" /></svg>;
+    case 'dado':
+      return (
+        <svg viewBox="0 0 24 24" {...S}>
+          <rect x="4" y="4" width="16" height="16" rx="3.5" />
+          <circle cx="8.6" cy="8.6" r="1.1" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+          <circle cx="15.4" cy="15.4" r="1.1" fill="currentColor" stroke="none" />
+        </svg>
+      );
     default:
       return <svg viewBox="0 0 24 24" {...S}><path d={STAR} /></svg>;
   }
