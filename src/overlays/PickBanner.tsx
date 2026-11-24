@@ -1,15 +1,28 @@
-// Escolher o banner do perfil: primeiro o filme (dos seus ou pela busca), depois uma cena dele.
+// Escolher o banner do perfil: primeiro o filme (favoritos, maiores notas ou pela busca), depois uma cena dele.
 import { useEffect, useState } from 'react';
 import { useAsync } from '../components/hooks';
 import { OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
 import { movieBackdrops, posterUrl, searchMovies } from '../lib/api';
+import { useCloud } from '../lib/cloud';
 import { useFilms } from '../lib/films';
+import type { TopItem } from '../lib/types';
 
 interface Pick { id: number; t: string; img?: string }
 
 export function PickBanner({ current, onDone, onClose }: { current: string; onDone: (path: string) => void; onClose: () => void }) {
-  const mine = useFilms().filter((h) => h.id && h.st !== 'want').slice(0, 30).map((h): Pick => ({ id: h.id!, t: h.t, img: h.img }));
+  const account = useCloud();
+  const all = useFilms();
+  /** Primeiro os 4 favoritos do perfil... */
+  const favs = (account.profile?.top4 || []).filter((x): x is TopItem => !!x && x.id != null).map((x): Pick => ({ id: x.id!, t: x.t, img: x.img }));
+  /** ...depois os filmes com maior nota (sem repetir). */
+  const seenIds = new Set(favs.map((f) => f.id));
+  const best = all
+    .filter((h) => h.id && h.st !== 'want')
+    .sort((a, b) => (b.s || 0) - (a.s || 0) || (b.ts || 0) - (a.ts || 0))
+    .filter((h) => !seenIds.has(h.id!) && !!seenIds.add(h.id!))
+    .slice(0, 30)
+    .map((h): Pick => ({ id: h.id!, t: h.t, img: h.img }));
   const [q, setQ] = useState('');
   const [found, setFound] = useState<Pick[] | null>(null);
   const [film, setFilm] = useState<Pick | null>(null);
@@ -24,7 +37,6 @@ export function PickBanner({ current, onDone, onClose }: { current: string; onDo
     return () => { clearTimeout(t); ctl.abort(); };
   }, [q]);
 
-  const list = found ?? mine;
   return (
     <div className="ov" style={{ zIndex: 8 }}>
       <div>
@@ -36,16 +48,27 @@ export function PickBanner({ current, onDone, onClose }: { current: string; onDo
         {film ? <Scenes film={film} current={current} onDone={onDone} /> : (
           <>
             <input type="text" id="bq" className="lq" placeholder="Buscar um filme" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" autoCorrect="off" spellCheck={false} />
-            {!found && mine.length > 0 && <p className="setnote" style={{ margin: '0 4px 14px' }}>Ou escolha um dos seus filmes.</p>}
-            {list.length > 0
-              ? <div className="grid">{list.map((m) => (
-                  <button className="fc" key={m.id} onClick={() => setFilm(m)}><span className="ph"><Poster img={m.img} title={m.t} /></span></button>
-                ))}</div>
-              : <p className="empty">{found ? 'Nenhum filme com esse nome.' : 'Busque um filme para ver as cenas dele.'}</p>}
+            {found
+              ? (found.length ? <Grid list={found} onPick={setFilm} /> : <p className="empty">Nenhum filme com esse nome.</p>)
+              : (favs.length || best.length) ? (
+                  <>
+                    {favs.length > 0 && <><p className="setnote" style={{ margin: '0 4px 10px' }}>Seus favoritos</p><Grid list={favs} onPick={setFilm} /></>}
+                    {best.length > 0 && <><p className="setnote" style={{ margin: favs.length ? '22px 4px 10px' : '0 4px 10px' }}>Maiores notas</p><Grid list={best} onPick={setFilm} /></>}
+                  </>
+                )
+                : <p className="empty">Busque um filme para ver as cenas dele.</p>}
           </>
         )}
       </div>
     </div>
+  );
+}
+
+function Grid({ list, onPick }: { list: Pick[]; onPick: (m: Pick) => void }) {
+  return (
+    <div className="grid">{list.map((m) => (
+      <button className="fc" key={m.id} onClick={() => onPick(m)}><span className="ph"><Poster img={m.img} title={m.t} /></span></button>
+    ))}</div>
   );
 }
 
