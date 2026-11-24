@@ -6,6 +6,10 @@
 // pelo radical das palavras ("agen secre", "secre"), juntamos tudo e ordenamos pelo nome
 // mais parecido com o que a pessoa digitou. As páginas seguintes continuam a busca principal.
 // O TMDB já procura pelo título em português e pelo título original.
+//
+// Com ?type=person (atores, diretores...) ou ?type=company (produtoras) a busca é a mesma,
+// só que pelo nome da pessoa ou da produtora. Esses vêm com "sim" (0 a 1: quanto o nome
+// se parece com o digitado), para o app mostrar só os que batem bem na aba "Tudo".
 const MAX_PAGE = 500;
 
 /** Minúsculas, sem acento e sem pontuação. */
@@ -53,9 +57,9 @@ function similarity(qw, title) {
   return sum / weight;
 }
 
-async function tmdb(key, q, page) {
+async function tmdb(key, kind, q, page) {
   const url =
-    'https://api.themoviedb.org/3/search/movie?language=pt-BR&include_adult=false' +
+    'https://api.themoviedb.org/3/search/' + kind + '?language=pt-BR&include_adult=false' +
     '&page=' + page + '&api_key=' + encodeURIComponent(key) + '&query=' + encodeURIComponent(q);
   const r = await fetch(url);
   if (!r.ok) throw new Error('tmdb');
@@ -75,10 +79,53 @@ const toOut = (m) => ({
   poster: m.poster_path || '',
 });
 
+// Pelo que a pessoa é conhecida, em português
+const KNOWN = {
+  Acting: 'Atuação', Directing: 'Direção', Writing: 'Roteiro', Production: 'Produção', Camera: 'Fotografia',
+  Editing: 'Montagem', Sound: 'Trilha sonora', Art: 'Design de produção', 'Costume & Make-Up': 'Figurino',
+};
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/** O que muda entre buscar filme, pessoa ou produtora. */
+const KINDS = {
+  movie: {
+    ok: (m) => typeof m.title === 'string',
+    names: (m) => [m.title, m.original_title],
+    out: (m) => toOut(m),
+  },
+  person: {
+    // Sem foto e sem nenhum filme conhecido costuma ser cadastro vazio
+    ok: (m) => typeof m.name === 'string' && (m.profile_path || (Array.isArray(m.known_for) && m.known_for.length)),
+    names: (m) => [m.name, m.original_name],
+    out: (m, sim) => ({
+      id: m.id,
+      name: m.name,
+      photo: m.profile_path || '',
+      known: KNOWN[m.known_for_department] || '',
+      knownFor: (Array.isArray(m.known_for) ? m.known_for : [])
+        .filter((x) => x && x.media_type !== 'tv')
+        .map((x) => x.title || x.name)
+        .filter((t) => typeof t === 'string')
+        .slice(0, 2),
+      pop: Math.round((m.popularity || 0) * 10) / 10,
+      sim: round2(sim),
+    }),
+  },
+  company: {
+    ok: (m) => typeof m.name === 'string',
+    names: (m) => [m.name],
+    out: (m, sim) => ({ id: m.id, name: m.name, photo: m.logo_path || '', country: m.origin_country || '', sim: round2(sim) }),
+  },
+};
+
 export default {
   async fetch(request) {
     const params = new URL(request.url).searchParams;
     const q = (params.get('q') || '').trim().slice(0, 80);
+    const type = params.get('type') || 'movie';
+    const kind = Object.hasOwn(KINDS, type) ? KINDS[type] : null;
+    if (!kind) return Response.json({ error: 'tipo inválido' }, { status: 400 });
+    const simOf = (m) => Math.max(...kind.names(m).map((n) => similarity(qw, n)));
     const pageRaw = params.get('page') || '1';
     const page = /^\d{1,3}$/.test(pageRaw) ? Number(pageRaw) : 0;
     if (page < 1 || page > MAX_PAGE) return Response.json({ error: 'página inválida' }, { status: 400 });
@@ -99,18 +146,19 @@ export default {
     try {
       if (page > 1) {
         // Continua a busca principal; se ela não achou nada, continua a dos radicais
-        let base = await tmdb(key, q, page);
-        if (!base.totalResults && hasStem) base = await tmdb(key, stemQ, page);
+        let base = await tmdb(key, type, q, page);
+        if (!base.totalResults && hasStem) base = await tmdb(key, type, stemQ, page);
+        const list = base.results.filter((m) => m && Number.isInteger(m.id) && kind.ok(m));
         return Response.json(
-          { results: base.results.map(toOut), page, totalPages: Math.min(Math.max(base.totalPages, page), MAX_PAGE) },
+          { results: list.map((m) => kind.out(m, simOf(m))), page, totalPages: Math.min(Math.max(base.totalPages, page), MAX_PAGE) },
           { headers },
         );
       }
 
       const [main, byStem, byLong] = await Promise.all([
-        tmdb(key, q, 1),
-        hasStem ? tmdb(key, stemQ, 1).catch(() => null) : null,
-        longQ && longQ !== stemQ ? tmdb(key, longQ, 1).catch(() => null) : null,
+        tmdb(key, type, q, 1),
+        hasStem ? tmdb(key, type, stemQ, 1).catch(() => null) : null,
+        longQ && longQ !== stemQ ? tmdb(key, type, longQ, 1).catch(() => null) : null,
       ]);
 
       // Junta tudo e dá uma nota para cada filme: parecido com o digitado, achado pela
@@ -118,20 +166,20 @@ export default {
       const scored = new Map();
       const add = (list, exact) =>
         list.forEach((m, i) => {
-          if (!m || !Number.isInteger(m.id) || typeof m.title !== 'string') return;
-          const sim = Math.max(similarity(qw, m.title), similarity(qw, m.original_title));
+          if (!m || !Number.isInteger(m.id) || !kind.ok(m)) return;
+          const sim = simOf(m);
           // Achado só pelo radical: precisa se parecer bastante com o que foi digitado
           if (!exact && sim < 0.6) return;
           const pop = Math.min(1, Math.log10(1 + (m.popularity || 0)) / 3);
           const score = sim * 0.7 + (exact ? 0.15 * (1 - i / 20) : 0) + pop * 0.15;
           const prev = scored.get(m.id);
-          if (!prev || prev.score < score) scored.set(m.id, { m, score });
+          if (!prev || prev.score < score) scored.set(m.id, { m, score, sim });
         });
       add(main.results, true);
       if (byStem) add(byStem.results, false);
       if (byLong) add(byLong.results, false);
 
-      const results = [...scored.values()].sort((a, b) => b.score - a.score).map((x) => toOut(x.m));
+      const results = [...scored.values()].sort((a, b) => b.score - a.score).map((x) => kind.out(x.m, x.sim));
       // As próximas páginas seguem a busca principal (ou a dos radicais, se a principal veio vazia)
       const total = main.totalResults ? main.totalPages : byStem?.totalPages || 1;
       return Response.json({ results, page: 1, totalPages: Math.min(Math.max(total, 1), MAX_PAGE) }, { headers });
