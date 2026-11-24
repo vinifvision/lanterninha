@@ -17,7 +17,10 @@ export type NovIcone =
   | "semfim"
   | "estrela"
   | "curtir"
-  | "spoiler";
+  | "spoiler"
+  | "pessoas"
+  | "javi"
+  | "dado";
 
 export interface Novidade {
   icone: NovIcone;
@@ -32,20 +35,25 @@ export const NOVIDADES: {
   botao: string;
   itens: Novidade[];
 } = {
-  id: "reviews", // só um nome para saber quem já viu; não aparece na tela
-  titulo: "Novidades nas reviews",
-  subtitulo: "A pedido de vocês...",
+  id: "2.1.0", // só um nome para saber quem já viu; não aparece na tela
+  titulo: "Novidades da 2.1",
+  subtitulo: "Mais jeitos de achar e guardar filmes",
   botao: "Bora",
   itens: [
     {
-      icone: "curtir",
-      titulo: "Curtir review",
-      texto: "Gostou do que um amigo escreveu? Toque no coração.",
+      icone: "pessoas",
+      titulo: "Busca de pessoas",
+      texto: "Ache atores, atrizes, diretores e produtoras na busca.",
     },
     {
-      icone: "spoiler",
-      titulo: "Tem spoiler",
-      texto: "Marque, e a review fica borrada para quem não viu.",
+      icone: "javi",
+      titulo: "Só vi, no perfil",
+      texto: "Os filmes que você marcou como vistos, mas sem nota.",
+    },
+    {
+      icone: "dado",
+      titulo: "Sorteio melhor",
+      texto: "Mais equilibrado, e o \"No meu estilo\" acerta mais o seu gosto.",
     },
   ],
 };
