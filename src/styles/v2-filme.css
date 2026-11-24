@@ -568,7 +568,7 @@
 }
 .rv2 .txt {
   margin: 14px 0 0;
-  font: 400 22px/1.22 var(--serif);
+  font: 400 19px/1.32 var(--serif);
   color: var(--text);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -601,6 +601,87 @@
 .rv2sec span {
   font-size: 13px;
   color: var(--muted);
+}
+
+/* Review longa: corta em ~7 linhas com fade e abre suave no "Ler mais" */
+.rvclamp {
+  position: relative;
+  max-height: 190px;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rvclamp.cut::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, transparent, var(--card));
+  pointer-events: none;
+}
+.rvmore {
+  margin-top: 6px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font: 600 13px Inter, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.rvmore:active {
+  opacity: 0.6;
+}
+/* Amigos que só deram nota: lista compacta num card só */
+.rv2only {
+  margin-top: 12px;
+  padding: 14px 16px 6px;
+  border-radius: 22px;
+  background: var(--card);
+  animation: rv2in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.rv2only h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.rvo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+}
+.rvo + .rvo {
+  border-top: 1px solid rgba(244, 238, 227, 0.06);
+}
+.rvo .av {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.rvo .av img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.rvo b {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rvo i {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--gold);
 }
 
 /* --- Créditos: títulos e nomes na serifada --- */
