@@ -41,6 +41,7 @@ import { Library } from "./screens/Library";
 import { Diary } from "./screens/Diary";
 import { Friends } from "./screens/Friends";
 import { MyReviews } from "./screens/MyReviews";
+import { JustSeen } from "./screens/JustSeen";
 import { Profile } from "./screens/Profile";
 import { Search } from "./screens/Search";
 import { Quiz } from "./screens/Quiz";
@@ -90,6 +91,8 @@ function stackScreen(s: Screen, depth: number) {
       return <Diary key="diary" />;
     case "myReviews":
       return <MyReviews key="myReviews" />;
+    case "justSeen":
+      return <JustSeen key="justSeen" />;
     case "friends":
       return <Friends key="friends" />;
     case "guide":
@@ -251,6 +254,7 @@ export function App() {
         list: "feed",
         diary: "diary",
         myReviews: "diary",
+        justSeen: "diary",
         friends: "diary",
         guide: "guide",
         friend: "friend",
@@ -271,6 +275,8 @@ export function App() {
       ? "Diário"
       : top.k === "myReviews"
       ? "Reviews"
+      : top.k === "justSeen"
+      ? "Só vi"
       : top.k === "friends"
       ? "Amigos"
       : top.k === "list"

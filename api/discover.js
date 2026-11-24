@@ -49,6 +49,9 @@ export default {
         original: x.original_title,
         year: (x.release_date || '').slice(0, 4),
         poster: x.poster_path || '',
+        rating: typeof x.vote_average === 'number' ? x.vote_average : undefined,
+        votes: typeof x.vote_count === 'number' ? x.vote_count : undefined,
+        genres: Array.isArray(x.genre_ids) ? x.genre_ids : [],
       }));
     const total = Number.isInteger(data.total_pages) ? data.total_pages : page;
 
