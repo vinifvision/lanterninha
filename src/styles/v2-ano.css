@@ -467,3 +467,250 @@ button.v2year:active {
   background: rgba(232, 73, 79, 0.14);
   color: var(--red);
 }
+
+/* Meta do ano */
+button.v2ygoal {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+button.v2ygoal:active {
+  transform: scale(0.98);
+}
+.v2ynew span {
+  flex: 1;
+}
+.v2ynew b {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 24px;
+}
+.v2ynew small {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2ynew i {
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: var(--gold);
+  color: var(--bg);
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+}
+.v2yring {
+  position: relative;
+  flex: none;
+  width: 76px;
+  height: 76px;
+}
+.v2yring svg {
+  width: 100%;
+  height: 100%;
+}
+.v2yring circle {
+  fill: none;
+  stroke-width: 7;
+}
+.v2yring .bg {
+  stroke: var(--card2);
+}
+.v2yring .fg {
+  stroke: var(--gold);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: v2yfill 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes v2yfill {
+  from {
+    stroke-dasharray: 0 195;
+  }
+}
+.v2yring b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+.v2ygoal.done .v2yring {
+  filter: drop-shadow(0 0 10px rgba(242, 201, 127, 0.45));
+}
+.v2ygoal.done .v2yring b {
+  color: var(--gold);
+}
+.v2ygt2 {
+  flex: 1;
+  min-width: 0;
+}
+.v2ygt2 small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2ygt2 > b {
+  display: block;
+  margin: 2px 0 4px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1;
+}
+.v2ygt2 > b em {
+  font-style: normal;
+  font-size: 18px;
+  color: var(--muted);
+}
+.v2ygt2 > span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.v2ygt2 > span + span {
+  margin-top: 4px;
+}
+
+/* Escolher a meta */
+.v2ystep {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+}
+.v2ystep input {
+  width: 130px;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 2px solid var(--card2);
+  background: none;
+  color: var(--text);
+  text-align: center;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 52px;
+  line-height: 1;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.v2ystep input:focus {
+  border-bottom-color: var(--gold);
+}
+.v2yhint {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+.v2ystep button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--card2);
+  color: inherit;
+  font: inherit;
+  font-size: 22px;
+  transition: transform 0.15s ease;
+}
+.v2ystep button:active {
+  transform: scale(0.9);
+}
+.v2ypre {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.v2ypre button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card2);
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.v2ypre button small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.v2ypre button.on {
+  background: var(--gold);
+  color: var(--bg);
+}
+.v2ypre button.on small {
+  color: var(--bg);
+}
+.v2ypre button:active {
+  transform: scale(0.95);
+}
+.v2yact {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+.v2yact button {
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 19px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+}
+.v2yact button.bad {
+  margin-right: auto;
+  color: var(--red);
+}
+.v2yact button.ok {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* Selinho da meta */
+.v2ygt2 > i {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+}
+.v2ygt2 > i.up {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.v2ygt2 > i.down {
+  background: rgba(232, 73, 79, 0.14);
+  color: var(--red);
+}
+.v2yact button.ok:disabled {
+  opacity: 0.4;
+}

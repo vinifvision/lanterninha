@@ -1,6 +1,7 @@
 // Estatísticas do ano ("2026 em filmes"): as contas a partir da lista de filmes e,
 // para horas, gêneros, diretores e atores, os dados de cada filme no TMDB (guardados no aparelho).
 import { useEffect, useState } from 'react';
+import { cloud } from './cloud';
 import { movieCredits, movieDetails, movieRatings } from './api';
 import { isRated } from './films';
 import type { Film, RatedFilm } from './types';
@@ -210,3 +211,81 @@ export function yearStats(films: Film[], facts: Map<number, Facts>) {
   };
 }
 export type YearStatsData = ReturnType<typeof yearStats>;
+
+/**
+ * Meta de filmes por ano. Fica no Supabase (tabela goals, só o dono lê) e uma cópia no aparelho,
+ * para aparecer na hora e funcionar sem internet.
+ */
+const GOAL_KEY = 'lanterninha.meta.v1';
+const readGoals = (): Record<string, number> => {
+  try { return JSON.parse(localStorage.getItem(GOAL_KEY) || '{}') as Record<string, number>; } catch { return {}; }
+};
+const writeGoals = (g: Record<string, number>) => {
+  try { localStorage.setItem(GOAL_KEY, JSON.stringify(g)); } catch { /* modo privado: segue sem a cópia */ }
+};
+const okGoal = (n: unknown) => (Number.isInteger(n) && (n as number) > 0 ? (n as number) : 0);
+
+/** A meta de um ano e um jeito de mudar. Mostra a cópia do aparelho e confere a da nuvem logo depois. */
+export function useGoal(year: string) {
+  const [goal, setLocal] = useState(() => okGoal(readGoals()[year]));
+  const [err, setErr] = useState('');
+  useEffect(() => {
+    let alive = true;
+    void cloud.goals().then((remote) => {
+      if (!alive || !remote) return;
+      const local = okGoal(readGoals()[year]);
+      const there = okGoal(remote[year]);
+      if (there) {
+        writeGoals({ ...readGoals(), [year]: there });
+        setLocal(there);
+      } else if (local) {
+        // Meta criada antes de existir a nuvem: sobe agora
+        void cloud.saveGoal(year, local);
+      }
+    });
+    return () => { alive = false; };
+  }, [year]);
+  const save = async (n: number) => {
+    const v = n > 0 ? Math.min(9999, Math.round(n)) : 0;
+    const g = readGoals();
+    if (v) g[year] = v;
+    else delete g[year];
+    writeGoals(g);
+    setLocal(v);
+    setErr(await cloud.saveGoal(year, v));
+  };
+  return { goal, save, err };
+}
+
+/** Como está a meta: quanto falta, se está no ritmo e com quantos filmes fecha o ano nesse ritmo. */
+export function goalPace(year: string, count: number, goal: number, now = new Date()) {
+  const y = +year;
+  const start = new Date(y, 0, 1).getTime();
+  const end = new Date(y + 1, 0, 1).getTime();
+  const t = Math.min(end, Math.max(start, now.getTime()));
+  const part = (t - start) / (end - start);
+  const past = now.getFullYear() > y;
+  const daysLeft = Math.max(0, Math.ceil((end - t) / 86400000));
+  const left = Math.max(0, goal - count);
+  return {
+    past,
+    done: count >= goal,
+    left,
+    /** Positivo: filmes à frente do ritmo; negativo: atrás */
+    ahead: Math.round(count - goal * part),
+    /** Com quantos filmes fecha o ano, mantendo o ritmo atual */
+    projected: part > 0.02 ? Math.round(count / part) : 0,
+    /** O que falta, em linguagem de gente: "4 filmes por semana", "1 filme a cada 10 dias" */
+    need: needText(left, daysLeft),
+  };
+}
+
+function needText(left: number, days: number): string {
+  if (!left || !days) return '';
+  const films = (n: number) => `${n} ${n === 1 ? 'filme' : 'filmes'}`;
+  // Última semana do ano: não adianta falar em "por semana"
+  if (days <= 7) return `${films(left)} até o fim do ano`;
+  const perWeek = left / (days / 7);
+  if (perWeek >= 1) return `${films(Math.ceil(perWeek))} por semana`;
+  return `1 filme a cada ${Math.floor(days / left)} dias`;
+}

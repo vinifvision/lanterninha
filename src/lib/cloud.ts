@@ -453,6 +453,28 @@ export const cloud = {
     return '';
   },
 
+  /** Metas de filmes por ano ({ "2026": 100 }). null sem conta, sem internet ou sem a tabela (supabase-metas.sql). */
+  async goals(): Promise<Record<string, number> | null> {
+    if (!sb || !user) return null;
+    const { data, error } = await sb.from('goals').select('year,films').eq('user_id', user.id);
+    if (error || !data) return null;
+    const out: Record<string, number> = {};
+    (data as { year?: unknown; films?: unknown }[]).forEach((g) => {
+      if (Number.isInteger(g.year) && Number.isInteger(g.films) && (g.films as number) > 0) out[String(g.year)] = g.films as number;
+    });
+    return out;
+  },
+
+  /** Grava (ou tira, com 0) a meta de um ano. Devolve '' quando deu certo. */
+  async saveGoal(year: string, n: number): Promise<string> {
+    if (!sb || !user) return 'Entre na conta para guardar a meta.';
+    const y = Number(year);
+    const { error } = n > 0
+      ? await sb.from('goals').upsert({ user_id: user.id, year: y, films: n, updated_at: new Date().toISOString() })
+      : await sb.from('goals').delete().eq('user_id', user.id).eq('year', y);
+    return error ? 'Não consegui salvar a meta na nuvem. Ela ficou neste aparelho.' : '';
+  },
+
   /** O @ está livre? null quando não deu para conferir agora. */
   async usernameAvailable(name: string): Promise<boolean | null> {
     if (!sb) return null;

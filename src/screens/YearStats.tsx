@@ -1,9 +1,10 @@
 // "2026 em filmes": as estatísticas do ano, no estilo das do Letterboxd. Abre pelo cartão "Seu 2026" no perfil.
 // Tudo é tocável: um mês, uma nota, um gênero ou uma década abrem os filmes; diretor e ator abrem a página da pessoa.
+import { useState } from 'react';
 import { Poster } from '../components/Poster';
 import { isRated, useFilms } from '../lib/films';
 import { fmt, MONTHS } from '../lib/format';
-import { diaryYears, filmsOfYear, NOTES, useFacts, yearStats, type Rank, type Ranks } from '../lib/stats';
+import { diaryYears, filmsOfYear, goalPace, NOTES, useFacts, useGoal, yearStats, type Rank, type Ranks } from '../lib/stats';
 import type { Film } from '../lib/types';
 import { nav, useKept } from '../nav';
 import { byDiary } from './Diary';
@@ -72,6 +73,8 @@ export function YearStats({ year }: { year: string }) {
           <b className="g">{st.avg ? '★ ' + fmt(Math.round(st.avg * 10) / 10) : '–'}</b><span>nota média</span>
         </button>
       </div>
+
+      <Goal key={y} year={y} count={st.count} />
 
       {loading && (
         <div className="v2yload" role="status">
@@ -223,6 +226,102 @@ function Rows({ items, onPick, value = (r) => String(r.n), size = (r) => r.n }: 
         </button>
       ))}
     </div>
+  );
+}
+
+const PRESETS: [number, string][] = [[52, '1 por semana'], [100, ''], [150, ''], [200, ''], [365, '1 por dia']];
+
+/**
+ * Meta do ano: sem meta, um convite para definir; com meta, o anel de progresso, se está no ritmo
+ * e quanto falta por semana. Tocar no anel deixa mudar a meta (dá para digitar o número).
+ */
+function Goal({ year, count }: { year: string; count: number }) {
+  const { goal, save, err } = useGoal(year);
+  const [edit, setEdit] = useState(false);
+  const [draft, setDraft] = useState('');
+  const pace = goalPace(year, count, goal || 1);
+  const past = pace.past;
+  // Ano que já acabou e não tinha meta: não tem o que mostrar
+  if (!goal && past && !edit) return null;
+
+  const n = Math.min(9999, parseInt(draft, 10) || 0);
+  const open = () => { setDraft(String(goal || 100)); setEdit(true); };
+  const done = (v: number) => { void save(v); setEdit(false); };
+  const step = (d: number) => setDraft(String(Math.max(1, Math.min(9999, n + d))));
+
+  if (edit) {
+    return (
+      <section className="v2yc v2ygoal" aria-label={`Meta de ${year}`}>
+        <h2>Quantos filmes em {year}?</h2>
+        <div className="v2ystep">
+          <button type="button" aria-label="Menos" onClick={() => step(-1)}>−</button>
+          <input
+            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} aria-label="Meta de filmes"
+            value={draft} onFocus={(e) => e.currentTarget.select()}
+            onChange={(e) => setDraft(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            onKeyDown={(e) => e.key === 'Enter' && n > 0 && done(n)}
+          />
+          <button type="button" aria-label="Mais" onClick={() => step(1)}>+</button>
+        </div>
+        <p className="v2yhint">Toque no número para digitar.</p>
+        <div className="v2ypre">
+          {PRESETS.map(([v, t]) => (
+            <button key={v} type="button" className={n === v ? 'on' : ''} onClick={() => setDraft(String(v))}>
+              {v}{t && <small>{t}</small>}
+            </button>
+          ))}
+        </div>
+        <div className="v2yact">
+          {goal > 0 && <button type="button" className="bad" onClick={() => done(0)}>Tirar meta</button>}
+          <button type="button" onClick={() => setEdit(false)}>Cancelar</button>
+          <button type="button" className="ok" disabled={!n} onClick={() => done(n)}>Salvar</button>
+        </div>
+      </section>
+    );
+  }
+
+  if (!goal) {
+    return (
+      <button type="button" className="v2yc v2ygoal v2ynew" onClick={open}>
+        <span>
+          <b>Meta de {year}</b>
+          <small>Quantos filmes você quer ver este ano?</small>
+        </span>
+        <i aria-hidden="true">Definir</i>
+      </button>
+    );
+  }
+
+  const pct = Math.min(1, count / goal);
+  // Um selinho curto com a situação e, embaixo, uma frase só
+  const chip = pace.done ? ['Meta batida', 'up']
+    : past ? ['Não deu', 'down']
+    : pace.ahead > 0 ? [`${pace.ahead} à frente do ritmo`, 'up']
+    : pace.ahead < 0 ? [`${-pace.ahead} atrás do ritmo`, 'down']
+    : ['No ritmo', 'up'];
+  const line = pace.done ? (count > goal ? `${plural(count - goal, 'filme', 'filmes')} além da meta.` : '')
+    : past ? `Faltaram ${plural(pace.left, 'filme', 'filmes')}.`
+    : `Faltam ${pace.left}: ${pace.need}.`;
+
+  return (
+    <>
+      <button type="button" className={`v2yc v2ygoal${pace.done ? ' done' : ''}`} aria-label={`Meta de ${year}: ${count} de ${goal}. Tocar para mudar`} onClick={open}>
+        <span className="v2yring">
+          <svg viewBox="0 0 70 70" aria-hidden="true">
+            <circle cx="35" cy="35" r="31" className="bg" />
+            <circle cx="35" cy="35" r="31" className="fg" strokeDasharray={`${pct * 195} 195`} transform="rotate(-90 35 35)" />
+          </svg>
+          <b>{Math.round(pct * 100)}%</b>
+        </span>
+        <span className="v2ygt2">
+          <small>Meta de {year}</small>
+          <b>{count} <em>de {goal}</em></b>
+          <i className={chip[1]}>{chip[0]}</i>
+          {line && <span>{line}</span>}
+        </span>
+      </button>
+      {err && <p className="fmsg bad">{err}</p>}
+    </>
   );
 }
 
