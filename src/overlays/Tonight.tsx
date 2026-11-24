@@ -6,16 +6,17 @@ import { createPortal } from 'react-dom';
 import { Button } from '../components/Button';
 import { Overlay } from '../components/Overlay';
 import { Poster } from '../components/Poster';
-import { discover, movieDetails, posterUrl } from '../lib/api';
+import { movieDetails, posterUrl } from '../lib/api';
 import { films, fkey, isRated, useFilms } from '../lib/films';
-import { fmt } from '../lib/format';
+import { tasteCandidates } from '../lib/taste';
 import { sfx } from '../lib/sfx';
-import type { FilmInfo, RatedFilm } from '../lib/types';
+import type { FilmInfo } from '../lib/types';
 import { nav } from '../nav';
 
 type Source = 'queue' | 'friends' | 'taste';
 type Time = 'short' | 'normal' | 'any';
-interface Pick { info: FilmInfo; why: string; min?: number }
+/** w: peso no sorteio (no "No meu estilo", quem combina mais tem mais chance). Sem w, todos têm a mesma chance. */
+interface Pick { info: FilmInfo; why: string; min?: number; w?: number }
 interface Sequel { prev: FilmInfo; target: FilmInfo; first: boolean; name: string }
 
 /** Limite de duração de cada opção do filtro de tempo, em minutos. */
@@ -39,29 +40,13 @@ function tickTimes(distance: number, dur: number): number[] {
 }
 const shuffle = <T,>(a: T[]) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 const pid = (p: Pick) => fkey(p.info);
+/** Sorteia um da lista respeitando o peso de cada um. */
+const weighted = (l: Pick[]) => {
+  let r = Math.random() * l.reduce((a, p) => a + (p.w ?? 1), 0);
+  for (const p of l) { r -= p.w ?? 1; if (r <= 0) return p; }
+  return l[l.length - 1];
+};
 const hm = (m: number) => `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`;
-
-/** Filmes "no seu estilo": recomendações do TMDB a partir de filmes que você avaliou bem. Review conta como um empurrãozinho. */
-async function tasteCandidates(all: ReturnType<typeof useFilms>): Promise<Pick[]> {
-  const mine = new Set(all.map(fkey));
-  const liked = all.filter(isRated).filter((h): h is RatedFilm & { id: number } => !!h.id && h.s >= 4)
-    .map((h) => ({ h, w: h.s + (h.note ? 0.75 : 0) + Math.random() * 1.5 }))
-    .sort((a, b) => b.w - a.w).slice(0, 3).map((x) => x.h);
-  const out: Pick[] = [];
-  const seen = new Set<number>();
-  const lists = await Promise.all(liked.map((h) => discover('similar', h.id).then((l) => ({ h, l })).catch(() => ({ h, l: [] }))));
-  for (const { h, l } of lists) {
-    for (const m of l) {
-      if (seen.has(m.id) || mine.has('m' + m.id)) continue;
-      seen.add(m.id);
-      out.push({ info: { id: m.id, t: m.title, y: m.year, o: m.original, img: m.poster }, why: `Porque você deu ★ ${fmt(h.s)} para ${h.t}` });
-    }
-  }
-  if (out.length) return out;
-  // Sem filmes bem avaliados ainda: vai do que está em alta
-  const trend = await discover('trending').catch(() => []);
-  return trend.filter((m) => !mine.has('m' + m.id)).map((m) => ({ info: { id: m.id, t: m.title, y: m.year, o: m.original, img: m.poster }, why: 'Em alta na semana' }));
-}
 
 /** Tira os filmes que ainda não lançaram. Ano depois do atual já sai direto; os do ano atual (ou sem ano) têm a data conferida. */
 async function dropUnreleased(pool: Pick[]): Promise<{ ok: Pick[]; out: number }> {
@@ -163,7 +148,7 @@ export function Tonight({ start }: { start?: 'queue' | 'taste' }) {
     pool.current = list;
     // Evita cair no mesmo filme duas vezes seguidas
     const options = list.length > 1 ? list.filter((p) => pid(p) !== last.current) : list;
-    const pick = options[Math.floor(Math.random() * options.length)];
+    const pick = weighted(options);
     last.current = pid(pick);
     setChosen(pick);
     const fill = Array.from({ length: LAND + 4 }, (_, i) => (i === LAND ? pick : list[Math.floor(Math.random() * list.length)]));
