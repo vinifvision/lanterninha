@@ -408,6 +408,33 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Menus de escolha (Ordenar, Nota, Ano...): título em cima, uma linha fina entre as opções
+   e o texto numa linha só, para cada opção ficar bem separada da outra */
+.v2cmsel {
+  min-width: 216px;
+  max-width: calc(100vw - 48px);
+}
+.v2cmhead {
+  padding: 8px 14px 6px;
+  font: 600 11px Inter, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8378;
+}
+.v2cmsel li:not(.v2cmhead) + li {
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.v2cmsel button {
+  height: auto;
+  min-height: 44px;
+}
+.v2cmsel button span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @keyframes v2cmin {
   from {
     opacity: 0;

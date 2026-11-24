@@ -310,3 +310,71 @@
   gap: 12px 8px;
   margin-bottom: 24px;
 }
+
+/* Filmes de um amigo (2.2): grade com a nota dele embaixo e a sua num selinho em cima do pôster */
+.v2ffsub {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2fr .v2dflt {
+  justify-content: flex-start;
+}
+.v2fr .v2find {
+  margin-top: 12px;
+}
+.v2ffgrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 10px;
+  margin: 16px 0 24px;
+}
+.v2ffend {
+  height: 1px;
+}
+/* Sua nota: selinho escuro no canto de baixo, sem desfoque (com muitos pôsteres ele pesa a rolagem) */
+.v2ffme {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  max-width: calc(100% - 10px);
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: rgba(14, 12, 16, 0.84);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font: 500 10px Inter, sans-serif;
+  font-style: normal;
+  line-height: 1.2;
+  color: #b5ada0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v2ffme b {
+  font-weight: 600;
+  color: var(--text);
+}
+/* Mesma nota que ele: o selinho fica dourado */
+.v2ffme.eq {
+  background: rgba(40, 31, 14, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(242, 201, 127, 0.6);
+  color: var(--gold);
+}
+.v2ffme.eq b {
+  color: var(--gold);
+}
+.v2ffseen {
+  color: var(--muted);
+}
+.v2frlinks {
+  margin-top: 26px;
+}
+.v2frrevs {
+  margin-top: 0;
+}
+.v2ffsp {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}

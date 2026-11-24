@@ -499,19 +499,24 @@ export const cloud = {
     return '';
   },
 
-  /** Os filmes avaliados de um amigo, do mais recente para o mais antigo. */
-  async friendFilms(id: string): Promise<RatedFilm[] | null> {
+  /** Tudo o que um amigo viu (com nota ou só "Já vi", sem o "Quero ver"), do mais recente para o mais antigo. */
+  async friendWatched(id: string): Promise<Film[] | null> {
     if (!sb || !UUID.test(id)) return null;
     try {
-      const out: RatedFilm[] = [];
+      const out: Film[] = [];
       for (let from = 0; ; from += 1000) {
         const { data, error } = await sb.from('films').select('key,data').eq('user_id', id).range(from, from + 999);
         if (error) return null;
-        (data || []).forEach((r) => { const c = cleanFilm(r.data); if (isRated(c)) out.push(c); });
+        (data || []).forEach((r) => { const c = cleanFilm(r.data); if (c && c.st !== 'want') out.push(c); });
         if (!data || data.length < 1000) break;
       }
       return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     } catch { return null; }
+  },
+  /** Só os filmes avaliados de um amigo, do mais recente para o mais antigo. */
+  async friendFilms(id: string): Promise<RatedFilm[] | null> {
+    const all = await this.friendWatched(id);
+    return all && all.filter(isRated);
   },
   /** O que os amigos guardaram em "Quero ver" (para o aviso de match na fila). */
   async friendsWant(): Promise<{ p: Profile; f: Film }[]> {
