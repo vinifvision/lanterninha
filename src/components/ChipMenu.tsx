@@ -62,7 +62,8 @@ export function ChipMenu<T extends string>({ label, value, options, onChange, ch
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {open && (
-        <ul ref={menu} className={`v2cmlist${end ? ' end' : ''}`} role="listbox" aria-label={label} data-no-pull>
+        <ul ref={menu} className={`v2cmlist v2cmsel${end ? ' end' : ''}`} role="listbox" aria-label={label} data-no-pull>
+          <li className="v2cmhead" role="presentation" aria-hidden="true">{label}</li>
           {options.map((o, i) => {
             const on = o.value === value;
             return (
