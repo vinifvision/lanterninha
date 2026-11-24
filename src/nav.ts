@@ -14,6 +14,7 @@ export type Screen =
   | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }
   | { k: 'diary' }
   | { k: 'myReviews' }
+  | { k: 'justSeen' }
   | { k: 'friends' }
   | { k: 'guide' }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean; help?: boolean }

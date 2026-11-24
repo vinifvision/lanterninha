@@ -1,4 +1,4 @@
-// Aba Você: entrar ou criar conta; depois, o perfil com Top 4, Seu ano, visto recentemente e os atalhos (Diário, Reviews, Amigos).
+// Aba Você: entrar ou criar conta; depois, o perfil com Top 4, Seu ano, visto recentemente e os atalhos (Diário, Reviews, Só vi, Amigos).
 import { useEffect, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
@@ -10,6 +10,7 @@ import { cleanProfile, cloud, useCloud } from "../lib/cloud";
 import { fkey, isRated, useFilms } from "../lib/films";
 import { byDiary } from "./Diary";
 import { withReview } from "./MyReviews";
+import { seenOnly } from "./JustSeen";
 import { fmt, MONTHS } from "../lib/format";
 import type { Film, Profile as ProfileData } from "../lib/types";
 import { nav } from "../nav";
@@ -206,6 +207,7 @@ function Account() {
   const name =
     pr.display_name || (pr.username ? "@" + pr.username : "Minha conta");
   const reviews = withReview(all).length;
+  const justSeen = seenOnly(all).length;
   const { friends } = account;
 
   const openTop = (i: number) => {
@@ -286,6 +288,11 @@ function Account() {
         <button onClick={() => nav.push({ k: "myReviews" })}>
           <span>Reviews</span>
           <em>{reviews}</em>
+          <i aria-hidden="true">›</i>
+        </button>
+        <button onClick={() => nav.push({ k: "justSeen" })}>
+          <span>Só vi</span>
+          <em>{justSeen}</em>
           <i aria-hidden="true">›</i>
         </button>
         {account.social && (

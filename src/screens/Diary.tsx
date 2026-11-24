@@ -1,6 +1,7 @@
 // Diário: os filmes vistos, mês a mês (o antigo "Meus filmes"). Abre pelo perfil.
 // Tem busca por nome, filtros (ano, nota, só cinema), dá para ordenar por "Mais recentes" (mês a mês)
 // ou "Maior nota" e ver em lista (padrão) ou em grade de pôsteres, que continua separada por mês.
+// A tela "Só vi" do perfil é este mesmo diário, só com os filmes sem nota (seenOnly).
 import { ChipMenu } from '../components/ChipMenu';
 import { Poster } from '../components/Poster';
 import { useCloud } from '../lib/cloud';
@@ -24,10 +25,10 @@ const MON = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out
 
 // Tudo com useKept: ao abrir um filme e voltar, o diário fica como estava (grade, filtros, busca).
 // Saindo para outra aba e entrando de novo, volta ao padrão: lista, todos os anos, mais recentes.
-export function Diary() {
+export function Diary({ seenOnly = false }: { seenOnly?: boolean } = {}) {
   const all = useFilms();
   const { friends } = useCloud();
-  const watched = all.filter((h) => h.st !== 'want').sort(byDiary);
+  const watched = all.filter((h) => h.st !== 'want' && (!seenOnly || !isRated(h))).sort(byDiary);
   const years = [...new Set(watched.map((h) => (h.d || '').slice(0, 4)).filter(Boolean))];
   // Notas que existem no diário (da maior para a menor), para o filtro só mostrar o que tem
   const scores = [...new Set(watched.filter(isRated).map((h) => h.s))].sort((a, b) => b - a);
@@ -77,7 +78,9 @@ export function Diary() {
     return parts.join(' · ');
   };
   const empty = !watched.length
-    ? 'Seu diário começa quando você avalia um filme ou marca "Já vi".'
+    ? seenOnly
+      ? 'Os filmes que você marcar como "Já vi", sem dar nota, aparecem aqui.'
+      : 'Seu diário começa quando você avalia um filme ou marca "Já vi".'
     : term ? 'Nenhum filme com esse nome.' : 'Nenhum filme com esse filtro.';
 
   const row = (h: Film) => {
@@ -143,15 +146,17 @@ export function Diary() {
               ]}
             />
           )}
-          <ChipMenu<Sort>
-            label="Ordenar" value={sort} onChange={setSort}
-            options={[{ value: 'recent', label: 'Mais recentes' }, { value: 'nota', label: 'Maior nota' }]}
-          />
+          {!seenOnly && (
+            <ChipMenu<Sort>
+              label="Ordenar" value={sort} onChange={setSort}
+              options={[{ value: 'recent', label: 'Mais recentes' }, { value: 'nota', label: 'Maior nota' }]}
+            />
+          )}
           <button className={`v2chip${cine ? ' on' : ''}`} aria-pressed={cine} onClick={() => setCine(!cine)}>Só cinema</button>
         </div>
       )}
       <div className="v2dtop">
-        <h1 className="v2dh">Diário</h1>
+        <h1 className="v2dh">{seenOnly ? 'Só vi' : 'Diário'}</h1>
         {watched.length > 0 && (
           <button className="v2round" aria-label={grid ? 'Ver em lista' : 'Ver em grade'} onClick={() => setGrid(!grid)}>
             {grid
@@ -164,7 +169,7 @@ export function Diary() {
         <div className="v2find">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
           <input
-            type="search" aria-label="Buscar no diário" maxLength={80} value={q} placeholder="Buscar no diário"
+            type="search" aria-label={seenOnly ? 'Buscar' : 'Buscar no diário'} maxLength={80} value={q} placeholder={seenOnly ? 'Buscar' : 'Buscar no diário'}
             autoComplete="off" autoCorrect="off" spellCheck={false} enterKeyHint="search" onChange={(e) => setQ(e.target.value)}
           />
           {q && <button type="button" className="v2clr" aria-label="Apagar" onClick={() => setQ('')}>✕</button>}
