@@ -1,5 +1,5 @@
 // Reviews de um filme (redesign v2): primeiro a minha, depois as dos amigos, numa tela só.
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Avatar } from '../components/Avatar';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { Poster } from '../components/Poster';
@@ -9,6 +9,7 @@ import { cloud, useCloud } from '../lib/cloud';
 import { films, fkey, isRated, toInfo, useFilms } from '../lib/films';
 import { fd, fmt, pname, STATE } from '../lib/format';
 import { looksClassic } from '../lib/quiz';
+import { sfx } from '../lib/sfx';
 import type { Film, FilmInfo, FriendRating } from '../lib/types';
 import { nav, useNav } from '../nav';
 
@@ -21,6 +22,32 @@ const Meta = ({ f }: { f: Film & { s: number } }) => {
   const w = when(f);
   return <small><i>★ {fmt(f.s)}</i>{w && ' · ' + w}{f.note && f.sp && <em className="sptag">spoiler</em>}</small>;
 };
+
+/** Review longa aparece cortada (~7 linhas, com fade) e abre suave no "Ler mais". */
+function Clamp({ children }: { children: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [long, setLong] = useState(false);
+  const [open, setOpen] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || open !== null) return;
+    const check = () => setLong(el.scrollHeight > el.clientHeight + 2);
+    check();
+    // O spoiler troca o conteúdo ao abrir; a fonte pode carregar depois: mede de novo.
+    const mo = new MutationObserver(check);
+    mo.observe(el, { childList: true, subtree: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { mo.disconnect(); ro.disconnect(); };
+  }, [open]);
+  const expand = () => { sfx.tap(); setOpen(box.current?.scrollHeight || 9999); };
+  return (
+    <>
+      <div ref={box} className={`rvclamp${open !== null ? ' open' : long ? ' cut' : ''}`} style={open !== null ? { maxHeight: open } : undefined}>{children}</div>
+      {long && open === null && <button type="button" className="rvmore" onClick={expand}>Ler mais</button>}
+    </>
+  );
+}
 
 export function ReviewsPage({ info: raw, focusId, known }: Props) {
   const info = toInfo(raw);
@@ -58,6 +85,9 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
   const focused = focusId ? friends.find((r) => r.p.id === focusId) : undefined;
   const list = friends.slice().sort((a, b) =>
     (a.p.id === focusId ? -1 : b.p.id === focusId ? 1 : 0) || (+!!b.f.note - +!!a.f.note) || (b.f.ts || 0) - (a.f.ts || 0));
+  /** Quem escreveu vira card; quem só deu nota fica numa lista compacta no fim (o amigo em foco sempre vira card). */
+  const cards = list.filter((r) => r.f.note || r.p.id === focusId);
+  const onlyRate = list.filter((r) => !r.f.note && r.p.id !== focusId);
   const nText = list.filter((r) => r.f.note).length;
 
   return (
@@ -82,7 +112,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
               </button>
             </div>
             {rated.note
-              ? <p className="txt">{rated.note}</p>
+              ? <Clamp><p className="txt">{rated.note}</p></Clamp>
               : <p className="hint">Você deu a nota, mas ainda não escreveu nada. Uma frase já basta.</p>}
             {rated.note && myLikes && <p className="rvlikes"><b>♥</b> Curtida por {myLikes}</p>}
             {rated.note && <button className="rvlnk" id="rvsh" onClick={() => nav.open({ k: 'share', key })}>Compartilhar</button>}
@@ -105,17 +135,17 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
       {list.length > 0 && (
         <div className="rv2sec">
           <h3>Amigos</h3>
-          <span>{nText === 1 ? '1 review' : `${nText} reviews`}</span>
+          <span>{[nText ? (nText === 1 ? '1 review' : `${nText} reviews`) : '', onlyRate.length ? (onlyRate.length === 1 ? '1 só nota' : `${onlyRate.length} só nota`) : ''].filter(Boolean).join(' · ')}</span>
         </div>
       )}
       <div id="rvl">
-        {list.map((r, i) => (
+        {cards.map((r, i) => (
           <article className={`rv2${r.p.id === focusId ? ' foco' : ''}`} key={r.p.id} style={{ animationDelay: `${i * 50}ms` }}>
             <div className="who">
               <Avatar p={r.p} />
               <div><b>{pname(r.p)}</b><Meta f={r.f} /></div>
             </div>
-            {r.f.note ? <SpoilerText text={r.f.note} hide={!!r.f.sp && !seen} /> : <p className="hint">Só deu a nota.</p>}
+            {r.f.note ? <Clamp><SpoilerText text={r.f.note} hide={!!r.f.sp && !seen} /></Clamp> : <p className="hint">Só deu a nota.</p>}
             {r.f.note && likes && r.p.id && (
               <div className="rvfoot">
                 <LikeButton n={(likes[r.p.id] || []).length} on={(likes[r.p.id] || []).includes(me)} onClick={() => toggleLike(r.p.id!)} />
@@ -123,6 +153,18 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
             )}
           </article>
         ))}
+        {onlyRate.length > 0 && (
+          <div className="rv2only" style={{ animationDelay: `${cards.length * 50}ms` }}>
+            <h4>Só deram a nota</h4>
+            {onlyRate.map((r) => (
+              <div className="rvo" key={r.p.id}>
+                <Avatar p={r.p} />
+                <b>{pname(r.p)}</b>
+                <i>★ {fmt(r.f.s)}</i>
+              </div>
+            ))}
+          </div>
+        )}
         {!list.length && account.user && account.friends.list.length > 0 && <p className="empty" style={{ padding: '26px 10px' }}>Nenhum amigo avaliou esse filme ainda.</p>}
       </div>
     </Overlay>
