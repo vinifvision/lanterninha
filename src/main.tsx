@@ -18,6 +18,7 @@ import './styles/v2-boasvindas.css';
 import './styles/v2-novidades.css';
 import './styles/v2-pessoa.css';
 import './styles/v2-amigo.css';
+import './styles/v2-ano.css';
 
 cloud.init();
 setupNative();

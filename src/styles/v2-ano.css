@@ -1,0 +1,469 @@
+/* "2026 em filmes": estatísticas do ano */
+.v2yrtitle {
+  margin: 4px 0 16px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.v2yrtitle em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+/* Os quatro números */
+.v2ynums {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.v2ynums > * {
+  padding: 16px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  animation: v2yin 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  transition: transform 0.15s ease;
+}
+.v2ynums > *:nth-child(2) { animation-delay: 40ms; }
+.v2ynums > *:nth-child(3) { animation-delay: 80ms; }
+.v2ynums > *:nth-child(4) { animation-delay: 120ms; }
+.v2ynums button:not(:disabled):active {
+  transform: scale(0.96);
+}
+.v2ynums b {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1;
+}
+.v2ynums b.g {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 26px;
+  line-height: 34px;
+  color: var(--gold);
+}
+.v2ynums span {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Buscando no TMDB */
+.v2yload {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.v2yload i {
+  display: block;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--card2);
+  overflow: hidden;
+}
+.v2yload b {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+
+/* Cada bloco */
+.v2yc {
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--card);
+  animation: v2yin 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.v2yc h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+.v2yc > p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.v2yc > p b.g {
+  color: var(--gold);
+  font-weight: 600;
+}
+@keyframes v2yin {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Barras tocáveis (mês a mês e notas) */
+.v2ytap {
+  height: 110px;
+}
+.v2ytap > button {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  transition: transform 0.15s ease;
+}
+.v2ytap > button:not(:disabled):active {
+  transform: scale(0.9);
+}
+.v2ytap em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--muted);
+}
+.v2ytap small {
+  min-height: 12px;
+}
+.v2ynotes {
+  gap: 4px;
+}
+
+/* Listas com barrinha (gêneros, diretores, atores, décadas) */
+.v2yrows {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v2yrows button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0 -8px;
+  padding: 8px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  animation: v2yin 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.v2yrows button:active {
+  background: var(--card2);
+  transform: scale(0.98);
+}
+.v2yrows .l {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+}
+.v2yrows em {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2yrows .b {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--card2);
+  overflow: hidden;
+}
+.v2yrows .b i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #4a4350;
+  transform-origin: left;
+  animation: v2ygrow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.v2yrows .b i.on {
+  background: var(--gold);
+}
+@keyframes v2ygrow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Onde você viu */
+.v2ywbar {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+  margin-top: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.v2ywbar i,
+.v2ywleg i {
+  display: block;
+  background: #4a4350;
+}
+.v2ywbar i {
+  transform-origin: left;
+  animation: v2ygrow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.v2ywbar i.cine,
+.v2ywleg i.cine {
+  background: var(--gold);
+}
+.v2ywbar i.casa,
+.v2ywleg i.casa {
+  background: var(--screen);
+  opacity: 0.75;
+}
+.v2ywleg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.v2ywleg button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--card2);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  transition: transform 0.15s ease;
+}
+.v2ywleg button:active {
+  transform: scale(0.95);
+}
+.v2ywleg i {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+}
+.v2ywleg em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+/* Destaques */
+.v2yhl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.v2yhl button {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+.v2yhl button:active {
+  transform: scale(0.95);
+}
+.v2yhl small {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.v2yhl b {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Cartão "Seu 2026" no perfil: agora abre as estatísticas */
+button.v2year {
+  display: block;
+  width: 100%;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+button.v2year:active {
+  transform: scale(0.98);
+}
+.v2yh span i {
+  font-style: normal;
+  margin-left: 4px;
+  color: var(--gold);
+}
+
+/* Grade de filmes: pedaço dourado do título e separação por nota */
+.v2yr .v2ygt em {
+  font-style: normal;
+  color: var(--gold);
+}
+.v2ygrp {
+  margin-top: 10px;
+}
+.v2ygh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--card2);
+}
+.v2ygh b {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.v2ygh span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.v2ygrp .v2ffgrid {
+  margin-top: 12px;
+}
+.v2dh em {
+  font-style: normal;
+  color: var(--gold);
+}
+
+/* Mais vistos × Maior nota */
+.v2ych {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.v2yseg {
+  display: flex;
+  flex: none;
+  padding: 3px;
+  border-radius: 15px;
+  background: var(--card2);
+}
+.v2yseg button {
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 13px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.v2yseg button.on {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+.v2yrows em.on {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Do contra */
+.v2yct {
+  margin-top: 14px;
+}
+.v2yct h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.v2yct button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% + 16px);
+  margin: 0 -8px;
+  padding: 8px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  animation: v2yin 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.v2yct button:active {
+  background: var(--card2);
+  transform: scale(0.98);
+}
+.v2yct .v2dcpos {
+  flex: none;
+  width: 42px;
+  border-radius: 6px;
+}
+.v2yct .t {
+  flex: 1;
+  min-width: 0;
+}
+.v2yct .t b {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 600;
+}
+.v2yct .t small {
+  display: flex;
+  gap: 10px;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.v2yct .t em {
+  font-style: normal;
+  color: var(--gold);
+}
+.v2yct i {
+  flex: none;
+  min-width: 44px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+.v2yct i.up {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.v2yct i.down {
+  background: rgba(232, 73, 79, 0.14);
+  color: var(--red);
+}

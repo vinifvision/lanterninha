@@ -177,6 +177,7 @@ export function movieDetails(id: number): Promise<MovieDetails> {
       return {
         overview: typeof m.overview === 'string' ? m.overview : '',
         runtime: typeof m.runtime === 'number' ? m.runtime : 0,
+        vote: m.vote === null ? null : typeof m.vote === 'number' && m.vote >= 0 && m.vote <= 10 ? m.vote : undefined,
         release: typeof m.release === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.release) ? m.release : '',
         genres: Array.isArray(m.genres) ? m.genres.filter((g): g is string => typeof g === 'string') : [],
         genreIds: Array.isArray(m.genreIds) ? m.genreIds.filter((g): g is number => Number.isInteger(g)) : [],

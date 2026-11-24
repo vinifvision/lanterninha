@@ -87,6 +87,8 @@ export default {
       {
         overview: m.overview || "",
         runtime: m.runtime || 0,
+        // Nota do público no TMDB (0 a 10), só com votos suficientes
+        vote: m.vote_count >= 20 ? Math.round(m.vote_average * 10) / 10 : null,
         release: m.release_date || "",
         genres: (m.genres || []).map((g) => g.name).slice(0, 3),
         genreIds: (m.genres || []).map((g) => g.id),
