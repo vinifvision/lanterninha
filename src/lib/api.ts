@@ -55,7 +55,7 @@ export interface NameHit {
   name: string;
   /** Foto da pessoa ou logo da produtora */
   photo: string;
-  /** Linha de baixo: "Direção · Pulp Fiction, Kill Bill" ou o país da produtora */
+  /** Linha de baixo: "Direção: Pulp Fiction, Kill Bill" ou o país da produtora */
   sub: string;
   /** De 0 a 1: quanto o nome se parece com o que foi digitado */
   sim: number;
@@ -82,8 +82,8 @@ export function searchNames(kind: PersonKind, q: string, page: number): Promise<
           .map((x): NameHit => {
             const films = (Array.isArray(x.knownFor) ? x.knownFor : []).map((t) => str(t, 60)).filter(Boolean).slice(0, 2);
             const sub = kind === 'company'
-              ? (str(x.country, 4) ? 'Produtora · ' + str(x.country, 4) : 'Produtora')
-              : [str(x.known, 30), films.join(', ')].filter(Boolean).join(' · ');
+              ? (str(x.country, 4) ? 'Produtora, ' + str(x.country, 4) : 'Produtora')
+              : [str(x.known, 30), films.join(', ')].filter(Boolean).join(': ');
             return {
               id: x.id as number,
               name: str(x.name),

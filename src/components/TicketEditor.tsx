@@ -43,7 +43,7 @@ export function TicketEditor({ film }: { film: Film }) {
       <NearbyCinemas onPick={setCine} />
       {friends.list.length > 0 && (
         <>
-          <span className="lbl">Quem foi junto <em className="lblhint">· a pessoa confirma</em></span>
+          <span className="lbl">Quem foi junto <em className="lblhint">(a pessoa confirma)</em></span>
           <div className="tkfr">
             {friends.list.map((p) => (
               <button key={p.id} type="button" className={(tk.with || []).includes(p.id!) || withMe[key]?.includes(p.id!) ? 'on' : ''} data-f={p.id}
@@ -100,7 +100,7 @@ function NearbyCinemas({ onPick }: { onPick: (name: string) => void }) {
       {list.map((c) => (
         <button type="button" key={c.name} onClick={() => { onPick(c.name); setState('idle'); }}>
           <b>{c.name}</b>
-          <small>{[c.place, c.km ? `${String(c.km).replace('.', ',')} km` : ''].filter(Boolean).join(' · ')}</small>
+          <small>{[c.place, c.km ? `${String(c.km).replace('.', ',')} km` : ''].filter(Boolean).join(', ')}</small>
         </button>
       ))}
     </div>

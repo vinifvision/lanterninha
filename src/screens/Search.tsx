@@ -145,7 +145,7 @@ export function Search() {
       <span className="v2sgo" aria-hidden="true">›</span>
     </button>
   );
-  const filmRows = () => results.map((m) => row(toInfo(m), [m.year, m.original !== m.title ? m.original : ''].filter(Boolean).join(' · ')));
+  const filmRows = () => results.map((m) => row(toInfo(m), [m.year, m.original !== m.title ? m.original : ''].filter(Boolean).join(', ')));
   const typing = q.trim().length >= 2;
   const topPpl = strongPeople(ppl.items);
   const topCos = strongCompanies(cos.items);

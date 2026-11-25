@@ -4,7 +4,7 @@
   background: linear-gradient(155deg, #3a2a30, #1e1b21 55%, var(--bg));
 }
 
-/* Cabeçalho: avatar com anel, nome, "@ · N filmes" e os três pontinhos */
+/* Cabeçalho: avatar com anel, nome, "@ — N filmes" e os três pontinhos */
 .v2frhead {
   position: relative;
   margin-top: -52px;

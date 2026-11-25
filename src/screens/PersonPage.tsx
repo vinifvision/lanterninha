@@ -163,7 +163,7 @@ export function PersonPage({ kind, id, name, photo }: { kind: PersonKind; id: nu
                   </span>
                 )}
               </span>
-              <small>{f.year || '—'}{kind === 'person' && current === ALL && f.roles.length > 0 && ` · ${f.roles[0]}`}</small>
+              <small>{f.year || '—'}{kind === 'person' && current === ALL && f.roles.length > 0 && `, ${f.roles[0]}`}</small>
             </button>
           );
         })}
@@ -201,8 +201,8 @@ function Progress({ seen, total, avg, cut, crowd }: { seen: number; total: numbe
         <i style={{ width: `${fill}%` }} />
       </div>
       <p>
-        {done ? 'Você viu todos. Respeito.' : seen === 0 ? 'Ainda nenhum. Bom lugar para começar.' : `${pct}% ${cut ? 'dos mais populares' : 'da obra'}`}
-        {crowd > 0 && <> · a galera já viu {crowd}</>}
+        {done ? 'Você viu todos. Respeito.' : seen === 0 ? 'Ainda nenhum. Bom lugar para começar.' : `${pct}% ${cut ? 'dos mais populares' : 'da obra'}.`}
+        {crowd > 0 && <> A galera já viu {crowd}.</>}
       </p>
     </section>
   );

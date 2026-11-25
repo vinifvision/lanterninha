@@ -15,12 +15,12 @@ import { nav, useNav } from '../nav';
 
 interface Props { info: FilmInfo; focusId?: string; known?: FriendRating }
 
-/** "viu no cinema · 12/11/2026" */
-const when = (f: Film) => [f.w === 'cine' ? 'viu no cinema' : '', f.d ? fd(f.d) : ''].filter(Boolean).join(' · ');
+/** "viu no cinema, 12/11/2026" */
+const when = (f: Film) => [f.w === 'cine' ? 'viu no cinema' : '', f.d ? fd(f.d) : ''].filter(Boolean).join(', ');
 /** Nota pequena com o "quando" ao lado. */
 const Meta = ({ f }: { f: Film & { s: number } }) => {
   const w = when(f);
-  return <small><i>★ {fmt(f.s)}</i>{w && ' · ' + w}{f.note && f.sp && <em className="sptag">spoiler</em>}</small>;
+  return <small><i>★ {fmt(f.s)}</i>{w && ' — ' + w}{f.note && f.sp && <em className="sptag">spoiler</em>}</small>;
 };
 
 /** Review longa aparece cortada (~7 linhas, com fade) e abre suave no "Ler mais". */
@@ -135,7 +135,7 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
       {list.length > 0 && (
         <div className="rv2sec">
           <h3>Amigos</h3>
-          <span>{[nText ? (nText === 1 ? '1 review' : `${nText} reviews`) : '', onlyRate.length ? (onlyRate.length === 1 ? '1 só nota' : `${onlyRate.length} só nota`) : ''].filter(Boolean).join(' · ')}</span>
+          <span>{[nText ? (nText === 1 ? '1 review' : `${nText} reviews`) : '', onlyRate.length ? (onlyRate.length === 1 ? '1 só nota' : `${onlyRate.length} só nota`) : ''].filter(Boolean).join(', ')}</span>
         </div>
       )}
       <div id="rvl">

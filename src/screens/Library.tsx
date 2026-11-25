@@ -99,8 +99,8 @@ export function Library() {
   const list = queue.filter((h) => !needle || h.t.toLowerCase().includes(needle) || (h.o || '').toLowerCase().includes(needle));
   const card = (h: Film, i: number) => <FilmCard key={fkey(h)} film={h} delay={Math.min(i, 12) * 25} onClick={() => nav.openFilm(h)} />;
 
-  const info = det ? [det.runtime ? hm(det.runtime) : '', det.providers.stream.length ? 'no streaming' : det.providers.rent.length ? 'pra alugar' : ''].filter(Boolean).join(' · ') : '';
-  const sub = [top?.y, det?.director].filter(Boolean).join(' · ');
+  const info = det ? [det.runtime ? hm(det.runtime) : '', det.providers.stream.length ? 'no streaming' : det.providers.rent.length ? 'pra alugar' : ''].filter(Boolean).join(', ') : '';
+  const sub = [top?.y, det?.director].filter(Boolean).join(', ');
 
   return (
     <div className="screen v2qv">
@@ -109,7 +109,7 @@ export function Library() {
           <h1>Quero ver</h1>
           <p className="v2qvsum">
             {queue.length} {queue.length === 1 ? 'filme' : 'filmes'}
-            {byFriends > 0 && <> · {byFriends} {byFriends === 1 ? 'indicado' : 'indicados'} por amigos</>}
+            {byFriends > 0 && <>, {byFriends} {byFriends === 1 ? 'indicado' : 'indicados'} por amigos</>}
           </p>
         </div>
         {queue.length > 0 && (
@@ -203,7 +203,7 @@ export function Library() {
               {r.film.img ? <Poster img={r.film.img} title="" fallback={false} /> : <div className="noimg" />}
               <div>
                 <b>{r.film.t}</b>
-                <small>de {pname(r.p)}{r.film.y ? ' · ' + r.film.y : ''}</small>
+                <small>de {pname(r.p)}{r.film.y ? ', ' + r.film.y : ''}</small>
                 {r.note && <p>“{r.note}”</p>}
                 <div className="row2">
                   <button className="mini" data-ra onClick={() => { films.setStatus(r.film, 'want', pname(r.p)); void cloud.dropRec(r.id); }}>Quero ver</button>

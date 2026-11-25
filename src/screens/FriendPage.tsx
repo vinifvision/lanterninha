@@ -55,7 +55,7 @@ export function FriendPage({ id }: { id: string }) {
         <div className="v2frname">
           <h1>{name}</h1>
           <p>
-            {p.display_name && p.username && <>@{p.username} · </>}
+            {p.display_name && p.username && <>@{p.username} — </>}
             {watched && <button type="button" id="fall" onClick={allFilms}>{watched.length} {watched.length === 1 ? 'filme' : 'filmes'}</button>}
           </p>
         </div>
@@ -167,7 +167,7 @@ function Match({ films, myS, name }: { films: RatedFilm[]; myS: Map<string, numb
           <span className="v2frfp"><Poster img={fight.img} title={fight.t} /></span>
           <span>
             Onde vocês brigam: <i>{fight.t}</i>
-            <small>você <em>★ {fmt(myS.get(fkey(fight))!)}</em> · {name} <em>★ {fmt(fight.s)}</em></small>
+            <small>você deu <em>★ {fmt(myS.get(fkey(fight))!)}</em> e {name} deu <em>★ {fmt(fight.s)}</em></small>
           </span>
         </button>
       )}

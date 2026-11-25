@@ -156,7 +156,7 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: editing
   const openHelp = () => { setDirect(false); setStep(0); setAnswers([]); };
 
   if (direct) {
-    const sub = [info.y, dir].filter(Boolean).join(' · ');
+    const sub = [info.y, dir].filter(Boolean).join(', ');
     return (
       <div key="direct" className="screen nota2">
         <div className="nhead">
