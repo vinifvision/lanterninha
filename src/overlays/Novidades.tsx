@@ -48,6 +48,10 @@ function Icone({ k }: { k: NovIcone }) {
           <circle cx="15.4" cy="15.4" r="1.1" fill="currentColor" stroke="none" />
         </svg>
       );
+    case 'grafico':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M4 20h16" /><rect x="5.5" y="12" width="3" height="5.5" rx="1" /><rect x="10.5" y="7.5" width="3" height="10" rx="1" /><rect x="15.5" y="4" width="3" height="13.5" rx="1" /></svg>;
+    case 'sofa':
+      return <svg viewBox="0 0 24 24" {...S}><path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3" /><path d="M3.5 11a1.8 1.8 0 0 1 3.5.6V14h10v-2.4a1.8 1.8 0 1 1 3.5-.6V17a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17z" /><path d="M6 18.5V20M18 18.5V20" /></svg>;
     default:
       return <svg viewBox="0 0 24 24" {...S}><path d={STAR} /></svg>;
   }

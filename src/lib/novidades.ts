@@ -20,7 +20,9 @@ export type NovIcone =
   | "spoiler"
   | "pessoas"
   | "javi"
-  | "dado";
+  | "dado"
+  | "grafico"
+  | "sofa";
 
 export interface Novidade {
   icone: NovIcone;
@@ -35,25 +37,25 @@ export const NOVIDADES: {
   botao: string;
   itens: Novidade[];
 } = {
-  id: "2.1.0", // só um nome para saber quem já viu; não aparece na tela
-  titulo: "Novidades da 2.1",
-  subtitulo: "Mais jeitos de achar e guardar filmes",
+  id: "2.2.0", // só um nome para saber quem já viu; não aparece na tela
+  titulo: "Novidades da 2.2",
+  subtitulo: "Mais filmes com os seus amigos",
   botao: "Bora",
   itens: [
     {
       icone: "pessoas",
-      titulo: "Busca de pessoas",
-      texto: "Ache atores, atrizes, diretores e produtoras na busca.",
+      titulo: "Filmes dos amigos",
+      texto: "No perfil de um amigo, toque em Filmes e veja tudo o que ele viu e avaliou.",
     },
     {
-      icone: "javi",
-      titulo: "Só vi, no perfil",
-      texto: "Os filmes que você marcou como vistos, mas sem nota.",
+      icone: "grafico",
+      titulo: "Seu 2026",
+      texto: "No seu perfil: crie uma meta de filmes e veja seu ano em números.",
     },
     {
-      icone: "dado",
-      titulo: "Sorteio melhor",
-      texto: "Mais equilibrado, e o \"No meu estilo\" acerta mais o seu gosto.",
+      icone: "sofa",
+      titulo: "Com quem você viu?",
+      texto: "Ao dar a nota, marque os amigos que assistiram com você, até em casa.",
     },
   ],
 };
