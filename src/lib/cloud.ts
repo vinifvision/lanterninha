@@ -47,6 +47,7 @@ export function cleanProfile(p: unknown): Profile | null {
     bio: typeof r.bio === 'string' ? r.bio.trim().slice(0, 160) : '',
     avatar: typeof r.avatar === 'string' && r.avatar.length <= 80000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(r.avatar) ? r.avatar : '',
     banner: typeof r.banner === 'string' && POSTER_PATH.test(r.banner) ? r.banner : '',
+    since: typeof r.created_at === 'string' && !Number.isNaN(Date.parse(r.created_at)) ? r.created_at : '',
     top4: (Array.isArray(r.top4) ? r.top4 : []).slice(0, 4).map((x): TopItem | null => {
       const t = x as Record<string, unknown> | null;
       if (!t || typeof t.t !== 'string' || !t.t.trim()) return null;
@@ -182,7 +183,7 @@ async function loadFriends(): Promise<void> {
     const ids = [...new Set(rows.map(other))].filter((i) => UUID.test(i));
     const map = new Map<string, Profile>();
     if (ids.length) {
-      const pr = await sb.from('profiles').select('id,username,display_name,bio,avatar,top4' + (banners ? ',banner' : '')).in('id', ids);
+      const pr = await sb.from('profiles').select('id,username,display_name,bio,avatar,top4,created_at' + (banners ? ',banner' : '')).in('id', ids);
       (pr.data || []).forEach((x) => { const c = cleanProfile(x); if (c?.id) map.set(c.id, c); });
     }
     const f = emptyFriends();
@@ -295,7 +296,7 @@ async function onAuth(sessionUser: { id: string; email?: string; user_metadata?:
   emit();
   try {
     // Tenta do banco mais novo para o mais antigo, para o app funcionar mesmo sem os scripts mais recentes
-    let r = await sb.from('profiles').select('username,display_name,bio,avatar,top4,banner').eq('id', u.id).maybeSingle();
+    let r = await sb.from('profiles').select('username,display_name,bio,avatar,top4,banner,created_at').eq('id', u.id).maybeSingle();
     banners = !r.error;
     if (r.error) r = await sb.from('profiles').select('username,display_name,bio,avatar,top4').eq('id', u.id).maybeSingle();
     if (r.error) { r = await sb.from('profiles').select('username').eq('id', u.id).maybeSingle(); extended = false; } else extended = true;

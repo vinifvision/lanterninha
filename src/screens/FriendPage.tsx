@@ -5,6 +5,7 @@ import { Avatar } from '../components/Avatar';
 import { Banner } from '../components/Banner';
 import { useArmed, useAsync } from '../components/hooks';
 import { Poster } from '../components/Poster';
+import { Since } from '../components/Since';
 import { useRefresh } from '../lib/refresh';
 import { cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
@@ -62,6 +63,7 @@ export function FriendPage({ id }: { id: string }) {
         <FriendMenu id={id} onError={setErr} />
       </div>
       {p.bio && <p className="bio v2bio">{p.bio}</p>}
+      <Since iso={p.since} />
 
       {watched === undefined && <p className="empty">Carregando os filmes…</p>}
       {watched === null && <p className="empty">Não consegui carregar os filmes agora.</p>}
