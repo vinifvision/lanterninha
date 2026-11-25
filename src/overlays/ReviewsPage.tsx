@@ -23,8 +23,9 @@ const Meta = ({ f }: { f: Film & { s: number } }) => {
   return <small><i>★ {fmt(f.s)}</i>{w && ' — ' + w}{f.note && f.sp && <em className="sptag">spoiler</em>}</small>;
 };
 
-/** Review longa aparece cortada (~7 linhas, com fade) e abre suave no "Ler mais". */
-function Clamp({ children }: { children: ReactNode }) {
+/** Review longa aparece cortada (~7 linhas, com fade), abre suave no "Ler mais" e fecha no "Ler menos".
+ *  `extra` fica na mesma linha do "Ler mais", à direita (ex.: Compartilhar). */
+function Clamp({ children, extra }: { children: ReactNode; extra?: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   const [long, setLong] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
@@ -41,10 +42,24 @@ function Clamp({ children }: { children: ReactNode }) {
     return () => { mo.disconnect(); ro.disconnect(); };
   }, [open]);
   const expand = () => { sfx.tap(); setOpen(box.current?.scrollHeight || 9999); };
+  /** Fecha de novo e, se o começo do card ficou lá em cima, rola de volta até ele. */
+  const collapse = () => {
+    sfx.tap();
+    setOpen(null);
+    const card = box.current?.closest('article');
+    if (card && card.getBoundingClientRect().top < 0) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   return (
     <>
       <div ref={box} className={`rvclamp${open !== null ? ' open' : long ? ' cut' : ''}`} style={open !== null ? { maxHeight: open } : undefined}>{children}</div>
-      {long && open === null && <button type="button" className="rvmore" onClick={expand}>Ler mais</button>}
+      {long || extra ? (
+        <div className="rvbar">
+          {long && (open === null
+            ? <button type="button" className="rvmore" onClick={expand}>Ler mais</button>
+            : <button type="button" className="rvmore" onClick={collapse}>Ler menos</button>)}
+          {extra}
+        </div>
+      ) : null}
     </>
   );
 }
@@ -112,10 +127,13 @@ export function ReviewsPage({ info: raw, focusId, known }: Props) {
               </button>
             </div>
             {rated.note
-              ? <Clamp><p className="txt">{rated.note}</p></Clamp>
+              ? (
+                <Clamp extra={<button className="rvlnk" id="rvsh" onClick={() => nav.open({ k: 'share', key })}>Compartilhar</button>}>
+                  <p className="txt">{rated.note}</p>
+                </Clamp>
+              )
               : <p className="hint">Você deu a nota, mas ainda não escreveu nada. Uma frase já basta.</p>}
             {rated.note && myLikes && <p className="rvlikes"><b>♥</b> Curtida por {myLikes}</p>}
-            {rated.note && <button className="rvlnk" id="rvsh" onClick={() => nav.open({ k: 'share', key })}>Compartilhar</button>}
           </>
         ) : (
           <>

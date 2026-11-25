@@ -633,6 +633,20 @@
 .rvmore:active {
   opacity: 0.6;
 }
+/* Linha embaixo da review: "Ler mais" à esquerda, Compartilhar à direita */
+.rvbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+}
+.rvbar .rvmore,
+.rvbar .rvlnk {
+  margin-top: 0;
+}
+.rvbar .rvlnk {
+  margin-left: auto;
+}
 /* Amigos que só deram nota: lista compacta num card só */
 .rv2only {
   margin-top: 12px;
