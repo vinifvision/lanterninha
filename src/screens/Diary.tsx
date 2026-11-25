@@ -63,15 +63,19 @@ export function Diary({ seenOnly = false }: { seenOnly?: boolean } = {}) {
   };
   /** Embaixo do dia: o dia da semana ou, em "Maior nota" (sem os meses), o mês (e o ano, se não houver filtro de ano). */
   const dayNote = (d: string) => byNote ? MON[+d.slice(5, 7) - 1] + (year ? '' : ` ${d.slice(2, 4)}`) : WEEK[new Date(d + 'T12:00:00').getDay()];
-  // O que aparece ao lado da nota: cinema (com quem), review, revisto
+  // O que aparece ao lado da nota: cinema (com quem) ou com quem viu fora do cinema, review, revisto
+  const firstNames = (ids: string[] = []) => ids
+    .map((id) => friends.list.find((p) => p.id === id))
+    .filter(Boolean)
+    .map((p) => pname(p).split(' ')[0]);
   const extra = (h: Film) => {
     const parts: string[] = [];
     if (h.w === 'cine') {
-      const names = (h.tk?.with || [])
-        .map((id) => friends.list.find((p) => p.id === id))
-        .filter(Boolean)
-        .map((p) => pname(p).split(' ')[0]);
+      const names = firstNames(h.tk?.with);
       parts.push(names.length ? `Cinema com ${names.join(', ')}` : 'Cinema');
+    } else {
+      const names = firstNames(h.com);
+      if (names.length) parts.push(`Com ${names.join(', ')}`);
     }
     if (h.note) parts.push('Review');
     if ((h.n || 1) > 1) parts.push('Revi');
