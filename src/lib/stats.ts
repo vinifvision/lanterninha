@@ -289,3 +289,58 @@ function needText(left: number, days: number): string {
   if (perWeek >= 1) return `${films(Math.ceil(perWeek))} por semana`;
   return `1 filme a cada ${Math.floor(days / left)} dias`;
 }
+
+const DAY = 86400000;
+const dayNum = (d: string) => Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) / DAY;
+const isoOf = (n: number) => new Date(n * DAY).toISOString().slice(0, 10);
+
+/**
+ * Marcos e sequências, no estilo Duolingo: a maior sequência de dias seguidos com filme, a sequência
+ * de agora, o dia de maratona, o dia da semana favorito e os filmes de número redondo (10º, 25º, 50º…).
+ */
+export function marks(films: Film[], year: string, now = new Date()) {
+  const dated = films.filter((h) => /^\d{4}-\d{2}-\d{2}$/.test(h.d || ''));
+  const byDate = [...dated].sort((a, b) => a.d!.localeCompare(b.d!) || (a.ts || 0) - (b.ts || 0));
+  const days = new Map<number, Film[]>();
+  byDate.forEach((h) => {
+    const k = dayNum(h.d!);
+    days.set(k, [...(days.get(k) || []), h]);
+  });
+  const keys = [...days.keys()].sort((a, b) => a - b);
+
+  // Maior sequência (em empate, a mais recente)
+  let best = { len: 0, from: 0, to: 0 };
+  let from = keys[0];
+  keys.forEach((k, i) => {
+    if (i && k !== keys[i - 1] + 1) from = k;
+    if (k - from + 1 >= best.len) best = { len: k - from + 1, from, to: k };
+  });
+  const range = (a: number, b: number) => keys.filter((k) => k >= a && k <= b).flatMap((k) => days.get(k)!);
+
+  // Sequência de agora: conta para trás a partir de hoje (ou de ontem, se ainda não viu nada hoje)
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / DAY;
+  let current = 0;
+  let seenToday = false;
+  if (String(now.getFullYear()) === year) {
+    seenToday = days.has(today);
+    let k = seenToday ? today : today - 1;
+    while (days.has(k)) { current++; k--; }
+  }
+
+  // Dia de maratona: o dia com mais filmes (em empate, o mais recente)
+  let marathon = { day: 0, films: [] as Film[] };
+  keys.forEach((k) => { if (days.get(k)!.length >= marathon.films.length) marathon = { day: k, films: days.get(k)! }; });
+
+  // Dia da semana (0 = domingo)
+  const week: Film[][] = Array.from({ length: 7 }, () => []);
+  byDate.forEach((h) => week[new Date(dayNum(h.d!) * DAY).getUTCDay()].push(h));
+
+  const MILESTONES = [10, 25, 50, 75, 100, 150, 200, 250, 300, 365, 400, 500, 750, 1000];
+  return {
+    streak: best.len > 1 ? { len: best.len, from: isoOf(best.from), to: isoOf(best.to), films: range(best.from, best.to) } : null,
+    current: current > 1 ? { len: current, seenToday, films: range(today - current - (seenToday ? -1 : 0), today) } : null,
+    marathon: marathon.films.length > 1 ? { day: isoOf(marathon.day), films: marathon.films } : null,
+    week,
+    milestones: MILESTONES.filter((n) => n <= byDate.length).map((n) => ({ n, h: byDate[n - 1] })),
+  };
+}

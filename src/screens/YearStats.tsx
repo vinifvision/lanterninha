@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Poster } from '../components/Poster';
 import { isRated, useFilms } from '../lib/films';
 import { fmt, MONTHS } from '../lib/format';
-import { diaryYears, filmsOfYear, goalPace, NOTES, useFacts, useGoal, yearStats, type Rank, type Ranks } from '../lib/stats';
+import { diaryYears, filmsOfYear, goalPace, marks, NOTES, useFacts, useGoal, yearStats, type Rank, type Ranks } from '../lib/stats';
 import type { Film } from '../lib/types';
 import { nav, useKept } from '../nav';
 import { byDiary } from './Diary';
@@ -101,6 +101,8 @@ export function YearStats({ year }: { year: string }) {
           ))}
         </div>
       </section>
+
+      <Marks films={films} year={y} show={show} />
 
       {rated.length > 0 && (
         <section className="v2yc" aria-label="Suas notas">
@@ -322,6 +324,84 @@ function Goal({ year, count }: { year: string; count: number }) {
       </button>
       {err && <p className="fmsg bad">{err}</p>}
     </>
+  );
+}
+
+const WEEK = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+/** "3 de março" */
+const dayText = (d: string) => `${+d.slice(8, 10)} de ${MONTHS[+d.slice(5, 7) - 1].toLowerCase()}`;
+/** "3 a 8 de março" ou "28 de fevereiro a 2 de março" */
+const rangeText = (a: string, b: string) =>
+  a.slice(5, 7) === b.slice(5, 7) ? `${+a.slice(8, 10)} a ${dayText(b)}` : `${dayText(a)} a ${dayText(b)}`;
+
+type Show = (title: string, em: string, list: Film[], extra?: { sub?: string }) => void;
+
+/** Marcos e sequências: maior sequência, sequência de agora, maratona, dia favorito e os filmes de número redondo. */
+function Marks({ films, year, show }: { films: Film[]; year: string; show: Show }) {
+  const m = marks(films, year);
+  const maxWeek = Math.max(...m.week.map((l) => l.length));
+  const fav = m.week.findIndex((l) => l.length === maxWeek);
+  if (!m.streak && !m.current && !m.marathon && !m.milestones.length && !maxWeek) return null;
+  const tiles = [
+    m.current && {
+      k: 'cur', label: 'Sequência atual', big: plural(m.current.len, 'dia', 'dias'), fire: true,
+      sub: m.current.seenToday ? 'Você já viu hoje' : 'Veja um hoje para não perder',
+      open: () => show(`${m.current!.len} dias seguidos`, `${m.current!.len} dias`, m.current!.films),
+    },
+    m.streak && {
+      k: 'best', label: 'Maior sequência', big: plural(m.streak.len, 'dia', 'dias'),
+      sub: rangeText(m.streak.from, m.streak.to),
+      open: () => show(`${m.streak!.len} dias seguidos`, `${m.streak!.len} dias`, m.streak!.films, { sub: rangeText(m.streak!.from, m.streak!.to) }),
+    },
+    m.marathon && {
+      k: 'mar', label: 'Dia de maratona', big: plural(m.marathon.films.length, 'filme', 'filmes'),
+      sub: dayText(m.marathon.day),
+      open: () => show(`Maratona de ${dayText(m.marathon!.day)}`, dayText(m.marathon!.day), m.marathon!.films),
+    },
+  ].filter(Boolean) as { k: string; label: string; big: string; sub: string; fire?: boolean; open: () => void }[];
+
+  return (
+    <section className="v2yc" aria-label="Marcos e sequências">
+      <h2>Marcos e sequências</h2>
+      {tiles.length > 0 && (
+        <div className="v2ytiles">
+          {tiles.map((t) => (
+            <button key={t.k} type="button" className={t.fire ? 'fire' : ''} onClick={t.open}>
+              <small>{t.label}</small>
+              <b>{t.big}</b>
+              <span>{t.sub}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {maxWeek > 0 && (
+        <>
+          <p className="v2yfav">Seu dia de cinema é <b>{WEEK[fav].toLowerCase()}</b>.</p>
+          <div className="v2bars v2ytap v2yweek">
+            {m.week.map((l, i) => (
+              <button key={i} type="button" disabled={!l.length} aria-label={`${WEEK[i]}: ${plural(l.length, 'filme', 'filmes')}`}
+                onClick={() => show(`${WEEK[i]}s de ${year}`, `${WEEK[i]}s`, l)}>
+                {l.length > 0 && <em>{l.length}</em>}
+                <span className={l.length === maxWeek ? 'on' : l.length ? '' : 'z'} style={{ height: l.length ? 6 + Math.round((l.length / maxWeek) * 44) : 4 }} />
+                <small>{WEEK[i][0]}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {m.milestones.length > 0 && (
+        <div className="v2ymiles" aria-label="Marcos do ano">
+          {m.milestones.map(({ n, h }) => (
+            <button key={n} type="button" onClick={() => nav.openFilm(h)}>
+              <span className="v2dcpos"><Poster img={h.img} title={h.t} /><i>{n}º</i></span>
+              <small>{h.d ? dayText(h.d) : ''}</small>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
