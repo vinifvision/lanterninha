@@ -1,5 +1,5 @@
 // Monta a imagem de compartilhar (vertical, 1080×1920, boa para Status e Stories) num canvas.
-// Três estilos: Pôster (pôster grande, estrelas e review), Ingresso (o filme num ingresso) e Só a review.
+// Três estilos: Pôster (pôster grande e estrelas), Ingresso (o filme num ingresso) e Só a review.
 import { loadImage, proxiedPoster } from './api';
 import { fd, STAR_PATH } from './format';
 import type { RatedFilm } from './types';
@@ -109,21 +109,20 @@ function signature(c: CanvasRenderingContext2D, logo: HTMLImageElement | null) {
 }
 
 function posterCard(c: CanvasRenderingContext2D, h: RatedFilm, poster: HTMLImageElement | null) {
-  const note = (h.note || '').trim();
+  // Só pôster, título, ano e estrelas (a review fica para os outros estilos)
   c.font = `400 96px ${SERIF}`; const titleLines = wrapText(c, h.t, 920, 2);
-  c.font = `italic 400 58px ${SERIF}`; const noteLines = note ? wrapText(c, '“' + note + '”', 900, 4) : [];
-  const rest = titleLines.length * 100 + 64 + 40 + 100 + (noteLines.length ? 50 + noteLines.length * 70 : 0);
-  const ph = poster ? Math.min(900, 1560 - rest - 80) : 0, pw = ph / 1.5;
-  let y = 140 + (1560 - (rest + (poster ? ph + 80 : 0))) / 2;
-  if (poster) { drawPoster(c, poster, (W - pw) / 2, y, pw, ph, 30); y += ph + 80; }
+  const yearH = h.y ? 72 : 0;
+  const rest = titleLines.length * 110 + yearH + 50 + 100;
+  const ph = poster ? Math.min(1000, 1560 - rest - 90) : 0, pw = ph / 1.5;
+  let y = 140 + (1560 - (rest + (poster ? ph + 90 : 0))) / 2;
+  if (poster) { drawPoster(c, poster, (W - pw) / 2, y, pw, ph, 30); y += ph + 90; }
   c.textAlign = 'center'; c.textBaseline = 'top';
   c.fillStyle = '#fbf3e2'; c.font = `400 96px ${SERIF}`;
-  titleLines.forEach((l) => { c.fillText(l, W / 2, y); y += 100; });
-  c.fillStyle = 'rgba(251,243,226,.7)'; c.font = `500 36px ${SANS}`;
-  if (h.y) c.fillText(h.y, W / 2, y + 4);
-  y += 64 + 40;
-  drawStars(c, W / 2, y, 84, h.s); y += 100;
-  if (noteLines.length) { y += 50; c.fillStyle = '#fbf3e2'; c.font = `italic 400 58px ${SERIF}`; noteLines.forEach((l) => { c.fillText(l, W / 2, y); y += 70; }); }
+  titleLines.forEach((l) => { c.fillText(l, W / 2, y); y += 110; });
+  // Folga abaixo do título para o ano não encostar nas letras que descem (g, p, q…)
+  if (h.y) { y += 24; c.fillStyle = 'rgba(251,243,226,.7)'; c.font = `500 36px ${SANS}`; c.fillText(h.y, W / 2, y); y += 48; }
+  y += 50;
+  drawStars(c, W / 2, y, 84, h.s);
 }
 
 function ticketCard(c: CanvasRenderingContext2D, h: RatedFilm, poster: HTMLImageElement | null) {
