@@ -43,6 +43,8 @@ import { Diary } from "./screens/Diary";
 import { Friends } from "./screens/Friends";
 import { MyReviews } from "./screens/MyReviews";
 import { JustSeen } from "./screens/JustSeen";
+import { YearStats } from "./screens/YearStats";
+import { FilmGrid } from "./screens/FilmGrid";
 import { Profile } from "./screens/Profile";
 import { Search } from "./screens/Search";
 import { Quiz } from "./screens/Quiz";
@@ -91,9 +93,13 @@ function stackScreen(s: Screen, depth: number) {
     case "diary":
       return <Diary key="diary" />;
     case "myReviews":
-      return <MyReviews key="myReviews" />;
+      return <MyReviews key={`myReviews-${s.year || ""}`} year={s.year} />;
     case "justSeen":
       return <JustSeen key="justSeen" />;
+    case "year":
+      return <YearStats key={`year-${depth}`} year={s.year} />;
+    case "filmGrid":
+      return <FilmGrid key={`grid-${depth}`} title={s.title} em={s.em} sub={s.sub} films={s.films} friend={s.friend} group={s.group} />;
     case "friends":
       return <Friends key="friends" />;
     case "guide":
@@ -258,6 +264,8 @@ export function App() {
         diary: "diary",
         myReviews: "diary",
         justSeen: "diary",
+        year: "diary",
+        filmGrid: "diary",
         friends: "diary",
         guide: "guide",
         friend: "friend",
@@ -278,9 +286,13 @@ export function App() {
     ? top.k === "diary"
       ? "Diário"
       : top.k === "myReviews"
-      ? "Reviews"
+      ? top.year ? `Reviews de ${top.year}` : "Reviews"
       : top.k === "justSeen"
       ? "Só vi"
+      : top.k === "year"
+      ? `${top.year} em filmes`
+      : top.k === "filmGrid"
+      ? top.title
       : top.k === "friends"
       ? "Amigos"
       : top.k === "list"

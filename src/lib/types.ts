@@ -107,6 +107,8 @@ export interface FriendRating {
 export interface MovieDetails {
   overview: string;
   runtime: number;
+  /** Nota do público no TMDB (0 a 10); null com poucos votos; undefined se o servidor ainda não manda */
+  vote?: number | null;
   /** Data de lançamento (AAAA-MM-DD), vazia se o TMDB não souber */
   release: string;
   genres: string[];

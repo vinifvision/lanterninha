@@ -14,8 +14,10 @@ export type Screen =
   | { k: 'person'; kind: PersonKind; id: number; name: string; photo?: string }
   | { k: 'list'; title: string; em?: string; list: DiscoverList; id?: number }
   | { k: 'diary' }
-  | { k: 'myReviews' }
+  | { k: 'myReviews'; year?: string }
   | { k: 'justSeen' }
+  | { k: 'year'; year: string }
+  | { k: 'filmGrid'; title: string; em?: string; sub?: string; films: Film[]; friend?: string; group?: 'nota' }
   | { k: 'friends' }
   | { k: 'guide' }
   | { k: 'quiz'; info: FilmInfo; classic: boolean; rewatch: RatedFilm | null; answers?: number[]; direct?: boolean; help?: boolean }
