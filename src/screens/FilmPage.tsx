@@ -295,10 +295,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
         </div>
       )}
 
-      {hasFriends && crowd && <Galera crowd={friendRatings} info={info} />}
-      {(!hasFriends || (crowd && crowd.length === 0)) && (
-        <LanternStats filmKey={key} mine={rated?.s} />
-      )}
+      {(!hasFriends || crowd) && <Galera crowd={friendRatings} info={info} filmKey={key} mine={rated?.s} />}
       {hasFriends && crowd && <Disse crowd={friendRatings} info={info} />}
 
       {info.id ? <CastCard info={info} /> : null}
@@ -375,59 +372,78 @@ function StreamAlert() {
   );
 }
 
-/** Nota da galera: média dos amigos e um gráfico de 0,5 a 5 com o rosto de quem deu cada nota. */
-function Galera({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
+/** Quem viu, numa frase só: "5 amigos viram", "5 amigos e mais 1 pessoa viram", "6 pessoas viram". */
+function seenText(friends: number, others: number): string {
+  const people = (n: number) => `${n} ${n === 1 ? "pessoa" : "pessoas"}`;
+  if (!friends) return `${people(others)} ${others === 1 ? "viu" : "viram"}`;
+  if (!others) return `${nFriends(friends)} ${friends === 1 ? "viu" : "viram"}`;
+  return `${nFriends(friends)} e mais ${people(others)} viram`;
+}
+
+/** Nota no Lanterninha: média e gráfico de todo mundo (sem dizer quem é);
+ *  os amigos aparecem com o rosto em cima da nota que deram. */
+function Galera({ crowd, info, filmKey, mine }: { crowd: FriendRating[]; info: FilmInfo; filmKey: string; mine?: number }) {
+  const tick = useRefresh();
+  const st = useAsync(() => cloud.filmStats(filmKey), [filmKey, mine, tick], true);
   const cols: FriendRating[][] = Array.from({ length: 10 }, () => []);
   crowd.forEach((r) => {
     const i = Math.min(9, Math.max(0, Math.round(r.f.s * 2) - 1));
     cols[i].push(r);
   });
-  const max = Math.max(1, ...cols.map((c) => c.length));
-  const avg = crowd.length ? Math.round((crowd.reduce((a, r) => a + r.f.s, 0) / crowd.length) * 10) / 10 : 0;
-  const label = cols
-    .map((c, i) => (c.length ? `${c.length} de ${fmt((i + 1) / 2)}` : ""))
+  // Quantas pessoas deram cada nota: todo mundo (do banco) ou, sem isso, só os amigos
+  const counts = cols.map((c, i) => Math.max(c.length, st?.dist?.[i] ?? 0));
+  const total = Math.max(st?.n ?? 0, crowd.length);
+  const max = Math.max(1, ...counts);
+  const friendsAvg = crowd.length ? Math.round((crowd.reduce((a, r) => a + r.f.s, 0) / crowd.length) * 10) / 10 : 0;
+  const avg = st ? st.avg : friendsAvg;
+  if (!total) return null;
+  const label = counts
+    .map((c, i) => (c ? `${c} de ${fmt((i + 1) / 2)}` : ""))
     .filter(Boolean)
     .join(", ");
+  const bars = cols.map((c, i) => (
+    <span className="gcol" key={i}>
+      {c.length > 3 && <span className="gmore">+{c.length - 2}</span>}
+      {(c.length > 3 ? c.slice(0, 2) : c).map((r) => (
+        <Avatar key={r.p.id} p={r.p} />
+      ))}
+      <span
+        className={`gbar${counts[i] ? " on" : ""}`}
+        style={{
+          height: counts[i] ? 22 + (counts[i] / max) * 48 : 6,
+          animationDelay: `${i * 35}ms`,
+        }}
+      />
+    </span>
+  ));
   return (
     <section className="galera" id="crowd" aria-label="Nota da galera">
       <div className="gh">
         <div>
           <h2>Nota da galera</h2>
           <small>
-            {crowd.length ? `${nFriends(crowd.length)} ${crowd.length === 1 ? "viu" : "viram"}` : "Nenhum amigo avaliou ainda"}
+            {seenText(crowd.length, total - crowd.length)}
           </small>
         </div>
-        {crowd.length > 0 && <b>{fmt(avg)}</b>}
+        <b>{fmt(avg)}</b>
       </div>
-      {crowd.length > 0 && (
-        <>
-          <button
-            className="gchart"
-            aria-label={`Notas dos amigos: ${label}. Ver reviews`}
-            onClick={() => nav.open({ k: "reviews", info })}
-          >
-            {cols.map((c, i) => (
-              <span className="gcol" key={i}>
-                {c.length > 3 && <span className="gmore">+{c.length - 2}</span>}
-                {(c.length > 3 ? c.slice(0, 2) : c).map((r) => (
-                  <Avatar key={r.p.id} p={r.p} />
-                ))}
-                <span
-                  className={`gbar${c.length ? " on" : ""}`}
-                  style={{
-                    height: c.length ? 22 + (c.length / max) * 48 : 6,
-                    animationDelay: `${i * 35}ms`,
-                  }}
-                />
-              </span>
-            ))}
-          </button>
-          <div className="gaxis" aria-hidden="true">
-            <span>★ 0,5</span>
-            <span>★ 5</span>
-          </div>
-        </>
+      {crowd.length > 0 ? (
+        <button
+          className="gchart"
+          aria-label={`Notas: ${label}. Ver reviews dos amigos`}
+          onClick={() => nav.open({ k: "reviews", info })}
+        >
+          {bars}
+        </button>
+      ) : (
+        <div className="gchart" role="img" aria-label={`Notas: ${label}`}>
+          {bars}
+        </div>
       )}
+      <div className="gaxis" aria-hidden="true">
+        <span>★ 0,5</span>
+        <span>★ 5</span>
+      </div>
     </section>
   );
 }
@@ -557,51 +573,3 @@ function Scores({ id }: { id?: number }) {
   );
 }
 
-/** Nota no Lanterninha (todo mundo): aparece quando ainda não há nota de amigos. */
-function LanternStats({ filmKey, mine }: { filmKey: string; mine?: number }) {
-  const tick = useRefresh();
-  const st = useAsync(() => cloud.filmStats(filmKey), [filmKey, mine, tick], true);
-  if (!st) return null;
-  const max = st.dist ? Math.max(...st.dist) : 0;
-  return (
-    <div className="lstats" id="lstats">
-      <div className="lhead">
-        <img src="/logo.svg" alt="" />
-        <span>Nota no Lanterninha</span>
-      </div>
-      <div className="lrow">
-        {st.dist && (
-          <div className="lchart">
-            <div
-              className="hist"
-              role="img"
-              aria-label={`Distribuição de ${st.n} ${st.n === 1 ? "avaliação" : "avaliações"}`}
-            >
-              {st.dist.map((c, i) => (
-                <i
-                  key={i}
-                  className={mine === (i + 1) / 2 ? "me" : ""}
-                  title={`${fmt((i + 1) / 2)} estrela${i ? "s" : ""}: ${c}`}
-                  style={{
-                    height: `${c ? Math.max(8, (c / max) * 100) : 4}%`,
-                    animationDelay: `${i * 35}ms`,
-                  }}
-                />
-              ))}
-            </div>
-            <div className="hl">
-              <span>★</span>
-              <span>★★★★★</span>
-            </div>
-          </div>
-        )}
-        <div className="lavg">
-          <b>{fmt(st.avg)}</b>
-          <small>
-            {st.n} {st.n === 1 ? "avaliação" : "avaliações"}
-          </small>
-        </div>
-      </div>
-    </div>
-  );
-}
