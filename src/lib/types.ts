@@ -79,6 +79,8 @@ export interface Profile {
   /** Imagem de fundo do perfil: caminho de uma cena de filme no TMDB */
   banner: string;
   top4: (TopItem | null)[];
+  /** Quando a conta foi criada (data ISO de profiles.created_at); vazio se não veio */
+  since: string;
 }
 
 export interface Friends {

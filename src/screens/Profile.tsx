@@ -4,6 +4,7 @@ import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
 import { useAsync } from "../components/hooks";
 import { Poster } from "../components/Poster";
+import { Since } from "../components/Since";
 import { movieDetails } from "../lib/api";
 import { TopFour } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
@@ -234,6 +235,7 @@ function Account() {
         {pr.display_name && pr.username && <p className="v2pfsub">@{pr.username}</p>}
       </div>
       {pr.bio && <p className="bio v2bio">{pr.bio}</p>}
+      <Since iso={pr.since} />
 
       <div className="v2nums">
         <button type="button" id="pfn" onClick={diary}>

@@ -10,6 +10,13 @@ export const STAR_PATH = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const POSTER_PATH = /^\/[\w.-]+$/;
 
+/** "No Lanterninha desde novembro de 2026", no fuso de quem está vendo. Vazio se a data não for válida. */
+export function sinceText(iso?: string): string {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return '';
+  return `No Lanterninha desde ${MONTHS[d.getMonth()].toLowerCase()} de ${d.getFullYear()}`;
+}
+
 export const pad = (n: number) => String(n).padStart(2, '0');
 /** Nota com vírgula, do jeito brasileiro: 4,5 */
 export const fmt = (n: number) => String(n).replace('.', ',');
