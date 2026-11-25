@@ -3191,6 +3191,7 @@ html.native {
 }
 .hrow {
   display: flex;
+  align-items: flex-start; /* sem isso, um item com legenda embaixo estica os outros e os pôsteres desalinham */
   gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
