@@ -772,3 +772,96 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* ===== Com quem você viu (fora do cinema) ===== */
+.wwith {
+  margin-top: 16px;
+  border-radius: 20px;
+  background: var(--card);
+}
+.wwrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 16px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 500 14px Inter, sans-serif;
+  text-align: left;
+}
+.wwico {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.wwavs {
+  display: flex;
+  flex: none;
+}
+.wwavs .av {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+  box-shadow: 0 0 0 2px var(--card);
+}
+.wwavs .av + .av {
+  margin-left: -8px;
+}
+.wwtxt {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wwrow em {
+  flex: none;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--muted);
+}
+.wwith.open .wwrow em {
+  color: var(--text);
+  font-weight: 600;
+}
+.wwlist {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .28s cubic-bezier(.2, .8, .2, 1), opacity .2s;
+}
+.wwith.open .wwlist {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.wwlist > div {
+  overflow: hidden;
+  padding: 0 16px;
+}
+.wwith.open .wwlist > div {
+  padding-bottom: 14px;
+}
+.wwhint {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fesec .wwith {
+  background: rgba(255, 255, 255, .04);
+}
+.fesec .wwith .wwavs .av {
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wwlist {
+    transition: none;
+  }
+}

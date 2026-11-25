@@ -5,6 +5,7 @@ import { Poster } from '../components/Poster';
 import { RatingChip } from '../components/RatingChip';
 import { SpoilerSwitch } from '../components/Spoiler';
 import { lastCinema, TicketEditor } from '../components/TicketEditor';
+import { WatchedWith } from '../components/WatchedWith';
 import { WhenRow } from '../components/WhenRow';
 import { films, fkey, isRated, useFilms } from '../lib/films';
 import type { Film, FilmInfo, RatedFilm, Where } from '../lib/types';
@@ -76,6 +77,7 @@ export function Details({ info, filmKey, base, classic, rewatch, replaced, answe
           <TicketEditor film={film} />
         </div>
       )}
+      {film.w !== 'cine' && <WatchedWith film={film} />}
       <div className="detcard"><WhenRow film={film} /></div>
 
       <div className="grow" />

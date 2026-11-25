@@ -41,6 +41,8 @@ export interface Film {
   w?: Where;
   /** Ingresso (só quando viu no cinema) */
   tk?: Ticket;
+  /** Amigos com quem viu fora do cinema (ids). É só uma anotação sua: o amigo não recebe aviso. */
+  com?: string[];
 }
 
 export type Where = 'cine' | 'casa' | 'outro';
