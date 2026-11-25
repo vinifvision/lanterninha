@@ -90,6 +90,8 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: editing
     if (rw) { entry.p = rw.s; entry.n = (rw.n || 1) + 1; }
     else if (old?.n) { entry.p = old.p; entry.n = old.n; }
     if (where) entry.w = where;
+    // Corrigindo a nota: continua marcado com quem você viu. Reassistir é outra sessão, então começa sem ninguém.
+    if (!rw && old?.com) entry.com = old.com;
     if (where === 'cine') {
       // Corrigindo a nota de quem já tinha ingresso: mantém o ingresso. Senão, já começa com o último cinema usado.
       if (!rw && old?.w === 'cine' && old.tk) entry.tk = old.tk;
@@ -156,7 +158,7 @@ export function Quiz({ info, classic, rewatch, answers: initial, direct: editing
   const openHelp = () => { setDirect(false); setStep(0); setAnswers([]); };
 
   if (direct) {
-    const sub = [info.y, dir].filter(Boolean).join(' · ');
+    const sub = [info.y, dir].filter(Boolean).join(', ');
     return (
       <div key="direct" className="screen nota2">
         <div className="nhead">

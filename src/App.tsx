@@ -35,6 +35,7 @@ import { FilmEdit } from "./overlays/FilmEdit";
 import { FilmPage } from "./screens/FilmPage";
 import { FriendPage } from "./screens/FriendPage";
 import { FriendFilms } from "./screens/FriendFilms";
+import { FriendReviews } from "./screens/FriendReviews";
 import { FullList } from "./screens/FullList";
 import { Home } from "./screens/Home";
 import { Library } from "./screens/Library";
@@ -42,6 +43,8 @@ import { Diary } from "./screens/Diary";
 import { Friends } from "./screens/Friends";
 import { MyReviews } from "./screens/MyReviews";
 import { JustSeen } from "./screens/JustSeen";
+import { YearStats } from "./screens/YearStats";
+import { FilmGrid } from "./screens/FilmGrid";
 import { Profile } from "./screens/Profile";
 import { Search } from "./screens/Search";
 import { Quiz } from "./screens/Quiz";
@@ -90,9 +93,13 @@ function stackScreen(s: Screen, depth: number) {
     case "diary":
       return <Diary key="diary" />;
     case "myReviews":
-      return <MyReviews key="myReviews" />;
+      return <MyReviews key={`myReviews-${s.year || ""}`} year={s.year} />;
     case "justSeen":
       return <JustSeen key="justSeen" />;
+    case "year":
+      return <YearStats key={`year-${depth}`} year={s.year} />;
+    case "filmGrid":
+      return <FilmGrid key={`grid-${depth}`} title={s.title} em={s.em} sub={s.sub} films={s.films} friend={s.friend} group={s.group} />;
     case "friends":
       return <Friends key="friends" />;
     case "guide":
@@ -101,6 +108,8 @@ function stackScreen(s: Screen, depth: number) {
       return <FriendPage key={`friend-${s.id}`} id={s.id} />;
     case "friendFilms":
       return <FriendFilms key={`friendFilms-${s.id}`} id={s.id} only={s.only} />;
+    case "friendReviews":
+      return <FriendReviews key={`friendReviews-${s.id}`} id={s.id} />;
     case "quiz":
       return (
         <Quiz
@@ -255,10 +264,13 @@ export function App() {
         diary: "diary",
         myReviews: "diary",
         justSeen: "diary",
+        year: "diary",
+        filmGrid: "diary",
         friends: "diary",
         guide: "guide",
         friend: "friend",
         friendFilms: "friend",
+        friendReviews: "diary",
         quiz: "q",
         details: "det",
         result: "res",
@@ -267,16 +279,20 @@ export function App() {
   const alignTop = mode !== "home" && mode !== "q" && mode !== "res";
   // Título que aparece na barra de cima quando a pessoa rola a tela
   const friend =
-    top?.k === "friend" || top?.k === "friendFilms"
+    top?.k === "friend" || top?.k === "friendFilms" || top?.k === "friendReviews"
       ? account.friends.list.find((p) => p.id === top.id)
       : null;
   const title = top
     ? top.k === "diary"
       ? "Diário"
       : top.k === "myReviews"
-      ? "Reviews"
+      ? top.year ? `Reviews de ${top.year}` : "Reviews"
       : top.k === "justSeen"
       ? "Só vi"
+      : top.k === "year"
+      ? `${top.year} em filmes`
+      : top.k === "filmGrid"
+      ? top.title
       : top.k === "friends"
       ? "Amigos"
       : top.k === "list"
@@ -286,7 +302,7 @@ export function App() {
         : top.k === "person"
         ? top.name
         : friend
-          ? top.k === "friendFilms" ? `Filmes de ${pname(friend)}` : pname(friend)
+          ? top.k === "friendFilms" ? `Filmes de ${pname(friend)}` : top.k === "friendReviews" ? `Reviews de ${pname(friend)}` : pname(friend)
           : ""
     : TAB_TITLE[tab];
 

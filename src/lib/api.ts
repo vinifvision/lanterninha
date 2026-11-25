@@ -55,7 +55,7 @@ export interface NameHit {
   name: string;
   /** Foto da pessoa ou logo da produtora */
   photo: string;
-  /** Linha de baixo: "Direção · Pulp Fiction, Kill Bill" ou o país da produtora */
+  /** Linha de baixo: "Direção: Pulp Fiction, Kill Bill" ou o país da produtora */
   sub: string;
   /** De 0 a 1: quanto o nome se parece com o que foi digitado */
   sim: number;
@@ -82,8 +82,8 @@ export function searchNames(kind: PersonKind, q: string, page: number): Promise<
           .map((x): NameHit => {
             const films = (Array.isArray(x.knownFor) ? x.knownFor : []).map((t) => str(t, 60)).filter(Boolean).slice(0, 2);
             const sub = kind === 'company'
-              ? (str(x.country, 4) ? 'Produtora · ' + str(x.country, 4) : 'Produtora')
-              : [str(x.known, 30), films.join(', ')].filter(Boolean).join(' · ');
+              ? (str(x.country, 4) ? 'Produtora, ' + str(x.country, 4) : 'Produtora')
+              : [str(x.known, 30), films.join(', ')].filter(Boolean).join(': ');
             return {
               id: x.id as number,
               name: str(x.name),
@@ -177,6 +177,7 @@ export function movieDetails(id: number): Promise<MovieDetails> {
       return {
         overview: typeof m.overview === 'string' ? m.overview : '',
         runtime: typeof m.runtime === 'number' ? m.runtime : 0,
+        vote: m.vote === null ? null : typeof m.vote === 'number' && m.vote >= 0 && m.vote <= 10 ? m.vote : undefined,
         release: typeof m.release === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.release) ? m.release : '',
         genres: Array.isArray(m.genres) ? m.genres.filter((g): g is string => typeof g === 'string') : [],
         genreIds: Array.isArray(m.genreIds) ? m.genreIds.filter((g): g is number => Number.isInteger(g)) : [],

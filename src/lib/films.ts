@@ -35,6 +35,10 @@ export function cleanFilm(x: unknown): Film | null {
     }
     if (tk.cine || tk.with) e.tk = tk;
   }
+  if (Array.isArray(r.com)) {
+    const com = r.com.filter((x): x is string => typeof x === 'string' && UUID.test(x)).slice(0, 12);
+    if (com.length) e.com = com;
+  }
   return e;
 }
 

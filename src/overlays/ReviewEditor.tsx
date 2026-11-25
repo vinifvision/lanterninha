@@ -50,7 +50,7 @@ export function ReviewEditor({ filmKey }: { filmKey: string }) {
     <Overlay className="red">
       <OverlayHeader left={<button id="rc" onClick={cancel}>{armed ? 'Descartar?' : 'Cancelar'}</button>} title="Review" right={<button className="ok" id="rs" onClick={save}>Salvar</button>} />
       <h2>{film.t}</h2>
-      <p className="count" style={{ margin: 0, fontSize: 14 }}>★ {fmt(film.s)} · {LABELS[film.s]}</p>
+      <p className="count" style={{ margin: 0, fontSize: 14 }}>★ {fmt(film.s)} — {LABELS[film.s]}</p>
       <div className="hints">{HINTS.map((h) => <button type="button" key={h} onClick={() => addHint(h)}>{h}</button>)}</div>
       <textarea ref={area} id="rt" maxLength={5000} placeholder="Escreva do seu jeito. Pode ser uma linha ou um textão." value={text} onChange={(e) => setText(e.target.value)} />
       <SpoilerSwitch on={sp} onChange={setSp} />

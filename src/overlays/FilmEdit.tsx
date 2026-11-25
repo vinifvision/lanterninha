@@ -1,8 +1,9 @@
-// Editar um filme avaliado: data, onde viu e ingresso, sem refazer a avaliação.
+// Editar um filme avaliado: data, onde viu, ingresso (ou com quem viu), sem refazer a avaliação.
 // Também é onde ficam "Mudar nota", "Refazer as perguntas", "Reassisti" e "Apagar".
 import { useArmed } from '../components/hooks';
 import { Overlay, OverlayHeader } from '../components/Overlay';
 import { lastCinema, TicketEditor } from '../components/TicketEditor';
+import { WatchedWith } from '../components/WatchedWith';
 import { WhenRow } from '../components/WhenRow';
 import { films, fkey, isRated, useFilms } from '../lib/films';
 import type { Where } from '../lib/types';
@@ -40,7 +41,7 @@ export function FilmEdit({ filmKey }: { filmKey: string }) {
             <button key={label} data-w={w || 'none'} className={film.w === w ? 'on' : ''} onClick={() => setWhere(w)}>{label}</button>
           ))}
         </div>
-        {film.w === 'cine' && <TicketEditor film={film} />}
+        {film.w === 'cine' ? <TicketEditor film={film} /> : <WatchedWith film={film} />}
       </div>
 
       <div className="felist">

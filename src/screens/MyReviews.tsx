@@ -1,4 +1,5 @@
-// Reviews: só os filmes em que você escreveu alguma coisa, do mais recente para o mais antigo. Abre pelo perfil.
+// Reviews: só os filmes em que você escreveu alguma coisa, do mais recente para o mais antigo.
+// Abre pelo perfil (todas) ou pelas estatísticas do ano (só as daquele ano).
 import { Poster } from "../components/Poster";
 import { fkey, isRated, useFilms } from "../lib/films";
 import { fmt, MONTHS } from "../lib/format";
@@ -9,12 +10,12 @@ import { byDiary } from "./Diary";
 /** Filmes vistos que têm review escrita. */
 export const withReview = (films: Film[]) => films.filter((h) => h.st !== "want" && (h.note || "").trim());
 
-export function MyReviews() {
-  const list = withReview(useFilms()).sort(byDiary);
+export function MyReviews({ year }: { year?: string }) {
+  const list = withReview(useFilms()).filter((h) => !year || (h.d || "").startsWith(year)).sort(byDiary);
   const when = (d?: string) => (d ? `${+d.slice(8, 10)} de ${MONTHS[+d.slice(5, 7) - 1].toLowerCase()} de ${d.slice(0, 4)}` : "");
   return (
     <div className="screen v2diary">
-      <h1 className="v2dh">Reviews</h1>
+      <h1 className="v2dh">Reviews{year && <> de <em>{year}</em></>}</h1>
       {list.length === 0 && (
         <p className="empty">Quando você escrever algo sobre um filme na hora de avaliar, a review aparece aqui.</p>
       )}

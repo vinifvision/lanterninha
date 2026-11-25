@@ -47,6 +47,7 @@ export function cleanProfile(p: unknown): Profile | null {
     bio: typeof r.bio === 'string' ? r.bio.trim().slice(0, 160) : '',
     avatar: typeof r.avatar === 'string' && r.avatar.length <= 80000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(r.avatar) ? r.avatar : '',
     banner: typeof r.banner === 'string' && POSTER_PATH.test(r.banner) ? r.banner : '',
+    since: typeof r.created_at === 'string' && !Number.isNaN(Date.parse(r.created_at)) ? r.created_at : '',
     top4: (Array.isArray(r.top4) ? r.top4 : []).slice(0, 4).map((x): TopItem | null => {
       const t = x as Record<string, unknown> | null;
       if (!t || typeof t.t !== 'string' || !t.t.trim()) return null;
@@ -182,7 +183,7 @@ async function loadFriends(): Promise<void> {
     const ids = [...new Set(rows.map(other))].filter((i) => UUID.test(i));
     const map = new Map<string, Profile>();
     if (ids.length) {
-      const pr = await sb.from('profiles').select('id,username,display_name,bio,avatar,top4' + (banners ? ',banner' : '')).in('id', ids);
+      const pr = await sb.from('profiles').select('id,username,display_name,bio,avatar,top4,created_at' + (banners ? ',banner' : '')).in('id', ids);
       (pr.data || []).forEach((x) => { const c = cleanProfile(x); if (c?.id) map.set(c.id, c); });
     }
     const f = emptyFriends();
@@ -295,7 +296,7 @@ async function onAuth(sessionUser: { id: string; email?: string; user_metadata?:
   emit();
   try {
     // Tenta do banco mais novo para o mais antigo, para o app funcionar mesmo sem os scripts mais recentes
-    let r = await sb.from('profiles').select('username,display_name,bio,avatar,top4,banner').eq('id', u.id).maybeSingle();
+    let r = await sb.from('profiles').select('username,display_name,bio,avatar,top4,banner,created_at').eq('id', u.id).maybeSingle();
     banners = !r.error;
     if (r.error) r = await sb.from('profiles').select('username,display_name,bio,avatar,top4').eq('id', u.id).maybeSingle();
     if (r.error) { r = await sb.from('profiles').select('username').eq('id', u.id).maybeSingle(); extended = false; } else extended = true;
@@ -453,6 +454,28 @@ export const cloud = {
     return '';
   },
 
+  /** Metas de filmes por ano ({ "2026": 100 }). null sem conta, sem internet ou sem a tabela (supabase-metas.sql). */
+  async goals(): Promise<Record<string, number> | null> {
+    if (!sb || !user) return null;
+    const { data, error } = await sb.from('goals').select('year,films').eq('user_id', user.id);
+    if (error || !data) return null;
+    const out: Record<string, number> = {};
+    (data as { year?: unknown; films?: unknown }[]).forEach((g) => {
+      if (Number.isInteger(g.year) && Number.isInteger(g.films) && (g.films as number) > 0) out[String(g.year)] = g.films as number;
+    });
+    return out;
+  },
+
+  /** Grava (ou tira, com 0) a meta de um ano. Devolve '' quando deu certo. */
+  async saveGoal(year: string, n: number): Promise<string> {
+    if (!sb || !user) return 'Entre na conta para guardar a meta.';
+    const y = Number(year);
+    const { error } = n > 0
+      ? await sb.from('goals').upsert({ user_id: user.id, year: y, films: n, updated_at: new Date().toISOString() })
+      : await sb.from('goals').delete().eq('user_id', user.id).eq('year', y);
+    return error ? 'Não consegui salvar a meta na nuvem. Ela ficou neste aparelho.' : '';
+  },
+
   /** O @ está livre? null quando não deu para conferir agora. */
   async usernameAvailable(name: string): Promise<boolean | null> {
     if (!sb) return null;
@@ -499,19 +522,24 @@ export const cloud = {
     return '';
   },
 
-  /** Os filmes avaliados de um amigo, do mais recente para o mais antigo. */
-  async friendFilms(id: string): Promise<RatedFilm[] | null> {
+  /** Tudo o que um amigo viu (com nota ou só "Já vi", sem o "Quero ver"), do mais recente para o mais antigo. */
+  async friendWatched(id: string): Promise<Film[] | null> {
     if (!sb || !UUID.test(id)) return null;
     try {
-      const out: RatedFilm[] = [];
+      const out: Film[] = [];
       for (let from = 0; ; from += 1000) {
         const { data, error } = await sb.from('films').select('key,data').eq('user_id', id).range(from, from + 999);
         if (error) return null;
-        (data || []).forEach((r) => { const c = cleanFilm(r.data); if (isRated(c)) out.push(c); });
+        (data || []).forEach((r) => { const c = cleanFilm(r.data); if (c && c.st !== 'want') out.push(c); });
         if (!data || data.length < 1000) break;
       }
       return out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
     } catch { return null; }
+  },
+  /** Só os filmes avaliados de um amigo, do mais recente para o mais antigo. */
+  async friendFilms(id: string): Promise<RatedFilm[] | null> {
+    const all = await this.friendWatched(id);
+    return all && all.filter(isRated);
   },
   /** O que os amigos guardaram em "Quero ver" (para o aviso de match na fila). */
   async friendsWant(): Promise<{ p: Profile; f: Film }[]> {

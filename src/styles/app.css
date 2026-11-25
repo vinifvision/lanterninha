@@ -4747,7 +4747,7 @@ body.rolling .top{opacity:0;transition:opacity .6s}
 }
 
 
-/* ===== Redesign v2 · etapa 1: base ===== */
+/* ===== Redesign v2 — etapa 1: base ===== */
 .serif {
   font-family: var(--serif);
   font-weight: 400;
@@ -4917,7 +4917,7 @@ span.pfb em {
 }
 
 
-/* ===== Redesign v2 · etapa 1, parte 2 ===== */
+/* ===== Redesign v2 — etapa 1, parte 2 ===== */
 /* Nomes de filme na serifada (título de cinema) */
 .fhead h2,
 .rvhead h2,

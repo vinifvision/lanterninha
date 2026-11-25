@@ -1,15 +1,21 @@
-// Perfil de um amigo (redesign v2): compatibilidade, Top 4 com a sua nota, o que ele viu e você não, e o Palpite.
+// Perfil de um amigo (redesign v2): compatibilidade, Top 4 com a sua nota, atalho para os Filmes dele,
+// o que ele viu e você não, as reviews mais recentes e o Palpite.
 import { useEffect, useRef, useState } from 'react';
 import { Avatar } from '../components/Avatar';
 import { Banner } from '../components/Banner';
 import { useArmed, useAsync } from '../components/hooks';
 import { Poster } from '../components/Poster';
+import { Since } from '../components/Since';
 import { useRefresh } from '../lib/refresh';
 import { cloud, useCloud } from '../lib/cloud';
 import { fkey, isRated, useFilms } from '../lib/films';
 import { fmt, pname } from '../lib/format';
 import type { Film, RatedFilm } from '../lib/types';
 import { nav, useNav } from '../nav';
+import { byDiary } from './Diary';
+import { openFriendFilm } from './FriendFilms';
+import { ReviewCard } from './FriendReviews';
+import { withReview } from './MyReviews';
 
 /** Filmes que o amigo avaliou e você ainda não viu (pode estar no seu "Quero ver"), da maior nota para a menor. */
 export function unseenBy(films: RatedFilm[], mine: Film[]): RatedFilm[] {
@@ -24,16 +30,19 @@ export function FriendPage({ id }: { id: string }) {
   const tick = useRefresh();
   // Recarrega os palpites quando o jogo (tela sobreposta) fecha
   const shut = useNav().overlays.length;
-  const films = useAsync<RatedFilm[] | null>(() => cloud.friendFilms(id), [id, tick], true);
+  // Tudo o que ele viu (com nota e "Já vi"); as partes de nota usam só os avaliados
+  const watched = useAsync<Film[] | null>(() => cloud.friendWatched(id), [id, tick], true);
   const guessed = useAsync(() => cloud.guessedKeys(id), [id, tick, shut], true);
   const [err, setErr] = useState('');
 
   if (!p) return <div className="screen"><p className="empty">Essa pessoa não está mais na sua lista de amigos.</p></div>;
 
   const name = pname(p);
-  const openReview = (f: RatedFilm) => nav.open({ k: 'reviews', info: f, focusId: id, known: { p, f } });
+  const films = watched && watched.filter(isRated);
   const myS = new Map(mine.filter(isRated).map((h) => [fkey(h), h.s] as const));
+  const mySeen = new Set(mine.filter((h) => h.st !== 'want').map(fkey));
   const unseen = films ? unseenBy(films, mine) : [];
+  const reviews = watched ? withReview(watched).sort(byDiary) : [];
   // Palpite só aparece quando ainda há filme sem palpite
   const pool = films && guessed ? films.filter((h) => !guessed.has(fkey(h))) : [];
   const play = () => nav.open({ k: 'guess', friend: p, films: [...pool].sort(() => Math.random() - 0.5).slice(0, 5) });
@@ -47,16 +56,17 @@ export function FriendPage({ id }: { id: string }) {
         <div className="v2frname">
           <h1>{name}</h1>
           <p>
-            {p.display_name && p.username && <>@{p.username} · </>}
-            {films && <button type="button" id="fall" onClick={allFilms}>{films.length} {films.length === 1 ? 'filme' : 'filmes'}</button>}
+            {p.display_name && p.username && <>@{p.username} — </>}
+            {watched && <button type="button" id="fall" onClick={allFilms}>{watched.length} {watched.length === 1 ? 'filme' : 'filmes'}</button>}
           </p>
         </div>
         <FriendMenu id={id} onError={setErr} />
       </div>
       {p.bio && <p className="bio v2bio">{p.bio}</p>}
+      <Since iso={p.since} />
 
-      {films === undefined && <p className="empty">Carregando os filmes…</p>}
-      {films === null && <p className="empty">Não consegui carregar os filmes agora.</p>}
+      {watched === undefined && <p className="empty">Carregando os filmes…</p>}
+      {watched === null && <p className="empty">Não consegui carregar os filmes agora.</p>}
 
       {films && <Match films={films} myS={myS} name={name} />}
 
@@ -66,9 +76,9 @@ export function FriendPage({ id }: { id: string }) {
           <div className="v2frtop">
             {p.top4.map((f, i) => {
               const s = f ? myS.get(fkey(f)) : undefined;
-              const h = f && films?.find((x) => fkey(x) === fkey(f));
+              const h = f && watched?.find((x) => fkey(x) === fkey(f));
               return (
-                <button key={i} disabled={!f} aria-label={f ? f.t : `Favorito ${i + 1} vazio`} onClick={() => h && openReview(h)}>
+                <button key={i} disabled={!f} aria-label={f ? f.t : `Favorito ${i + 1} vazio`} onClick={() => h && openFriendFilm(id, h)}>
                   {f && <Poster img={f.img} title={f.t} />}
                   {s != null && <span className="v2frme">★ {fmt(s)}</span>}
                 </button>
@@ -76,6 +86,16 @@ export function FriendPage({ id }: { id: string }) {
             })}
           </div>
         </>
+      )}
+
+      {watched && watched.length > 0 && (
+        <nav className="v2links v2frlinks" aria-label={`Filmes de ${name}`}>
+          <button onClick={allFilms}>
+            <span>Filmes</span>
+            <em>{watched.length}</em>
+            <i aria-hidden="true">›</i>
+          </button>
+        </nav>
       )}
 
       {unseen.length > 0 && (
@@ -95,6 +115,18 @@ export function FriendPage({ id }: { id: string }) {
         </>
       )}
 
+      {reviews.length > 0 && (
+        <>
+          <div className="v2frh">
+            <h2 className="v2h">Reviews de {name}</h2>
+            {reviews.length > 2 && <button type="button" onClick={() => nav.push({ k: 'friendReviews', id })}>Ver todas ({reviews.length})</button>}
+          </div>
+          <div className="v2revs v2frrevs">
+            {reviews.slice(0, 2).map((h) => <ReviewCard key={fkey(h)} id={id} h={h} seen={mySeen.has(fkey(h))} />)}
+          </div>
+        </>
+      )}
+
       {pool.length > 0 && (
         <div className="game v2frgame">
           <b>Palpite</b>
@@ -103,7 +135,7 @@ export function FriendPage({ id }: { id: string }) {
         </div>
       )}
 
-      {films && films.length === 0 && <p className="empty">Ainda não avaliou nenhum filme.</p>}
+      {watched && watched.length === 0 && <p className="empty">Ainda não marcou nenhum filme.</p>}
       <p className={`fmsg${err ? ' bad' : ''}`} id="fm">{err}</p>
     </div>
   );
@@ -137,7 +169,7 @@ function Match({ films, myS, name }: { films: RatedFilm[]; myS: Map<string, numb
           <span className="v2frfp"><Poster img={fight.img} title={fight.t} /></span>
           <span>
             Onde vocês brigam: <i>{fight.t}</i>
-            <small>você <em>★ {fmt(myS.get(fkey(fight))!)}</em> · {name} <em>★ {fmt(fight.s)}</em></small>
+            <small>você deu <em>★ {fmt(myS.get(fkey(fight))!)}</em> e {name} deu <em>★ {fmt(fight.s)}</em></small>
           </span>
         </button>
       )}

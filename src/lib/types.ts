@@ -41,6 +41,8 @@ export interface Film {
   w?: Where;
   /** Ingresso (só quando viu no cinema) */
   tk?: Ticket;
+  /** Amigos com quem viu fora do cinema (ids). É só uma anotação sua: o amigo não recebe aviso. */
+  com?: string[];
 }
 
 export type Where = 'cine' | 'casa' | 'outro';
@@ -79,6 +81,8 @@ export interface Profile {
   /** Imagem de fundo do perfil: caminho de uma cena de filme no TMDB */
   banner: string;
   top4: (TopItem | null)[];
+  /** Quando a conta foi criada (data ISO de profiles.created_at); vazio se não veio */
+  since: string;
 }
 
 export interface Friends {
@@ -107,6 +111,8 @@ export interface FriendRating {
 export interface MovieDetails {
   overview: string;
   runtime: number;
+  /** Nota do público no TMDB (0 a 10); null com poucos votos; undefined se o servidor ainda não manda */
+  vote?: number | null;
   /** Data de lançamento (AAAA-MM-DD), vazia se o TMDB não souber */
   release: string;
   genres: string[];

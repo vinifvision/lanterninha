@@ -66,7 +66,7 @@ export function Result({ info, filmKey, rewatch }: Props) {
       <div className="ptk">
         <span className="ptkp"><Poster img={info.img} title={info.t} size="w342" /></span>
         <div className="ptkb">
-          <small>{film.w === 'cine' ? 'Ingresso · Sessão' : 'Diário · Sessão'}</small>
+          <small>{film.w === 'cine' ? 'Ingresso — Sessão' : 'Diário — Sessão'}</small>
           <b>{film.d ? longDate(film.d) : 'Sem data'}</b>
           {film.w === 'cine' && film.tk?.cine && <span className="ptkc">{film.tk.cine}</span>}
           {names.length > 0 && <span className="ptkc">Você e {names.join(', ')}</span>}
@@ -78,7 +78,7 @@ export function Result({ info, filmKey, rewatch }: Props) {
         </div>
       </div>
 
-      {rewatch && <p className="prseal">Antes ★ {fmt(rewatch.s)} · {diff > 0 ? 'Cresceu na revisão' : diff < 0 ? 'Caiu na revisão' : 'Continua igual'}</p>}
+      {rewatch && <p className="prseal">{diff > 0 ? 'Cresceu na revisão' : diff < 0 ? 'Caiu na revisão' : 'Continua igual'} (antes ★ {fmt(rewatch.s)})</p>}
       {friends.list.length > 0 && (
         <button type="button" className="prrec" onClick={() => nav.open({ k: 'recommend', info })}>
           <span>Algum amigo precisa ver esse?</span><b>Indicar</b>

@@ -4,6 +4,7 @@ import { Avatar } from "../components/Avatar";
 import { Banner } from "../components/Banner";
 import { useAsync } from "../components/hooks";
 import { Poster } from "../components/Poster";
+import { Since } from "../components/Since";
 import { movieDetails } from "../lib/api";
 import { TopFour } from "../components/TopFour";
 import { cleanProfile, cloud, useCloud } from "../lib/cloud";
@@ -234,6 +235,7 @@ function Account() {
         {pr.display_name && pr.username && <p className="v2pfsub">@{pr.username}</p>}
       </div>
       {pr.bio && <p className="bio v2bio">{pr.bio}</p>}
+      <Since iso={pr.since} />
 
       <div className="v2nums">
         <button type="button" id="pfn" onClick={diary}>
@@ -325,7 +327,7 @@ async function topGenre(films: Film[]): Promise<string> {
   return best;
 }
 
-/** Seu ano: filmes por mês (o mês mais forte em dourado), a nota que você mais dá e o gênero do ano. */
+/** Seu ano: filmes por mês (o mês mais forte em dourado), a nota que você mais dá e o gênero do ano. Tocar abre "2026 em filmes". */
 function YearCard({ films, year }: { films: Film[]; year: string }) {
   const ids = films.map((h) => h.id || "").join(",");
   const genre = useAsync(() => topGenre(films), [ids], true);
@@ -346,10 +348,10 @@ function YearCard({ films, year }: { films: Film[]; year: string }) {
     }
   });
   return (
-    <section className="v2year" aria-label={`Seu ${year}`}>
+    <button type="button" className="v2year" aria-label={`Seu ${year}: ver as estatísticas do ano`} onClick={() => nav.push({ k: "year", year })}>
       <div className="v2yh">
         <h2>Seu {year}</h2>
-        <span>{films.length} {films.length === 1 ? "filme" : "filmes"} até agora</span>
+        <span>{films.length} {films.length === 1 ? "filme" : "filmes"} até agora<i aria-hidden="true">›</i></span>
       </div>
       <div
         className="v2bars"
@@ -376,6 +378,6 @@ function YearCard({ films, year }: { films: Film[]; year: string }) {
           <b className="s">{genre || "–"}</b>
         </div>
       </div>
-    </section>
+    </button>
   );
 }

@@ -21,7 +21,7 @@ interface Sequel { prev: FilmInfo; target: FilmInfo; first: boolean; name: strin
 
 /** Limite de duração de cada opção do filtro de tempo, em minutos. */
 const TIME_MAX: Record<Time, number> = { short: 100, normal: 135, any: Infinity };
-const TIMES: [Time, string][] = [['short', 'Pouco tempo · até 1h40'], ['normal', 'Normal · até 2h15'], ['any', 'Tanto faz']];
+const TIMES: [Time, string][] = [['short', 'Pouco tempo (até 1h40)'], ['normal', 'Normal (até 2h15)'], ['any', 'Tanto faz']];
 
 const CARD = 118, GAP = 12, STEP = CARD + GAP, LAND = 26;
 const EASE: [number, number, number, number] = [0.08, 0.72, 0.12, 1];
@@ -189,8 +189,8 @@ export function Tonight({ start }: { start?: 'queue' | 'taste' }) {
   const pick = phase === 'done' ? chosen : null;
   const inQueue = pick ? all.some((h) => fkey(h) === fkey(pick.info) && h.st === 'want') : false;
   const sources: [Source, string][] = [
-    ['queue', `Da minha fila${queue.length ? ' · ' + queue.length : ''}`],
-    ...(friends.length ? [['friends', `Indicados · ${friends.length}`] as [Source, string]] : []),
+    ['queue', `Da minha fila${queue.length ? ` (${queue.length})` : ''}`],
+    ...(friends.length ? [['friends', `Indicados (${friends.length})`] as [Source, string]] : []),
     ['taste', 'No meu estilo'],
   ];
   const emptyMsg = empty === 'time'
@@ -256,7 +256,7 @@ export function Tonight({ start }: { start?: 'queue' | 'taste' }) {
         <p className="v2tnveto" id="tnsoon">{soon === 1 ? '1 filme daqui ainda não lançou' : `${soon} filmes daqui ainda não lançaram`}</p>
       )}
       {vetoCount > 0 && (
-        <p className="v2tnveto">{vetoCount === 1 ? '1 filme vetado' : `${vetoCount} filmes vetados`} · <button onClick={clearVetoes}>Limpar</button></p>
+        <p className="v2tnveto">{vetoCount === 1 ? '1 filme vetado' : `${vetoCount} filmes vetados`}. <button onClick={clearVetoes}>Limpar</button></p>
       )}
 
       {/* O popup vai direto no corpo da página, para ficar centralizado por cima de tudo */}
@@ -269,13 +269,13 @@ export function Tonight({ start }: { start?: 'queue' | 'taste' }) {
 
             {duel ? (
               <>
-                <small className="v2kick gold">Duelo · escolha um</small>
+                <small className="v2kick gold">Duelo: escolha um</small>
                 <div className="v2tnduel">
                   {duel.map((p, i) => (
                     <button key={pid(p)} className="v2tnfighter" style={{ animationDelay: `${i * 0.12}s` }} onClick={() => choose(p)}>
                       {p.info.img ? <img src={posterUrl(p.info.img, 'w342')} alt="" /> : <span>{p.info.t}</span>}
                       <b>{p.info.t}</b>
-                      <small>{[p.info.y, p.min ? hm(p.min) : ''].filter(Boolean).join(' · ')}</small>
+                      <small>{[p.info.y, p.min ? hm(p.min) : ''].filter(Boolean).join(', ')}</small>
                     </button>
                   ))}
                   <i className="v2tnvs" aria-hidden="true">vs</i>
@@ -289,7 +289,7 @@ export function Tonight({ start }: { start?: 'queue' | 'taste' }) {
                   ? <img key={pid(pick)} className="tnposter" src={posterUrl(pick.info.img, 'w342')} alt="" />
                   : <div key={pid(pick)} className="tnposter none">{pick.info.t}</div>}
                 <b className="v2tntitle">{pick.info.t}</b>
-                <small className="v2tnmeta">{[pick.info.y, pick.min ? hm(pick.min) : ''].filter(Boolean).join(' · ')}</small>
+                <small className="v2tnmeta">{[pick.info.y, pick.min ? hm(pick.min) : ''].filter(Boolean).join(', ')}</small>
                 <p className="v2tnwhy">{pick.why}</p>
 
                 {sequel && (

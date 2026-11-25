@@ -147,7 +147,7 @@ function ticketCard(c: CanvasRenderingContext2D, h: RatedFilm, poster: HTMLImage
   k.fillStyle = 'rgba(26,20,8,.6)'; k.font = `500 32px ${SANS}`;
   if (h.y) k.fillText(h.y, rx, y + 10);
   const where = h.w === 'cine' ? (h.tk?.cine ? h.tk.cine : 'No cinema') : h.w === 'casa' ? 'Em casa' : '';
-  const when = [where, h.d ? fd(h.d) : ''].filter(Boolean).join(' · ');
+  const when = [where, h.d ? fd(h.d) : ''].filter(Boolean).join(', ');
   if (when) { k.font = `500 30px ${SANS}`; wrapText(k, when, tw - 120, 1).forEach((l) => k.fillText(l, 60, 560)); }
   const note = (h.note || '').trim();
   if (note) { k.fillStyle = '#1a1408'; k.font = `italic 400 44px ${SERIF}`; wrapText(k, '“' + note + '”', tw - 120, 2).forEach((l, i) => k.fillText(l, 60, 620 + i * 52)); }

@@ -1,4 +1,4 @@
-/* ===== Redesign v2 · etapa 4: Você (perfil e diário) ===== */
+/* ===== Redesign v2 — etapa 4: Você (perfil e diário) ===== */
 
 /* Perfil */
 .v2pf .v2nob {
@@ -51,6 +51,26 @@
 .v2pf .v2bio {
   margin: 12px 0 0;
   font-size: 15px;
+}
+/* "No Lanterninha desde…": discreto, depois da bio (perfil e amigo) */
+.v2since {
+  margin: 10px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.75;
+}
+.v2since svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .v2nums {
@@ -407,6 +427,33 @@
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+/* Menus de escolha (Ordenar, Nota, Ano...): título em cima, uma linha fina entre as opções
+   e o texto numa linha só, para cada opção ficar bem separada da outra */
+.v2cmsel {
+  min-width: 216px;
+  max-width: calc(100vw - 48px);
+}
+.v2cmhead {
+  padding: 8px 14px 6px;
+  font: 600 11px Inter, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8378;
+}
+.v2cmsel li:not(.v2cmhead) + li {
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.v2cmsel button {
+  height: auto;
+  min-height: 44px;
+}
+.v2cmsel button span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 @keyframes v2cmin {
   from {

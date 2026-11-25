@@ -85,7 +85,7 @@ export function RateHome() {
           <div className="flist">
             {results.map((m) => (
               <Row key={m.id} f={{ id: m.id, t: m.title, y: m.year, o: m.original, img: m.poster }}
-                sub={[m.original !== m.title ? m.original : '', m.year].filter(Boolean).join(' · ')}
+                sub={[m.original !== m.title ? m.original : '', m.year].filter(Boolean).join(', ')}
                 onClick={() => rate({ id: m.id, t: m.title, y: m.year, o: m.original, img: m.poster })} />
             ))}
           </div>
