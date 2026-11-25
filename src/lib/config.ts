@@ -13,7 +13,7 @@ export const IMG = 'https://image.tmdb.org/t/p/';
 
 /** Versão do Lanterninha (aparece nas Configurações). Muda a cada funcionalidade nova:
  *  chega a todo mundo pela Vercel e NÃO pede APK novo. */
-export const APP_VERSION = '2.2.0';
+export const APP_VERSION = '2.2.1';
 
 /** Versão mais nova do APK. É separada da APP_VERSION: só muda quando mexer na parte nativa
  *  (Capacitor, plugins, ícone, nome, assinatura). Quando gerar um APK novo:
