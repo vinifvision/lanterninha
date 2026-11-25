@@ -136,7 +136,7 @@ export function FriendFilms({ id, only }: { id: string; only?: 'unseen' }) {
     <div className="screen v2fr">
       <h1 className="v2frtitle">Filmes de {name}</h1>
       {films && all.length > 0 && (
-        <p className="v2ffsub">{all.length} {all.length === 1 ? 'visto' : 'vistos'} · {rated} com nota</p>
+        <p className="v2ffsub">{all.length} {all.length === 1 ? 'visto' : 'vistos'}, {rated} com nota</p>
       )}
       <div className="v2chips" role="tablist">
         {chip('all', 'Todos')}

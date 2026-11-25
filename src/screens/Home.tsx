@@ -306,7 +306,7 @@ function DiaryCard({ r }: { r: FriendRating }) {
         <span className="v2postt">
           <b>{r.f.t}</b>
           <em>★ {fmt(r.f.s)}</em>
-          {r.f.note && (r.f.sp && !seen ? <span className="spq">Review com spoiler · toque para ler</span> : <q>{r.f.note.split('\n')[0]}</q>)}
+          {r.f.note && (r.f.sp && !seen ? <span className="spq">Review com spoiler. Toque para ler</span> : <q>{r.f.note.split('\n')[0]}</q>)}
         </span>
       </button>
     </article>
@@ -387,7 +387,7 @@ function TagCard({ tag }: { tag: CineTag }) {
       void cloud.answerTag(tag, ok).then((f) => { if (f) nav.open({ k: 'ticket', key: fkey(f) }); });
     }, ok ? 520 : 300);
   };
-  const where = [tag.cine, fd(tag.seen)].filter(Boolean).join(' · ');
+  const where = [tag.cine, fd(tag.seen)].filter(Boolean).join(', ');
   return (
     <div className={`tagcard${out ? ' out ' + out : ''}`} data-tag={tag.id}>
       <span className="tgposter"><Poster img={tag.film.img} title={tag.film.t} /></span>

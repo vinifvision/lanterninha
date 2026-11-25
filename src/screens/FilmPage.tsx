@@ -100,7 +100,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
     details?.genres[0] || "",
   ]
     .filter(Boolean)
-    .join(" · ");
+    .join(", ");
   const canRec = hasFriends && !!film && film.st !== "want";
   const classic = looksClassic(info.y);
   const startQuiz = () => nav.startQuiz(info, { classic });
@@ -327,7 +327,7 @@ export function FilmPage({ info: raw }: { info: FilmInfo }) {
                 </div>
               ))}
             <small style={{ marginTop: 12 }}>
-              Disponibilidade no Brasil · dados da JustWatch
+              Disponibilidade no Brasil (dados da JustWatch)
             </small>
           </div>
         </div>
@@ -349,7 +349,7 @@ function MyChips({ film }: { film: Film }) {
   const chips = [
     film.c ? "Clássico" : "",
     film.w === "cine" ? "No cinema" : film.w === "casa" ? "Em casa" : "",
-    (film.n || 0) > 1 ? `↻ ${film.n}ª vez${film.p ? " · antes ★ " + fmt(film.p) : ""}` : "",
+    (film.n || 0) > 1 ? `↻ ${film.n}ª vez${film.p ? " (antes ★ " + fmt(film.p) + ")" : ""}` : "",
     film.d ? "Visto em " + fd(film.d) : "",
   ].filter(Boolean);
   if (!chips.length) return null;
@@ -472,7 +472,7 @@ function Disse({ crowd, info }: { crowd: FriendRating[]; info: FilmInfo }) {
               <Avatar p={r.p} />
               <span>{star(r.f.s)}</span>
             </span>
-            {r.f.sp && !seen ? <p className="spq">Review com spoiler · toque para ler</p> : <p>“{r.f.note}”</p>}
+            {r.f.sp && !seen ? <p className="spq">Review com spoiler. Toque para ler</p> : <p>“{r.f.note}”</p>}
           </button>
         ))}
       </div>

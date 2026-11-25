@@ -71,11 +71,11 @@ export function Diary({ seenOnly = false }: { seenOnly?: boolean } = {}) {
         .map((id) => friends.list.find((p) => p.id === id))
         .filter(Boolean)
         .map((p) => pname(p).split(' ')[0]);
-      parts.push(names.length ? `Cinema · com ${names.join(', ')}` : 'Cinema');
+      parts.push(names.length ? `Cinema com ${names.join(', ')}` : 'Cinema');
     }
     if (h.note) parts.push('Review');
     if ((h.n || 1) > 1) parts.push('Revi');
-    return parts.join(' · ');
+    return parts.join(' — ');
   };
   const empty = !watched.length
     ? seenOnly
