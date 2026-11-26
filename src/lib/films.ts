@@ -4,13 +4,15 @@ import { POSTER_PATH, today, UUID } from './format';
 import type { Film, FilmInfo, FilmState, RatedFilm, Ticket } from './types';
 
 const KEY = 'notaFilmeV2';
+const DAY = 86_400_000;
 
 /** Deixa passar só o que está no formato esperado. Tudo que entra no app (aparelho, nuvem, backup) passa por aqui. */
 export function cleanFilm(x: unknown): Film | null {
   const r = x as Record<string, unknown> | null;
   if (!r || typeof r.t !== 'string' || !r.t.trim()) return null;
   const st: FilmState | '' = r.st === 'want' || r.st === 'seen' ? r.st : '';
-  const s = Math.round(Number(r.s) * 2) / 2;
+  // Só número (ou texto com número, como "4.5"). `true`, listas e afins viravam nota sem querer.
+  const s = typeof r.s === 'number' || (typeof r.s === 'string' && /^\d+(\.\d+)?$/.test(r.s)) ? Math.round(Number(r.s) * 2) / 2 : NaN;
   if (!st && !(s >= 0.5 && s <= 5)) return null;
   const e: Film = st ? { t: r.t.trim().slice(0, 120), st, c: !!r.c } : { t: r.t.trim().slice(0, 120), s, c: !!r.c };
   if (st && typeof r.by === 'string' && r.by.trim()) e.by = r.by.trim().slice(0, 44);
@@ -22,7 +24,8 @@ export function cleanFilm(x: unknown): Film | null {
   if (Number.isInteger(r.n) && (r.n as number) > 1) e.n = r.n as number;
   if (typeof r.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.d)) e.d = r.d;
   if (typeof r.col === 'string' && /^#[0-9a-f]{6}$/.test(r.col)) e.col = r.col;
-  if (typeof r.ts === 'number' && r.ts > 0) e.ts = Math.round(r.ts);
+  // Momento real: nem infinito, nem mais de um dia no futuro (o que prenderia o filme no topo da lista).
+  if (typeof r.ts === 'number' && Number.isFinite(r.ts) && r.ts > 0 && r.ts <= Date.now() + DAY) e.ts = Math.round(r.ts);
   if (typeof r.note === 'string' && r.note.trim()) e.note = r.note.trim().slice(0, 5000);
   if (e.note && r.sp === true) e.sp = true;
   if (r.w === 'cine' || r.w === 'casa' || r.w === 'outro') e.w = r.w;
@@ -141,12 +144,14 @@ export const films = {
     return cur;
   },
 
-  /** Junta um backup aos filmes atuais. Devolve quantos entraram e quantos foram atualizados. */
+  /** Junta um backup aos filmes atuais. Devolve quantos entraram e quantos foram atualizados.
+   *  Nunca rebaixa um filme já avaliado (um backup antigo com ele no "Quero ver" não apaga a nota). */
   merge(incoming: Film[]): { added: number; updated: number } {
     let added = 0, updated = 0;
     incoming.slice().reverse().forEach((f) => {
       if (!f.ts) f.ts = Date.now();
       const i = hist.findIndex((h) => fkey(h) === fkey(f));
+      if (i >= 0 && isRated(hist[i]) && !isRated(f)) return;
       if (i >= 0) { hist[i] = f; updated++; } else { hist.unshift(f); added++; }
     });
     films.save();
