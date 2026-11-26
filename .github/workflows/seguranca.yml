@@ -1,0 +1,30 @@
+# Confere se alguma biblioteca do projeto tem vulnerabilidade conhecida.
+# Roda em todo pull request, em todo push na main, toda segunda-feira e quando você mandar pelo GitHub.
+name: Segurança
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Toda segunda às 11:23 UTC (8:23 no horário de Recife).
+    # Serve para pegar vulnerabilidades descobertas depois, mesmo sem mudança no código.
+    - cron: '23 11 * * 1'
+  workflow_dispatch:
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar o Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # O npm audit só lê o package-lock.json, então não precisa instalar nada antes.
+      # --audit-level=high: falha só com aviso alto ou crítico. Moderado e baixo aparecem no log, mas não travam.
+      - name: Procurar vulnerabilidades (npm audit)
+        run: npm audit --audit-level=high
